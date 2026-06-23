@@ -17,12 +17,7 @@ import com.example.learncompose.features.welcome.presentation.WelcomeViewModel
 @Composable
 fun AppNavGraph() {
     val backStack = remember { mutableStateListOf<Screen>(Screen.Welcome) }
-
-    NavDisplay(
-        backStack = backStack,
-        onBack = { backStack.removeLastOrNull() }
-    )
-    { key: Screen ->
+    val entryProvider: (Screen) -> NavEntry<Screen> = { key: Screen ->
         when (key) {
             is Screen.Welcome -> NavEntry(key) {
                 val viewModel = remember { WelcomeViewModel() }
@@ -39,4 +34,10 @@ fun AppNavGraph() {
             }
         }
     }
+
+    NavDisplay(
+        backStack = backStack,
+        onBack = { backStack.removeLastOrNull() },
+        entryProvider = entryProvider
+    )
 }
