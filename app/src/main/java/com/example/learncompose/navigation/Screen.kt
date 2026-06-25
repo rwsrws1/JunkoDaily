@@ -3,7 +3,7 @@ package com.example.learncompose.navigation
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
-sealed interface Screen {
+sealed interface Screen : NavKey {
     @Serializable
     data object Welcome : Screen
     @Serializable

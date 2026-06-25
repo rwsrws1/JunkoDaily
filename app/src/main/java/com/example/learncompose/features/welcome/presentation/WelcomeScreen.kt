@@ -1,15 +1,19 @@
 package com.example.learncompose.features.welcome.presentation
 
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
@@ -20,14 +24,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.LinkInteractionListener
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -45,8 +58,9 @@ fun WelcomeScreen(
     viewModel: WelcomeViewModel = viewModel()
 ) {
     val snackBarHostState = remember { SnackbarHostState() }
-    val width = LocalWindowInfo.current.containerSize.width
-    val height = LocalWindowInfo.current.containerSize.height
+
+    val width = LocalWindowInfo.current.containerSize.width.dp
+    val height = LocalWindowInfo.current.containerSize.height.dp
 
     SnackbarHost(hostState = snackBarHostState)
 
@@ -64,46 +78,51 @@ fun WelcomeScreen(
         }
     }
 
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .padding(20.dp)
     ) {
+        val parentHeight = maxHeight
         when (windowSizeClass.windowWidthSizeClass) {
             WindowWidthSizeClass.COMPACT -> {
-                CommonScreen(viewModel, 0)
+                CombineContent(viewModel, parentHeight, 0)
             }
 
             WindowWidthSizeClass.MEDIUM -> {
-                CommonScreen(viewModel, 100)
+                CombineContent(viewModel, parentHeight, 100)
             }
 
             WindowWidthSizeClass.EXPANDED -> {
-                CommonScreen(viewModel, 200)
+                CombineContent(viewModel, parentHeight, 200)
             }
         }
     }
 }
 
 @Composable
-fun CommonScreen(viewModel: WelcomeViewModel, horizontalPadding: Int) {
+fun CombineContent(viewModel: WelcomeViewModel, parentHeight: Dp, horizontalPadding: Int = 0) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Bottom
     )
     {
-        Spacer(modifier = Modifier.weight(1f))
-        MediumContent(
-            modifier = Modifier
-                .fillMaxWidth()
-        )
-        Spacer(modifier = Modifier.weight(1f))
-        BottomContent(
-            modifier = Modifier
-                .padding(horizontal = horizontalPadding.dp)
-                .fillMaxWidth(),
-            viewModel
-        )
+        Column(
+            modifier = Modifier.fillMaxWidth().heightIn(min = parentHeight + 1.dp)
+        ) {
+            Spacer(modifier = Modifier.weight(1f))
+            MediumContent(
+                modifier = Modifier
+                    .fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            BottomContent(
+                modifier = Modifier
+                    .padding(horizontal = horizontalPadding.dp)
+                    .fillMaxWidth(),
+                viewModel
+            )
+        }
     }
 }
 
@@ -145,10 +164,48 @@ fun BottomContent(modifier: Modifier = Modifier, viewModel: WelcomeViewModel) {
         LoginButton("将账户添加至设备") {
             viewModel.handleIntent(HomeContract.Intent.ClickItem(state.items[0]))
         }
-        LoginButton("保持已注销状态")
+        LoginButton("保持已注销状态 ${state.testNumber}") {
+            viewModel.handleIntent(HomeContract.Intent.PlusItem)
+        }
         Spacer(Modifier.size(20.dp))
+        val linkInteractionListener = LinkInteractionListener { annotation ->
+            println("点击了${(annotation as LinkAnnotation.Clickable).tag}！")
+        }
+        val linkTextStyle = TextLinkStyles(
+            style = SpanStyle(
+                color = MaterialTheme.colorScheme.primary,
+                textDecoration = TextDecoration.Underline,
+                fontWeight = FontWeight.Bold
+            )
+        )
+        val annotatedString = buildAnnotatedString {
+            append("继续操作即表示您同意接受")
+            withLink(
+                LinkAnnotation.Clickable(
+                    tag = "terms",
+                    // 设置正常状态下的样式，也可以设置 hover/focused 状态
+                    styles = linkTextStyle,
+                    linkInteractionListener
+                )
+            ) {
+                append("服务条款")
+            }
+            append("。为了帮助改进这款应用程序，谷歌浏览器会将使用情况和崩溃数据发送给谷歌。")
+            withLink(
+                LinkAnnotation.Clickable(
+                    tag = "privacy",
+                    styles = linkTextStyle,
+                    linkInteractionListener
+                )
+            )
+            {
+                append("管理")
+            }
+            append("。")
+        }
+
         Text(
-            text = "继续操作即表示您同意接受服务条款。为了帮助改进这款应用程序，谷歌浏览器会将使用情况和崩溃数据发送给谷歌。管理",
+            text = annotatedString,
             style = MaterialTheme.typography.bodySmall,
             textAlign = TextAlign.Center
         )

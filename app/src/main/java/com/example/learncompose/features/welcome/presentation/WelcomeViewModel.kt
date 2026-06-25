@@ -7,6 +7,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class WelcomeViewModel : ViewModel() {
@@ -21,6 +22,11 @@ class WelcomeViewModel : ViewModel() {
             is HomeContract.Intent.ClickItem -> {
                 viewModelScope.launch {
                     _sideEffect.send(HomeContract.SideEffect.NavigationToDetail(intent.id))
+                }
+            }
+            is HomeContract.Intent.PlusItem -> {
+                _uiState.update {
+                    it.copy(testNumber = it.testNumber + 1)
                 }
             }
         }
