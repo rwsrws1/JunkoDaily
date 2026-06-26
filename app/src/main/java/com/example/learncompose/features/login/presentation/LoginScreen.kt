@@ -47,12 +47,16 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -80,55 +84,78 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.core.layout.WindowHeightSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowWidthSizeClass
 import com.example.learncompose.R
+import com.example.learncompose.data.repository.AuthState
 import com.example.learncompose.ui.theme.LearnComposeTheme
 
-@SuppressLint("UnusedBoxWithConstraintsScope")
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun LoginScreen() {
-    val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
+val LocalLoginIntentHandler = staticCompositionLocalOf<(LoginContract.Intent) -> Unit> {
+    {}
+}
 
-    BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp)
-    ) {
-        val parentHeight = maxHeight
-        when (windowSizeClass.windowHeightSizeClass) {
-            WindowHeightSizeClass.COMPACT -> {
-                CombineContent(0, parentHeight)
-            }
-            WindowHeightSizeClass.MEDIUM -> {
-                CombineContent(100, parentHeight)
-            }
-            WindowHeightSizeClass.EXPANDED -> {
-                CombineContent(200, parentHeight)
+@Composable
+fun LoginScreen(
+    viewModel: LoginViewModel = hiltViewModel(),
+    onNavigateToHome: () -> Unit = {}
+) {
+
+    LaunchedEffect(viewModel.sideEffect) {
+        viewModel.sideEffect.collect { sideEffect ->
+            when (sideEffect) {
+                is LoginContract.SideEffect.NavigateToHome -> onNavigateToHome()
             }
         }
+    }
+
+    CompositionLocalProvider(LocalLoginIntentHandler provides viewModel::handleIntent) {
+        CombineContent()
     }
 }
 
 @Composable
-fun CombineContent(bottomPadding: Int = 0, parentHeight: Dp) {
-    Column(
+fun CombineContent() {
+    val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.Bottom
+            .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))
+            .padding(20.dp)
     ) {
+        val parentHeight = maxHeight
+        var bottomPadding = 0
+        when (windowSizeClass.windowHeightSizeClass) {
+            WindowHeightSizeClass.COMPACT -> {
+                bottomPadding = 0
+            }
+            WindowHeightSizeClass.MEDIUM -> {
+                bottomPadding = 100
+            }
+            WindowHeightSizeClass.EXPANDED -> {
+                bottomPadding = 200
+            }
+        }
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = parentHeight + 1.dp)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.Bottom
         ) {
-            Spacer(Modifier.weight(1f))
-            MediumContent()
-            Spacer(Modifier.weight(2f))
-            BottomContent()
-            Spacer(Modifier.height(bottomPadding.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = parentHeight + 1.dp)
+            ) {
+                Spacer(Modifier.weight(1f))
+                MediumContent()
+                Spacer(Modifier.weight(2f))
+                BottomContent()
+                Spacer(Modifier.height(bottomPadding.dp))
+            }
         }
     }
 }
@@ -137,8 +164,7 @@ fun CombineContent(bottomPadding: Int = 0, parentHeight: Dp) {
 fun MediumContent() {
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal)),
+            .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         var account by rememberSaveable { mutableStateOf("") }
@@ -210,6 +236,7 @@ fun BottomContent() {
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        val intentHandler = LocalLoginIntentHandler.current
         Image(
             modifier = Modifier
                 .size(100.dp)
@@ -220,7 +247,7 @@ fun BottomContent() {
                 )
                 .clickable(
                     onClick = {
-                        // TODO:
+                        intentHandler(LoginContract.Intent.ClickLogin())
                     }
                 )
                 .padding(15.dp),
@@ -235,6 +262,6 @@ fun BottomContent() {
 @Composable
 fun LoginScreenPreview() {
     LearnComposeTheme {
-        LoginScreen()
+        CombineContent()
     }
 }

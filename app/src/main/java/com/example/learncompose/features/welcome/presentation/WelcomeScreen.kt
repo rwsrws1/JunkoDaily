@@ -6,12 +6,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -21,10 +26,14 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
@@ -43,6 +52,7 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.core.layout.WindowWidthSizeClass
@@ -52,11 +62,16 @@ import com.example.learncompose.ui.theme.LearnComposeTheme
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
+val LocalWelcomeIntentHandler = staticCompositionLocalOf<(WelcomeContract.Intent) -> Unit> {
+    {}
+}
+
 @Composable
 fun WelcomeScreen(
-    onNavigateToLogin: (String) -> Unit = {},
-    viewModel: WelcomeViewModel = viewModel()
+    viewModel: WelcomeViewModel = viewModel(),
+    onNavigateToLogin: (String) -> Unit = {}
 ) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
 
     val width = LocalWindowInfo.current.containerSize.width.dp
@@ -69,59 +84,69 @@ fun WelcomeScreen(
         snackBarHostState.showSnackbar("width = $width, height = $height")
     }
 
-    val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
     LaunchedEffect(viewModel.sideEffect) {
         viewModel.sideEffect.collect { effect ->
             when (effect) {
-                is HomeContract.SideEffect.NavigationToDetail -> onNavigateToLogin(effect.id)
+                is WelcomeContract.SideEffect.NavigateToLogin -> onNavigateToLogin(effect.id)
             }
         }
     }
 
-    BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp)
-    ) {
-        val parentHeight = maxHeight
-        when (windowSizeClass.windowWidthSizeClass) {
-            WindowWidthSizeClass.COMPACT -> {
-                CombineContent(viewModel, parentHeight, 0)
-            }
-
-            WindowWidthSizeClass.MEDIUM -> {
-                CombineContent(viewModel, parentHeight, 100)
-            }
-
-            WindowWidthSizeClass.EXPANDED -> {
-                CombineContent(viewModel, parentHeight, 200)
-            }
-        }
+    CompositionLocalProvider(LocalWelcomeIntentHandler provides viewModel::handleIntent) {
+        CombineContent(state)
     }
 }
 
 @Composable
-fun CombineContent(viewModel: WelcomeViewModel, parentHeight: Dp, horizontalPadding: Int = 0) {
-    Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.Bottom
-    )
-    {
+fun CombineContent(state: WelcomeContract.State = WelcomeContract.State()) {
+    val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))
+            .padding(20.dp)
+    ) {
+        val parentHeight = maxHeight
+        var horizontalPadding = 0
+        when (windowSizeClass.windowWidthSizeClass) {
+            WindowWidthSizeClass.COMPACT -> {
+                horizontalPadding = 0
+            }
+
+            WindowWidthSizeClass.MEDIUM -> {
+                horizontalPadding = 100
+            }
+
+            WindowWidthSizeClass.EXPANDED -> {
+                horizontalPadding = 200
+            }
+        }
         Column(
-            modifier = Modifier.fillMaxWidth().heightIn(min = parentHeight + 1.dp)
-        ) {
-            Spacer(modifier = Modifier.weight(1f))
-            MediumContent(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.Bottom
+        )
+        {
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            BottomContent(
-                modifier = Modifier
-                    .padding(horizontal = horizontalPadding.dp)
-                    .fillMaxWidth(),
-                viewModel
-            )
+                    .heightIn(min = parentHeight + 1.dp)
+            ) {
+                Spacer(modifier = Modifier.weight(1f))
+                MediumContent(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                BottomContent(
+                    modifier = Modifier
+                        .padding(horizontal = horizontalPadding.dp)
+                        .fillMaxWidth(),
+                    state
+                )
+            }
         }
     }
 }
@@ -154,18 +179,18 @@ fun MediumContent(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun BottomContent(modifier: Modifier = Modifier, viewModel: WelcomeViewModel) {
+fun BottomContent(modifier: Modifier = Modifier, state: WelcomeContract.State) {
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val state by viewModel.uiState.collectAsStateWithLifecycle()
+        val intentHandler = LocalWelcomeIntentHandler.current
         Spacer(Modifier.size(10.dp))
         LoginButton("将账户添加至设备") {
-            viewModel.handleIntent(HomeContract.Intent.ClickItem(state.items[0]))
+            intentHandler(WelcomeContract.Intent.ClickItem(state.items[0]))
         }
         LoginButton("保持已注销状态 ${state.testNumber}") {
-            viewModel.handleIntent(HomeContract.Intent.PlusItem)
+            intentHandler(WelcomeContract.Intent.PlusItem)
         }
         Spacer(Modifier.size(20.dp))
         val linkInteractionListener = LinkInteractionListener { annotation ->
@@ -183,7 +208,6 @@ fun BottomContent(modifier: Modifier = Modifier, viewModel: WelcomeViewModel) {
             withLink(
                 LinkAnnotation.Clickable(
                     tag = "terms",
-                    // 设置正常状态下的样式，也可以设置 hover/focused 状态
                     styles = linkTextStyle,
                     linkInteractionListener
                 )
@@ -228,6 +252,6 @@ fun LoginButton(text: String = "", onclick: () -> Unit = {}) {
 @Composable
 fun Preview() {
     LearnComposeTheme {
-        WelcomeScreen()
+        CombineContent()
     }
 }

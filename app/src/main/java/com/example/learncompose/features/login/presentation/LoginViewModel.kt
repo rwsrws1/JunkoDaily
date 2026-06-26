@@ -1,0 +1,53 @@
+package com.example.learncompose.features.login.presentation
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.learncompose.data.repository.AuthState
+import com.example.learncompose.data.repository.IAuthRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    private val authRepository: IAuthRepository
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(LoginContract.State())
+    val uiState = _uiState.asStateFlow()
+
+    private val _sideEffect = Channel<LoginContract.SideEffect>()
+    val sideEffect = _sideEffect.receiveAsFlow()
+
+    init {
+        viewModelScope.launch {
+            authRepository.authState.collect { globalAuthState ->
+                _uiState.update { it.copy(authState = globalAuthState) }
+            }
+        }
+
+        viewModelScope.launch {
+            uiState.collect { state ->
+                if (state.authState is AuthState.LoggedIn) {
+                    _sideEffect.send(LoginContract.SideEffect.NavigateToHome)
+                }
+            }
+        }
+    }
+
+    fun handleIntent(intent: LoginContract.Intent) {
+        when (intent) {
+            is LoginContract.Intent.ClickLogout -> {
+                viewModelScope.launch { authRepository.logout() }
+            }
+            is LoginContract.Intent.ClickLogin -> {
+                viewModelScope.launch { authRepository.login(intent.account, intent.password) }
+            }
+        }
+    }
+}

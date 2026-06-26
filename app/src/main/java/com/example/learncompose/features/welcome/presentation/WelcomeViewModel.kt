@@ -11,20 +11,20 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class WelcomeViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(HomeContract.State(items = listOf("goods1", "goods2")))
+    private val _uiState = MutableStateFlow(WelcomeContract.State(items = listOf("goods1", "goods2")))
     val uiState = _uiState.asStateFlow()
 
-    private val _sideEffect = Channel<HomeContract.SideEffect>()
+    private val _sideEffect = Channel<WelcomeContract.SideEffect>()
     val sideEffect = _sideEffect.receiveAsFlow()
 
-    fun handleIntent(intent: HomeContract.Intent) {
+    fun handleIntent(intent: WelcomeContract.Intent) {
         when (intent) {
-            is HomeContract.Intent.ClickItem -> {
+            is WelcomeContract.Intent.ClickItem -> {
                 viewModelScope.launch {
-                    _sideEffect.send(HomeContract.SideEffect.NavigationToDetail(intent.id))
+                    _sideEffect.send(WelcomeContract.SideEffect.NavigateToLogin(intent.id))
                 }
             }
-            is HomeContract.Intent.PlusItem -> {
+            is WelcomeContract.Intent.PlusItem -> {
                 _uiState.update {
                     it.copy(testNumber = it.testNumber + 1)
                 }
