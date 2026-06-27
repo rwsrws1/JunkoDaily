@@ -1,4 +1,4 @@
-package com.example.learncompose.features.login.presentation
+package com.example.learncompose.features.login
 
 import com.example.learncompose.data.repository.AuthState
 

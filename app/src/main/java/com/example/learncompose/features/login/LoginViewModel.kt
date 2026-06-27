@@ -1,4 +1,4 @@
-package com.example.learncompose.features.login.presentation
+package com.example.learncompose.features.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -46,7 +46,10 @@ class LoginViewModel @Inject constructor(
                 viewModelScope.launch { authRepository.logout() }
             }
             is LoginContract.Intent.ClickLogin -> {
-                viewModelScope.launch { authRepository.login(intent.account, intent.password) }
+                viewModelScope.launch {
+                    authRepository
+                    authRepository.login(intent.account, intent.password)
+                }
             }
         }
     }

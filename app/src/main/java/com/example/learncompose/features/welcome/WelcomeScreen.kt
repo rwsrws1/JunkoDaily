@@ -1,8 +1,7 @@
-package com.example.learncompose.features.welcome.presentation
+package com.example.learncompose.features.welcome
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -28,11 +26,8 @@ import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,15 +44,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.core.layout.WindowWidthSizeClass
 import com.example.learncompose.R
-import com.example.learncompose.features.home.presentation.HomeContract
 import com.example.learncompose.ui.theme.LearnComposeTheme
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
@@ -187,7 +179,7 @@ fun BottomContent(modifier: Modifier = Modifier, state: WelcomeContract.State) {
         val intentHandler = LocalWelcomeIntentHandler.current
         Spacer(Modifier.size(10.dp))
         LoginButton("将账户添加至设备") {
-            intentHandler(WelcomeContract.Intent.ClickItem(state.items[0]))
+            intentHandler(WelcomeContract.Intent.ClickLogin(state.items[0]))
         }
         LoginButton("保持已注销状态 ${state.testNumber}") {
             intentHandler(WelcomeContract.Intent.PlusItem)
@@ -207,7 +199,7 @@ fun BottomContent(modifier: Modifier = Modifier, state: WelcomeContract.State) {
             append("继续操作即表示您同意接受")
             withLink(
                 LinkAnnotation.Clickable(
-                    tag = "terms",
+                    tag = "服务条款",
                     styles = linkTextStyle,
                     linkInteractionListener
                 )
@@ -217,7 +209,7 @@ fun BottomContent(modifier: Modifier = Modifier, state: WelcomeContract.State) {
             append("。为了帮助改进这款应用程序，谷歌浏览器会将使用情况和崩溃数据发送给谷歌。")
             withLink(
                 LinkAnnotation.Clickable(
-                    tag = "privacy",
+                    tag = "管理",
                     styles = linkTextStyle,
                     linkInteractionListener
                 )

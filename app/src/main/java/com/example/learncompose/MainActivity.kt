@@ -4,8 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.learncompose.features.home.presentation.HomeScreen
-import com.example.learncompose.navigation.AppNavGraph
+import com.example.learncompose.app.StartScreen
 import com.example.learncompose.ui.theme.LearnComposeTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -16,7 +15,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             LearnComposeTheme {
-                AppNavGraph()
+                StartScreen()
             }
         }
     }

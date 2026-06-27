@@ -10,4 +10,6 @@ sealed interface Screen : NavKey {
     data class Login(val itemId: String = "") : Screen
     @Serializable
     data object Loading : Screen
+    @Serializable
+    data object Home : Screen
 }

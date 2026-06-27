@@ -1,13 +1,15 @@
 package com.example.learncompose.data.repository
 
-import android.net.Credentials
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.example.learncompose.data.local.UserDataStore
+import com.example.learncompose.data.remote.MockRemoteServer
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -44,9 +46,11 @@ class AuthRepositoryImpl @Inject constructor(
         )
 
     override suspend fun login(account: String, password: String) {
-        val mockToken = "jwt_token_123456"
-        val mockUser = UserInfo("9527", "开发者小明")
-        dataStore.saveUserSession(mockToken, mockUser)
+        withContext(Dispatchers.Default) {
+            val mockToken = MockRemoteServer.login(account, password)
+            val mockUser = UserInfo("9527", "开发者小明")
+            dataStore.saveUserSession(mockToken, mockUser)
+        }
     }
 
     override suspend fun logout() {

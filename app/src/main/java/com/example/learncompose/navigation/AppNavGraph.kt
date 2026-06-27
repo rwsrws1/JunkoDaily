@@ -1,35 +1,37 @@
 package com.example.learncompose.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
-import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
-import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.example.learncompose.common.presentation.CommonScreen
-import com.example.learncompose.features.login.presentation.LoginScreen
-import com.example.learncompose.features.login.presentation.LoginViewModel
-import com.example.learncompose.features.welcome.presentation.WelcomeScreen
-import com.example.learncompose.features.welcome.presentation.WelcomeViewModel
+import com.example.learncompose.app.StartViewModel
+import com.example.learncompose.common.CommonScreen
+import com.example.learncompose.data.repository.AuthState
+import com.example.learncompose.features.home.HomeScreen
+import com.example.learncompose.features.login.LoginScreen
+import com.example.learncompose.features.login.LoginViewModel
+import com.example.learncompose.features.welcome.WelcomeScreen
+import com.example.learncompose.features.welcome.WelcomeViewModel
 
 @Composable
-fun AppNavGraph() {
-    val backStack = remember { mutableStateListOf<Screen>(Screen.Welcome) }
-    val rememberNavBackStack = rememberNavBackStack(Screen.Welcome)
+fun AppNavGraph(startDestination: Screen = Screen.Welcome) {
+//    val backStack = remember { mutableStateListOf<Screen>(Screen.Welcome) }
+    val rememberNavBackStack = rememberNavBackStack(startDestination)
+
+    val viewModel = hiltViewModel<StartViewModel>()
+    if (viewModel.authState == AuthState.LoggedOut) {
+        rememberNavBackStack.clear()
+        rememberNavBackStack.add(Screen.Login(""))
+    }
 
     val entryProvider: (NavKey) -> NavEntry<NavKey> = { key: NavKey ->
         when (key) {
             is Screen.Welcome -> NavEntry(key) {
-                val viewModel = viewModel<WelcomeViewModel>()
+                val viewModel = hiltViewModel<WelcomeViewModel>()
                 WelcomeScreen(
                     viewModel = viewModel,
                     onNavigateToLogin = { id ->
@@ -43,15 +45,24 @@ fun AppNavGraph() {
                 LoginScreen(
                     viewModel = viewModel,
                     onNavigateToHome = {
-//                        rememberNavBackStack.add(Screen.Loading)
+                        rememberNavBackStack.add(Screen.Home)
                     }
                 )
             }
 
-            is Screen.Loading -> NavEntry(key) {
-                CommonScreen()
+            is Screen.Home -> NavEntry(key) {
+                HomeScreen(
+                    onNavigateToLogin = {
+                        rememberNavBackStack.add(Screen.Login(""))
+                        rememberNavBackStack.remove(Screen.Home)
+                    }
+                )
                 rememberNavBackStack.remove(Screen.Login(""))
                 rememberNavBackStack.remove(Screen.Welcome)
+            }
+
+            is Screen.Loading -> NavEntry(key) {
+                CommonScreen()
             }
 
             else -> NavEntry(key) {}
