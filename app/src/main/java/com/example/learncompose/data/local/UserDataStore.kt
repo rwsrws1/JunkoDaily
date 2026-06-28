@@ -36,6 +36,7 @@ class UserDataStore @Inject constructor(
         }
     }
         .map { preferences ->
+            delay(500.milliseconds)
             preferences[PreferencesKeys.TOKEN] ?: ""
         }
 
@@ -44,6 +45,7 @@ class UserDataStore @Inject constructor(
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
         .map { preferences ->
+            delay(500.milliseconds)
             UserInfo(
                 userId = preferences[PreferencesKeys.USER_ID] ?: "",
                 userName = preferences[PreferencesKeys.USER_NAME] ?: ""
@@ -51,6 +53,7 @@ class UserDataStore @Inject constructor(
         }
 
     suspend fun getUserInfo(): UserInfo {
+        delay(500.milliseconds)
         val preferences = dataStore.data.catch { emit(emptyPreferences()) }.first()
         return UserInfo(
             userId = preferences[PreferencesKeys.USER_ID] ?: "",

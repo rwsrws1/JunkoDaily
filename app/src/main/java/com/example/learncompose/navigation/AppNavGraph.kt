@@ -8,7 +8,7 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.example.learncompose.app.StartViewModel
+import com.example.learncompose.app.MainViewModel
 import com.example.learncompose.common.CommonScreen
 import com.example.learncompose.data.repository.AuthState
 import com.example.learncompose.features.home.HomeScreen
@@ -22,8 +22,8 @@ fun AppNavGraph(startDestination: Screen = Screen.Welcome) {
 //    val backStack = remember { mutableStateListOf<Screen>(Screen.Welcome) }
     val rememberNavBackStack = rememberNavBackStack(startDestination)
 
-    val viewModel = hiltViewModel<StartViewModel>()
-    if (viewModel.authState == AuthState.LoggedOut) {
+    val viewModel = hiltViewModel<MainViewModel>()
+    if (rememberNavBackStack.last() != Screen.Welcome && viewModel.authState == AuthState.LoggedOut) {
         rememberNavBackStack.clear()
         rememberNavBackStack.add(Screen.Login(""))
     }
@@ -51,12 +51,7 @@ fun AppNavGraph(startDestination: Screen = Screen.Welcome) {
             }
 
             is Screen.Home -> NavEntry(key) {
-                HomeScreen(
-                    onNavigateToLogin = {
-                        rememberNavBackStack.add(Screen.Login(""))
-                        rememberNavBackStack.remove(Screen.Home)
-                    }
-                )
+                HomeScreen()
                 rememberNavBackStack.remove(Screen.Login(""))
                 rememberNavBackStack.remove(Screen.Welcome)
             }

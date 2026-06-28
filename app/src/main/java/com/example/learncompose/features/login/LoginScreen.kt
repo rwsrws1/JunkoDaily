@@ -51,8 +51,11 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowHeightSizeClass
 import com.example.learncompose.R
+import com.example.learncompose.common.CommonScreen
+import com.example.learncompose.data.repository.AuthState
 import com.example.learncompose.ui.theme.LearnComposeTheme
 
 val LocalLoginIntentHandler = staticCompositionLocalOf<(LoginContract.Intent) -> Unit> {
@@ -64,6 +67,7 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel(),
     onNavigateToHome: () -> Unit = {}
 ) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(viewModel.sideEffect) {
         viewModel.sideEffect.collect { sideEffect ->
@@ -74,7 +78,11 @@ fun LoginScreen(
     }
 
     CompositionLocalProvider(LocalLoginIntentHandler provides viewModel::handleIntent) {
-        CombineContent()
+        if (state.authState == AuthState.Loading || state.authState is AuthState.LoggedIn) {
+            CommonScreen()
+        } else {
+            CombineContent()
+        }
     }
 }
 

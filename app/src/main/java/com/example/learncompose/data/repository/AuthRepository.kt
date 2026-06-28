@@ -5,6 +5,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.learncompose.data.local.UserDataStore
 import com.example.learncompose.data.remote.MockRemoteServer
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration.Companion.milliseconds
 
 sealed interface AuthState {
     object Loading : AuthState

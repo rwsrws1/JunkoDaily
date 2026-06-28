@@ -10,18 +10,18 @@ import com.example.learncompose.data.repository.AuthState
 import com.example.learncompose.data.repository.IAuthRepository
 import com.example.learncompose.navigation.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class StartViewModel @Inject constructor(
+class MainViewModel @Inject constructor(
     val dataStore: UserDataStore,
     val authRepository: IAuthRepository
 ) : ViewModel() {
     var startDestination by mutableStateOf<Screen?>(null)
         private set
     var authState by mutableStateOf<AuthState>(AuthState.Loading)
+        private set
 
     init {
         viewModelScope.launch {

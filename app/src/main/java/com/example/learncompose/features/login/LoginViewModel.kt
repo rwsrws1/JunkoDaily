@@ -28,12 +28,8 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             authRepository.authState.collect { globalAuthState ->
                 _uiState.update { it.copy(authState = globalAuthState) }
-            }
-        }
 
-        viewModelScope.launch {
-            uiState.collect { state ->
-                if (state.authState is AuthState.LoggedIn) {
+                if (globalAuthState is AuthState.LoggedIn) {
                     _sideEffect.send(LoginContract.SideEffect.NavigateToHome)
                 }
             }
@@ -43,9 +39,11 @@ class LoginViewModel @Inject constructor(
     fun handleIntent(intent: LoginContract.Intent) {
         when (intent) {
             is LoginContract.Intent.ClickLogout -> {
+                _uiState.update { it.copy(authState = AuthState.Loading) }
                 viewModelScope.launch { authRepository.logout() }
             }
             is LoginContract.Intent.ClickLogin -> {
+                _uiState.update { it.copy(authState = AuthState.Loading) }
                 viewModelScope.launch {
                     authRepository
                     authRepository.login(intent.account, intent.password)

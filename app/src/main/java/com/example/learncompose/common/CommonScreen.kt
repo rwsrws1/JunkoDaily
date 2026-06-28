@@ -4,10 +4,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -53,16 +55,18 @@ fun CombineContent(modifier: Modifier = Modifier) {
         }
 
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(Modifier.weight(1f))
             Image(
                 modifier = Modifier.size(imageSize.dp),
                 painter = painterResource(R.drawable.forum_24px),
                 contentDescription = "loading...",
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
             )
+            Spacer(Modifier.weight(1f))
         }
     }
 }

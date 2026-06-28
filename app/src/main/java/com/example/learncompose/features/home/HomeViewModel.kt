@@ -15,18 +15,6 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     val repository: IAuthRepository,
 ) : ViewModel() {
-    private val _sideEffect = Channel<HomeContract.SideEffect>()
-    var sideEffect = _sideEffect.receiveAsFlow()
-
-    init {
-        viewModelScope.launch {
-            repository.authState.collect { authState ->
-                if (authState == AuthState.LoggedOut) {
-                    _sideEffect.send(HomeContract.SideEffect.NavigateToLogin(""))
-                }
-            }
-        }
-    }
 
     fun handleIntent(intent: HomeContract.Intent) {
         when (intent) {

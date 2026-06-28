@@ -42,20 +42,8 @@ import kotlinx.coroutines.launch
 val localHomeHandler = staticCompositionLocalOf<(HomeContract.Intent) -> Unit> { {} }
 
 @Composable
-fun HomeScreen(onNavigateToLogin: () -> Unit = {}) {
-
+fun HomeScreen() {
     val viewmodel = hiltViewModel<HomeViewModel>()
-
-    LaunchedEffect(viewmodel.sideEffect) {
-        viewmodel.sideEffect.collect { effect ->
-            when (effect) {
-                is HomeContract.SideEffect.NavigateToLogin -> {
-//                    onNavigateToLogin()
-                }
-            }
-        }
-    }
-
     CompositionLocalProvider(localHomeHandler provides viewmodel::handleIntent) {
         CombineScreen()
     }

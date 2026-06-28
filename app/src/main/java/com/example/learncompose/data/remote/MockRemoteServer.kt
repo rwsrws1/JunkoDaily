@@ -15,8 +15,8 @@ object MockRemoteServer {
     }
 
     suspend fun login(account: String, password: String): String {
-        delay(1000.milliseconds)
-        return if (account == "a" && password == "a") {
+        delay(500.milliseconds)
+        return if (account == "" && password == "") {
             generateBase64Token()
         } else {
             ""
