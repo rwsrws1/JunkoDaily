@@ -2,17 +2,34 @@ package com.example.learncompose.features.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.BottomAppBarDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -20,13 +37,19 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -56,19 +79,46 @@ fun CombineScreen(modifier: Modifier = Modifier) {
     val intentHandler = localHomeHandler.current
     val snackBarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    var showBottomSheet by remember { mutableStateOf(false) }
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            CenterAlignedTopAppBar(
+            LargeTopAppBar(
                 title = {
                     Text(
-                        text = "我的学习应用",
+                        text = "Compose",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
                     )
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                ),
+                navigationIcon = {
+                    IconButton (
+                        onClick = {},
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = ""
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = {}) {
+                        Icon(
+                            imageVector = Icons.Filled.AccountCircle,
+                            contentDescription = ""
+                        )
+                    }
+                },
+                scrollBehavior = scrollBehavior
             )
         },
         bottomBar = {
@@ -76,7 +126,14 @@ fun CombineScreen(modifier: Modifier = Modifier) {
                 NavigationBarItem(
                     selected = true,
                     onClick = { /* 切换页面 */ },
-                    icon = { Icon(Icons.Default.Home, contentDescription = null) },
+                    icon = {
+                        BadgedBox(
+                            badge = {
+                                Badge()
+                            }) {
+                            Icon(Icons.Default.Home, contentDescription = null)
+                        }
+                    },
                     label = { Text("首页", fontSize = 16.sp) }
                 )
                 NavigationBarItem(
@@ -89,11 +146,42 @@ fun CombineScreen(modifier: Modifier = Modifier) {
                 )
             }
         },
+//        bottomBar = {
+//            BottomAppBar(
+//                actions = {
+//                    IconButton(onClick = { /* do something */ }) {
+//                        Icon(Icons.Filled.Check, contentDescription = "Localized description")
+//                    }
+//                    IconButton(onClick = { /* do something */ }) {
+//                        Icon(
+//                            Icons.Filled.Edit,
+//                            contentDescription = "Localized description",
+//                        )
+//                    }
+//                    IconButton(onClick = { /* do something */ }) {
+//                        Icon(
+//                            Icons.Filled.Email,
+//                            contentDescription = "Localized description",
+//                        )
+//                    }
+//                },
+//                floatingActionButton = {
+//                    FloatingActionButton(
+//                        onClick = { /* do something */ },
+//                        containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
+//                        elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
+//                    ) {
+//                        Icon(Icons.Filled.Add, "Localized description")
+//                    }
+//                }
+//            )
+//        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
+                    showBottomSheet = true
                     scope.launch {
-                        snackBarHostState.showSnackbar("你点击了添加按钮！")
+                        snackBarHostState.showSnackbar("showBottomSheet = true！")
                     }
                 }
             ) {
@@ -108,15 +196,29 @@ fun CombineScreen(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()) // 整体内容滚动
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            Text(
-                text = stringResource(R.string.line_1),
-                fontSize = 22.sp,
-                lineHeight = 30.sp
-            )
+            if (showBottomSheet) {
+                ModalBottomSheet(
+                    modifier = Modifier.fillMaxHeight(),
+                    onDismissRequest = {
+                        showBottomSheet = false
+                    },
+                    sheetState = sheetState
+                ) {
+                    // Sheet content
+                    Button(onClick = {
+                        scope.launch { sheetState.hide() }.invokeOnCompletion {
+                            if (!sheetState.isVisible) {
+                                showBottomSheet = false
+                            }
+                        }
+                    }) {
+                        Text("Hide bottom sheet")
+                    }
+                }
+            }
             Greeting()
         }
     }

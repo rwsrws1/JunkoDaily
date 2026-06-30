@@ -18,10 +18,10 @@ import kotlin.time.Duration.Companion.milliseconds
 sealed interface AuthState {
     object Loading : AuthState
     object LoggedOut : AuthState
-    data class LoggedIn(val userInfo: UserInfo) : AuthState
+    data class LoggedIn(val userInfo: UserInfo = UserInfo()) : AuthState
 }
 
-data class UserInfo(val userId: String, val userName: String)
+data class UserInfo(val userId: String = "", val userName: String = "")
 
 interface IAuthRepository {
     val authState: StateFlow<AuthState>

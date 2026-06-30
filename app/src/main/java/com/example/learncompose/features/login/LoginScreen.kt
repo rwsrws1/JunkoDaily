@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +23,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -37,6 +39,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.LinkAnnotation
@@ -54,8 +57,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowHeightSizeClass
 import com.example.learncompose.R
-import com.example.learncompose.common.CommonScreen
+import com.example.learncompose.ui.components.CommonScreen
 import com.example.learncompose.data.repository.AuthState
+import com.example.learncompose.ui.components.Loading
 import com.example.learncompose.ui.theme.LearnComposeTheme
 
 val LocalLoginIntentHandler = staticCompositionLocalOf<(LoginContract.Intent) -> Unit> {
@@ -78,16 +82,12 @@ fun LoginScreen(
     }
 
     CompositionLocalProvider(LocalLoginIntentHandler provides viewModel::handleIntent) {
-        if (state.authState == AuthState.Loading || state.authState is AuthState.LoggedIn) {
-            CommonScreen()
-        } else {
-            CombineContent()
-        }
+        CombineContent(state)
     }
 }
 
 @Composable
-fun CombineContent() {
+fun CombineContent(state: LoginContract.State = LoginContract.State()) {
     val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
     BoxWithConstraints(
         modifier = Modifier
@@ -221,12 +221,16 @@ fun CombineContent() {
             }
         }
     }
+
+    if (state.authState == AuthState.Loading || state.authState is AuthState.LoggedIn) {
+        Loading()
+    }
 }
 
 @PreviewScreenSizes
 @Composable
 fun LoginScreenPreview() {
     LearnComposeTheme {
-        CombineContent()
+        CombineContent(LoginContract.State(authState = AuthState.LoggedOut))
     }
 }

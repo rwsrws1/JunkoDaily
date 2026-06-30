@@ -14,18 +14,18 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.learncompose.R
-import com.example.learncompose.common.CommonScreen
 import com.example.learncompose.navigation.AppNavGraph
 
 @Composable
@@ -63,9 +63,10 @@ fun StartScreen(modifier: Modifier = Modifier) {
             Spacer(Modifier.weight(1f))
             Image(
                 modifier = modifier.size(imageSize.dp),
-                painter = painterResource(R.drawable.ic_launcher_background),
+                painter = painterResource(R.drawable.forum_24px),
                 contentDescription = "",
-                contentScale = ContentScale.FillBounds
+                contentScale = ContentScale.Fit,
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
             )
             Spacer(Modifier.weight(1f))
         }

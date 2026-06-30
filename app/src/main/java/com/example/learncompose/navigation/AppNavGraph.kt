@@ -9,7 +9,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.example.learncompose.app.MainViewModel
-import com.example.learncompose.common.CommonScreen
+import com.example.learncompose.ui.components.CommonScreen
 import com.example.learncompose.data.repository.AuthState
 import com.example.learncompose.features.home.HomeScreen
 import com.example.learncompose.features.login.LoginScreen

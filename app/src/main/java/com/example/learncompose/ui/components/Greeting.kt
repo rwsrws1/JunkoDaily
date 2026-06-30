@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,6 +24,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderState
@@ -50,10 +53,9 @@ import com.example.learncompose.ui.theme.LearnComposeTheme
 @Composable
 fun Greeting() {
     // 修复：移除 fillMaxSize 和 verticalScroll，避免与外层 HomeScreen 的滚动冲突
-    FlowRow(
+    Column (
         Modifier
-            .fillMaxWidth()
-            .padding(10.dp),
+            .fillMaxSize()
     ) {
         var isShowDialog by remember { mutableStateOf(false) }
         Column(
@@ -130,13 +132,15 @@ fun Greeting() {
         val itemList = (1..100).toList()
         // 注意：LazyColumn 这里的 size 是固定的，所以不会引起测量报错
         LazyColumn(
-            modifier = Modifier.size(100.dp, 200.dp),
+            modifier = Modifier.weight(1F),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             state = rememberLazyListState()
         ) {
             items(itemList) { item ->
                 Text(
-                    text = "第${item}个"
+                    modifier = Modifier.fillMaxWidth(),
+                    text = "第${item}个",
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
         }

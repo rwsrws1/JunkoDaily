@@ -1,4 +1,4 @@
-package com.example.learncompose.common
+package com.example.learncompose.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
