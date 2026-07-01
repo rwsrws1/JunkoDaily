@@ -36,6 +36,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
@@ -79,13 +80,13 @@ fun CombineScreen(modifier: Modifier = Modifier) {
     val intentHandler = localHomeHandler.current
     val snackBarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var showBottomSheet by remember { mutableStateOf(false) }
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = {
                     Text(
                         text = "Compose",
@@ -101,14 +102,14 @@ fun CombineScreen(modifier: Modifier = Modifier) {
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ),
                 navigationIcon = {
-                    IconButton (
-                        onClick = {},
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = ""
-                        )
-                    }
+//                    IconButton (
+//                        onClick = {},
+//                    ) {
+//                        Icon(
+//                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+//                            contentDescription = ""
+//                        )
+//                    }
                 },
                 actions = {
                     IconButton(onClick = {}) {

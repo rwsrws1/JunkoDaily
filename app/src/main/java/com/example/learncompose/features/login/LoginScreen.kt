@@ -1,5 +1,6 @@
 package com.example.learncompose.features.login
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -21,8 +23,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonDefaults.buttonColors
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -40,7 +46,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.LinkInteractionListener
@@ -61,6 +70,7 @@ import com.example.learncompose.ui.components.CommonScreen
 import com.example.learncompose.data.repository.AuthState
 import com.example.learncompose.ui.components.Loading
 import com.example.learncompose.ui.theme.LearnComposeTheme
+import kotlin.math.sin
 
 val LocalLoginIntentHandler = staticCompositionLocalOf<(LoginContract.Intent) -> Unit> {
     {}
@@ -134,7 +144,11 @@ fun CombineContent(state: LoginContract.State = LoginContract.State()) {
                     )
                     Spacer(Modifier.size(50.dp))
                     TextField(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().shadow(
+                            elevation = 8.dp,
+                            shape = CircleShape,
+                            clip = false
+                        ),
                         value = account,
                         onValueChange = { account = it },
                         label = { Text(text = "账号") },
@@ -194,27 +208,34 @@ fun CombineContent(state: LoginContract.State = LoginContract.State()) {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     val intentHandler = LocalLoginIntentHandler.current
-                    Image(
-                        modifier = Modifier
-                            .size(100.dp)
-                            .clip(CircleShape)
-                            .background(
-                                color = MaterialTheme.colorScheme.primaryContainer,
-                                shape = CircleShape
-                            )
-                            .clickable(
-                                onClick = {
-                                    intentHandler(LoginContract.Intent.ClickLogin(
-                                        account = account,
-                                        password = password
-                                    ))
-                                }
-                            )
-                            .padding(15.dp),
-                        painter = painterResource(R.drawable.login_24px),
-                        contentDescription = "",
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
-                    )
+
+                    Button(
+                        modifier = Modifier.size(80.dp),
+                        onClick = {
+                            intentHandler(LoginContract.Intent.ClickLogin(
+                                account = account,
+                                password = password
+                            ))
+                        },
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.25f)),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 8.dp,   // 静止时抬高，阴影更明显
+                            pressedElevation = 3.dp,   // 按下时有明显的“下沉”物理反馈
+                            hoveredElevation = 10.dp,
+                            focusedElevation = 8.dp
+                        ),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Image(
+                            modifier = Modifier.size(36.dp),
+                            painter = painterResource(R.drawable.login_24px),
+                            contentDescription = "登录",
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary)
+                        )
+                    }
+
                 }
 
                 Spacer(Modifier.height(bottomPadding.dp))

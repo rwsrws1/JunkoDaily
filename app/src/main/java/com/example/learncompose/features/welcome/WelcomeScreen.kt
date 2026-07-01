@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -234,6 +235,12 @@ fun LoginButton(text: String = "", onclick: () -> Unit = {}) {
         modifier = Modifier
             .padding(horizontal = 20.dp)
             .fillMaxWidth(),
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 6.dp,  // 默认静止时的阴影高度
+            pressedElevation = 2.dp,  // 💡 按下时阴影变低，模拟物理世界中按钮被“按下去”的视觉反馈
+            hoveredElevation = 8.dp,  // 鼠标悬停时的阴影（针对平板/桌面端）
+            focusedElevation = 6.dp
+        ),
         onClick = onclick
     ) {
         Text(text = text)
