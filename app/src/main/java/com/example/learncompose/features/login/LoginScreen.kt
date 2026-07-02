@@ -1,14 +1,9 @@
 package com.example.learncompose.features.login
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -23,13 +18,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ButtonDefaults.buttonColors
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -44,12 +35,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.LinkInteractionListener
@@ -66,11 +53,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowHeightSizeClass
 import com.example.learncompose.R
-import com.example.learncompose.ui.components.CommonScreen
 import com.example.learncompose.data.repository.AuthState
 import com.example.learncompose.ui.components.Loading
+import com.example.learncompose.ui.components.ButtonPrimary
 import com.example.learncompose.ui.theme.LearnComposeTheme
-import kotlin.math.sin
 
 val LocalLoginIntentHandler = staticCompositionLocalOf<(LoginContract.Intent) -> Unit> {
     {}
@@ -144,11 +130,7 @@ fun CombineContent(state: LoginContract.State = LoginContract.State()) {
                     )
                     Spacer(Modifier.size(50.dp))
                     TextField(
-                        modifier = Modifier.fillMaxWidth().shadow(
-                            elevation = 8.dp,
-                            shape = CircleShape,
-                            clip = false
-                        ),
+                        modifier = Modifier.fillMaxWidth(),
                         value = account,
                         onValueChange = { account = it },
                         label = { Text(text = "账号") },
@@ -174,7 +156,7 @@ fun CombineContent(state: LoginContract.State = LoginContract.State()) {
                     )
                     Spacer(Modifier.size(20.dp))
                     val linkInteractionListener = LinkInteractionListener { annotation ->
-                        println("点击了${(annotation as LinkAnnotation.Clickable).tag}！")
+                        val tag = (annotation as LinkAnnotation.Clickable).tag
                     }
                     val linkTextStyle = TextLinkStyles(
                         style = SpanStyle(
@@ -209,24 +191,14 @@ fun CombineContent(state: LoginContract.State = LoginContract.State()) {
                 ) {
                     val intentHandler = LocalLoginIntentHandler.current
 
-                    Button(
+                    ButtonPrimary(
                         modifier = Modifier.size(80.dp),
                         onClick = {
                             intentHandler(LoginContract.Intent.ClickLogin(
                                 account = account,
                                 password = password
                             ))
-                        },
-                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.25f)),
-                        elevation = ButtonDefaults.buttonElevation(
-                            defaultElevation = 8.dp,   // 静止时抬高，阴影更明显
-                            pressedElevation = 3.dp,   // 按下时有明显的“下沉”物理反馈
-                            hoveredElevation = 10.dp,
-                            focusedElevation = 8.dp
-                        ),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
+                        }
                     ) {
                         Image(
                             modifier = Modifier.size(36.dp),
@@ -235,7 +207,6 @@ fun CombineContent(state: LoginContract.State = LoginContract.State()) {
                             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary)
                         )
                     }
-
                 }
 
                 Spacer(Modifier.height(bottomPadding.dp))
@@ -243,7 +214,7 @@ fun CombineContent(state: LoginContract.State = LoginContract.State()) {
         }
     }
 
-    if (state.authState == AuthState.Loading || state.authState is AuthState.LoggedIn) {
+    if (state.authState is AuthState.Loading) {
         Loading()
     }
 }

@@ -26,11 +26,10 @@ class MainViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val isAgree = dataStore.getIsAgreeTerms()
-            if (isAgree) {
-                val userINfo = dataStore.getUserInfo()
-                startDestination = if (userINfo.userId.isNotBlank()) Screen.Home else Screen.Login("")
+            startDestination = if (isAgree) {
+                Screen.Home
             } else {
-                startDestination = Screen.Welcome
+                Screen.Welcome
             }
         }
 

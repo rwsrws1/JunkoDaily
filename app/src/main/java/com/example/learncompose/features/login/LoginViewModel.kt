@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val authRepository: IAuthRepository
+    private val repository: IAuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginContract.State())
@@ -26,7 +26,7 @@ class LoginViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            authRepository.authState.collect { globalAuthState ->
+            repository.authState.collect { globalAuthState ->
                 _uiState.update { it.copy(authState = globalAuthState) }
 
                 if (globalAuthState is AuthState.LoggedIn) {
@@ -38,15 +38,10 @@ class LoginViewModel @Inject constructor(
 
     fun handleIntent(intent: LoginContract.Intent) {
         when (intent) {
-            is LoginContract.Intent.ClickLogout -> {
-                _uiState.update { it.copy(authState = AuthState.Loading) }
-                viewModelScope.launch { authRepository.logout() }
-            }
             is LoginContract.Intent.ClickLogin -> {
                 _uiState.update { it.copy(authState = AuthState.Loading) }
                 viewModelScope.launch {
-                    authRepository
-                    authRepository.login(intent.account, intent.password)
+                    repository.login(intent.account, intent.password)
                 }
             }
         }

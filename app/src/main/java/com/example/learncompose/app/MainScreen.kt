@@ -24,19 +24,20 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import androidx.core.splashscreen.SplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.learncompose.R
 import com.example.learncompose.navigation.AppNavGraph
 
 @Composable
-fun MainScreen(modifier: Modifier = Modifier) {
+fun MainScreen(splashScreen: SplashScreen) {
     val mainViewModel: MainViewModel = hiltViewModel()
     val startDestination = mainViewModel.startDestination
-
-    if (startDestination == null) {
-        StartScreen()
-    } else {
-        AppNavGraph(startDestination = startDestination)
+    splashScreen.setKeepOnScreenCondition {
+        startDestination == null
+    }
+    startDestination?.also {
+        AppNavGraph(startDestination = it)
     }
 }
 
@@ -63,7 +64,7 @@ fun StartScreen(modifier: Modifier = Modifier) {
             Spacer(Modifier.weight(1f))
             Image(
                 modifier = modifier.size(imageSize.dp),
-                painter = painterResource(R.drawable.forum_24px),
+                painter = painterResource(R.drawable.menu_book_24px),
                 contentDescription = "",
                 contentScale = ContentScale.Fit,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)

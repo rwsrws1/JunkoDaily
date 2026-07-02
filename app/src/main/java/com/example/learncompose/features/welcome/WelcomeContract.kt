@@ -1,12 +1,20 @@
 package com.example.learncompose.features.welcome
 
+import com.example.learncompose.data.repository.AuthState
+
 class WelcomeContract {
-    data class State(val items: List<String> = emptyList(), var testNumber: Int = 0)
+    data class State(
+        val items: List<String> = emptyList(),
+        var testNumber: Int = 0,
+        val authState: AuthState = AuthState.Loading
+    )
     sealed interface Intent {
-        data class ClickLogin(val id: String) : Intent
-        object PlusItem : Intent
+        sealed interface ViewModelIntent : Intent {}
+        data class ClickEnter(val id: String = "") : ViewModelIntent
+        object PlusItem : ViewModelIntent
+        data class ShowMessage(val message: String = "") : Intent
     }
     sealed interface SideEffect {
-        data class NavigateToLogin(val id: String) : SideEffect
+        data class LoginAsVisitor(val id: String = "") : SideEffect
     }
 }

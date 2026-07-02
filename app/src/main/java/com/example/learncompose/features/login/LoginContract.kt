@@ -11,7 +11,6 @@ class LoginContract {
 
     sealed interface Intent {
         data class ClickLogin(val account: String = "", val password: String = "") : Intent
-        object ClickLogout : Intent
     }
 
     sealed interface SideEffect {

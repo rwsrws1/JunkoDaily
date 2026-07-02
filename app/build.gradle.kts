@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.androidx.compose.material3.adaptive)
     implementation(libs.datastore.preferences)
     implementation(libs.lifecycle.process)
+    implementation("androidx.core:core-splashscreen:1.2.0")
 
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.android)

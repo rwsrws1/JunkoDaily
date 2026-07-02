@@ -3,6 +3,9 @@ package com.example.learncompose.features.welcome
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.learncompose.data.local.UserDataStore
+import com.example.learncompose.data.repository.AuthState
+import com.example.learncompose.data.repository.IAuthRepository
+import com.example.learncompose.features.login.LoginContract
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WelcomeViewModel @Inject constructor(
-    val dataStore: UserDataStore
+    private val dataStore: UserDataStore,
+    private val repository: IAuthRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(WelcomeContract.State(items = listOf("goods1", "goods2")))
     val uiState = _uiState.asStateFlow()
@@ -22,17 +26,35 @@ class WelcomeViewModel @Inject constructor(
     private val _sideEffect = Channel<WelcomeContract.SideEffect>()
     val sideEffect = _sideEffect.receiveAsFlow()
 
-    fun handleIntent(intent: WelcomeContract.Intent) {
+    init {
+        viewModelScope.launch {
+            repository.authState.collect { globalAuthState ->
+                _uiState.update { it.copy(authState = globalAuthState) }
+
+                if (globalAuthState is AuthState.LoggedIn) {
+                    _sideEffect.send(WelcomeContract.SideEffect.LoginAsVisitor())
+                }
+            }
+        }
+    }
+
+    fun handleIntent(intent: WelcomeContract.Intent.ViewModelIntent) {
         when (intent) {
-            is WelcomeContract.Intent.ClickLogin -> {
+            is WelcomeContract.Intent.ClickEnter -> {
                 viewModelScope.launch {
                     dataStore.agreeTerms()
-                    _sideEffect.send(WelcomeContract.SideEffect.NavigateToLogin(intent.id))
+                    repository.login("", "")
                 }
             }
             is WelcomeContract.Intent.PlusItem -> {
                 _uiState.update {
-                    it.copy(testNumber = it.testNumber + 1)
+                    it.copy(testNumber =
+                        if (it.testNumber < 10086) {
+                            it.testNumber + 1
+                        } else {
+                            it.testNumber
+                        }
+                    )
                 }
             }
         }

@@ -2,6 +2,7 @@ package com.example.learncompose.features.welcome
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,12 +15,14 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -29,6 +32,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,9 +55,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.core.layout.WindowWidthSizeClass
 import com.example.learncompose.R
+import com.example.learncompose.ui.components.ButtonPrimary
 import com.example.learncompose.ui.theme.LearnComposeTheme
-import kotlinx.coroutines.delay
-import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.launch
 
 val LocalWelcomeIntentHandler = staticCompositionLocalOf<(WelcomeContract.Intent) -> Unit> {
     {}
@@ -62,31 +66,58 @@ val LocalWelcomeIntentHandler = staticCompositionLocalOf<(WelcomeContract.Intent
 @Composable
 fun WelcomeScreen(
     viewModel: WelcomeViewModel = viewModel(),
-    onNavigateToLogin: (String) -> Unit = {}
+    onNavigateToHome: (String) -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     val width = LocalWindowInfo.current.containerSize.width.dp
     val height = LocalWindowInfo.current.containerSize.height.dp
 
-    SnackbarHost(hostState = snackBarHostState)
-
-    LaunchedEffect(Unit) {
-        delay(1000.milliseconds)
-        snackBarHostState.showSnackbar("width = $width, height = $height")
+    val intentHandler: (WelcomeContract.Intent) -> Unit = { intent ->
+        when (intent) {
+            is WelcomeContract.Intent.ShowMessage -> {
+                scope.launch {
+                    snackBarHostState.showSnackbar(
+                        intent.message,
+                        actionLabel = "确定",             // 可选：你的行动按钮
+                        withDismissAction = true,         // 核心：强制开启右侧的关闭“叉叉”
+                        duration = SnackbarDuration.Short // 弹出时长
+                    )
+                }
+            }
+            is WelcomeContract.Intent.ViewModelIntent -> {
+                viewModel.handleIntent(intent)
+            }
+        }
     }
 
     LaunchedEffect(viewModel.sideEffect) {
         viewModel.sideEffect.collect { effect ->
             when (effect) {
-                is WelcomeContract.SideEffect.NavigateToLogin -> onNavigateToLogin(effect.id)
+                is WelcomeContract.SideEffect.LoginAsVisitor -> onNavigateToHome(effect.id)
             }
         }
     }
 
-    CompositionLocalProvider(LocalWelcomeIntentHandler provides viewModel::handleIntent) {
-        CombineContent(state)
+    CompositionLocalProvider(LocalWelcomeIntentHandler provides intentHandler) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            CombineContent(state)
+            SnackbarHost(
+                hostState = snackBarHostState,
+                modifier = Modifier.align(Alignment.BottomCenter).statusBarsPadding()
+            ) { snackBarData ->
+                Snackbar(
+                    snackbarData = snackBarData,
+//                    containerColor = Color(0xFFE53935), // 背景改成姨妈红
+//                    contentColor = Color.White,         // 文字改成纯白
+//                    actionColor = Color.Yellow,         // 按钮文字改成黄色
+                    shape = RoundedCornerShape(16.dp),  // 变成大圆角
+                    // dismissActionContentColor = ...  // 右侧关闭叉叉的颜色
+                )
+            }
+        }
     }
 }
 
@@ -152,18 +183,18 @@ fun MediumContent(modifier: Modifier = Modifier) {
     ) {
         Image(
             modifier = Modifier.size(100.dp),
-            painter = painterResource(R.drawable.forum_24px),
+            painter = painterResource(R.drawable.menu_book_24px),
             contentDescription = "",
             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
         )
         Spacer(Modifier.size(10.dp))
         Text(
-            text = "让 Chrome 符合你的需求",
+            text = "Jetpack Compose 从入门到入土",
             style = MaterialTheme.typography.titleLarge
         )
         Spacer(Modifier.size(10.dp))
         Text(
-            text = "登录即可在所有设备上获取您的书签、密码及其他内容。",
+            text = "进入即可了解全新的声明式UI开发框架，快赶在谷歌废弃它之前学会把！",
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
             lineHeight = 24.sp
@@ -179,15 +210,29 @@ fun BottomContent(modifier: Modifier = Modifier, state: WelcomeContract.State) {
     ) {
         val intentHandler = LocalWelcomeIntentHandler.current
         Spacer(Modifier.size(10.dp))
-        LoginButton("将账户添加至设备") {
-            intentHandler(WelcomeContract.Intent.ClickLogin(state.items[0]))
+        ButtonPrimary(
+            modifier = Modifier.padding(horizontal = 20.dp).fillMaxWidth(),
+            isPressOnClick = true,
+            onClick = {
+            intentHandler(WelcomeContract.Intent.ClickEnter(state.items[0]))
+        }) {
+            Text("开始学习")
         }
-        LoginButton("保持已注销状态 ${state.testNumber}") {
+        ButtonPrimary(
+            modifier = Modifier.padding(horizontal = 20.dp).fillMaxWidth(),
+            isEnabled = state.testNumber < 10086,
+            isPressOnClick = true,
+            onClick = {
             intentHandler(WelcomeContract.Intent.PlusItem)
+        }) {
+            Text(text = "学不动了 +${state.testNumber}")
         }
         Spacer(Modifier.size(20.dp))
         val linkInteractionListener = LinkInteractionListener { annotation ->
-            println("点击了${(annotation as LinkAnnotation.Clickable).tag}！")
+            val tag = (annotation as LinkAnnotation.Clickable).tag
+            intentHandler(WelcomeContract.Intent.ShowMessage(
+                "点击了$tag！"
+            ))
         }
         val linkTextStyle = TextLinkStyles(
             style = SpanStyle(
@@ -207,18 +252,17 @@ fun BottomContent(modifier: Modifier = Modifier, state: WelcomeContract.State) {
             ) {
                 append("服务条款")
             }
-            append("。为了帮助改进这款应用程序，谷歌浏览器会将使用情况和崩溃数据发送给谷歌。")
+            append("。为了帮助改进这款应用程序，该应用会将使用情况和崩溃数据发送给谷歌。")
             withLink(
                 LinkAnnotation.Clickable(
-                    tag = "管理",
+                    tag = "拒绝",
                     styles = linkTextStyle,
                     linkInteractionListener
                 )
             )
             {
-                append("管理")
+                append("拒绝")
             }
-            append("。")
         }
 
         Text(
@@ -226,24 +270,6 @@ fun BottomContent(modifier: Modifier = Modifier, state: WelcomeContract.State) {
             style = MaterialTheme.typography.bodySmall,
             textAlign = TextAlign.Center
         )
-    }
-}
-
-@Composable
-fun LoginButton(text: String = "", onclick: () -> Unit = {}) {
-    Button(
-        modifier = Modifier
-            .padding(horizontal = 20.dp)
-            .fillMaxWidth(),
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 6.dp,  // 默认静止时的阴影高度
-            pressedElevation = 2.dp,  // 💡 按下时阴影变低，模拟物理世界中按钮被“按下去”的视觉反馈
-            hoveredElevation = 8.dp,  // 鼠标悬停时的阴影（针对平板/桌面端）
-            focusedElevation = 6.dp
-        ),
-        onClick = onclick
-    ) {
-        Text(text = text)
     }
 }
 

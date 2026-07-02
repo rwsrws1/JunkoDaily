@@ -66,9 +66,19 @@ import kotlinx.coroutines.launch
 val localHomeHandler = staticCompositionLocalOf<(HomeContract.Intent) -> Unit> { {} }
 
 @Composable
-fun HomeScreen() {
-    val viewmodel = hiltViewModel<HomeViewModel>()
-    CompositionLocalProvider(localHomeHandler provides viewmodel::handleIntent) {
+fun HomeScreen(
+    viewModel: HomeViewModel = hiltViewModel<HomeViewModel>(),
+) {
+
+//    LaunchedEffect(viewModel.sideEffect) {
+//        viewModel.sideEffect.collect { effect ->
+//            when (effect) {
+//                is HomeContract.SideEffect.NavigateToLogin -> onNavigateToLogin()
+//            }
+//        }
+//    }
+
+    CompositionLocalProvider(localHomeHandler provides viewModel::handleIntent) {
         CombineScreen()
     }
 
@@ -112,7 +122,9 @@ fun CombineScreen(modifier: Modifier = Modifier) {
 //                    }
                 },
                 actions = {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = {
+                        intentHandler(HomeContract.Intent.UserInfo)
+                    }) {
                         Icon(
                             imageVector = Icons.Filled.AccountCircle,
                             contentDescription = ""
@@ -140,10 +152,10 @@ fun CombineScreen(modifier: Modifier = Modifier) {
                 NavigationBarItem(
                     selected = false,
                     onClick = {
-                        intentHandler(HomeContract.Intent.Logout)
+//                        intentHandler(HomeContract.Intent.Logout)
                     },
                     icon = { Icon(painterResource(R.drawable.favorite_24px), null) },
-                    label = { Text("登出", fontSize = 16.sp) }
+                    label = { Text("爱了", fontSize = 16.sp) }
                 )
             }
         },

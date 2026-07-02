@@ -48,11 +48,10 @@ class AuthRepositoryImpl @Inject constructor(
         )
 
     override suspend fun login(account: String, password: String) {
-        withContext(Dispatchers.Default) {
-            val mockToken = MockRemoteServer.login(account, password)
-            val mockUser = UserInfo("9527", "开发者小明")
-            dataStore.saveUserSession(mockToken, mockUser)
-        }
+        val mockToken = MockRemoteServer.login(account, password)
+        val userId = account.takeIf { it.isNotEmpty() } ?: "9527"
+        val mockUser = UserInfo(userId, "游客")
+        dataStore.saveUserSession(mockToken, mockUser)
     }
 
     override suspend fun logout() {

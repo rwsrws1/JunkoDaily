@@ -12,6 +12,7 @@ import com.example.learncompose.app.MainViewModel
 import com.example.learncompose.ui.components.CommonScreen
 import com.example.learncompose.data.repository.AuthState
 import com.example.learncompose.features.home.HomeScreen
+import com.example.learncompose.features.home.HomeViewModel
 import com.example.learncompose.features.login.LoginScreen
 import com.example.learncompose.features.login.LoginViewModel
 import com.example.learncompose.features.welcome.WelcomeScreen
@@ -19,10 +20,10 @@ import com.example.learncompose.features.welcome.WelcomeViewModel
 
 @Composable
 fun AppNavGraph(startDestination: Screen = Screen.Welcome) {
-//    val backStack = remember { mutableStateListOf<Screen>(Screen.Welcome) }
     val rememberNavBackStack = rememberNavBackStack(startDestination)
 
     val viewModel = hiltViewModel<MainViewModel>()
+    // 全局登录状态拦截
     if (rememberNavBackStack.last() != Screen.Welcome && viewModel.authState == AuthState.LoggedOut) {
         rememberNavBackStack.clear()
         rememberNavBackStack.add(Screen.Login(""))
@@ -34,8 +35,9 @@ fun AppNavGraph(startDestination: Screen = Screen.Welcome) {
                 val viewModel = hiltViewModel<WelcomeViewModel>()
                 WelcomeScreen(
                     viewModel = viewModel,
-                    onNavigateToLogin = { id ->
-                        rememberNavBackStack.add(Screen.Login(""))
+                    onNavigateToHome = { id ->
+                        rememberNavBackStack.clear()
+                        rememberNavBackStack.add(Screen.Home)
                     }
                 )
             }
@@ -45,15 +47,17 @@ fun AppNavGraph(startDestination: Screen = Screen.Welcome) {
                 LoginScreen(
                     viewModel = viewModel,
                     onNavigateToHome = {
+                        rememberNavBackStack.clear()
                         rememberNavBackStack.add(Screen.Home)
                     }
                 )
             }
 
             is Screen.Home -> NavEntry(key) {
-                HomeScreen()
-                rememberNavBackStack.remove(Screen.Login(""))
-                rememberNavBackStack.remove(Screen.Welcome)
+                val viewModel = hiltViewModel<HomeViewModel>()
+                HomeScreen(
+                    viewModel = viewModel,
+                )
             }
 
             is Screen.Loading -> NavEntry(key) {
