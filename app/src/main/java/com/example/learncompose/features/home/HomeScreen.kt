@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -49,6 +50,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
@@ -210,25 +212,39 @@ fun CombineScreen(modifier: Modifier = Modifier) {
                 .padding(paddingValues)
                 .fillMaxSize()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
+
             if (showBottomSheet) {
                 ModalBottomSheet(
-                    modifier = Modifier.fillMaxHeight(),
                     onDismissRequest = {
                         showBottomSheet = false
                     },
                     sheetState = sheetState
                 ) {
-                    // Sheet content
-                    Button(onClick = {
-                        scope.launch { sheetState.hide() }.invokeOnCompletion {
-                            if (!sheetState.isVisible) {
-                                showBottomSheet = false
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(0.8f)
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = "底部面板内容",
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+
+                        Button(
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = {
+                                scope.launch { sheetState.hide() }.invokeOnCompletion {
+                                    if (!sheetState.isVisible) {
+                                        showBottomSheet = false
+                                    }
+                                }
                             }
+                        ) {
+                            Text("隐藏面板")
                         }
-                    }) {
-                        Text("Hide bottom sheet")
                     }
                 }
             }

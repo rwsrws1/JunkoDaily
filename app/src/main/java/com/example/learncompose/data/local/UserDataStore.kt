@@ -28,7 +28,7 @@ class UserDataStore @Inject constructor(
         val USER_NAME = stringPreferencesKey("user_name")
     }
 
-    val userTokenFLow: Flow<String> = dataStore.data.catch { exception ->
+    val userTokenFlow: Flow<String> = dataStore.data.catch { exception ->
         if (exception is IOException) {
             emit(emptyPreferences())
         } else {
@@ -44,19 +44,18 @@ class UserDataStore @Inject constructor(
             if (exception is IOException) emit(emptyPreferences()) else throw exception
         }
         .map { preferences ->
-            UserInfo(
-                userId = preferences[PreferencesKeys.USER_ID] ?: "",
-                userName = preferences[PreferencesKeys.USER_NAME] ?: ""
-            )
+            preferences.toUserInfo()
         }
 
     suspend fun getUserInfo(): UserInfo {
         val preferences = dataStore.data.catch { emit(emptyPreferences()) }.first()
-        return UserInfo(
-            userId = preferences[PreferencesKeys.USER_ID] ?: "",
-            userName = preferences[PreferencesKeys.USER_NAME] ?: ""
-        )
+        return preferences.toUserInfo()
     }
+
+    private fun Preferences.toUserInfo(): UserInfo = UserInfo(
+        userId = this[PreferencesKeys.USER_ID] ?: "",
+        userName = this[PreferencesKeys.USER_NAME] ?: "",
+    )
 
     suspend fun saveUserSession(token: String, userInfo: UserInfo) {
         dataStore.edit { preferences ->
@@ -82,7 +81,7 @@ class UserDataStore @Inject constructor(
 
     suspend fun getIsAgreeTerms(): Boolean {
         delay(500.milliseconds)
-        val preferences = dataStore.data.catch { emptyPreferences() }.first()
+        val preferences = dataStore.data.catch { emit(emptyPreferences()) }.first()
         return preferences[PreferencesKeys.IS_AGREE_TERMS] ?: false
     }
 }
