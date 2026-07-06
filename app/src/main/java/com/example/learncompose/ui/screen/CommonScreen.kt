@@ -44,13 +44,13 @@ fun CombineContent(modifier: Modifier = Modifier) {
         var imageSize = 0
         when (windowSizeClass.windowWidthSizeClass) {
             WindowWidthSizeClass.COMPACT -> {
-                imageSize = 200
+                imageSize = 150
             }
             WindowWidthSizeClass.MEDIUM -> {
-                imageSize = 200
+                imageSize = 150
             }
             WindowWidthSizeClass.EXPANDED -> {
-                imageSize = 400
+                imageSize = 200
             }
         }
 
@@ -62,7 +62,7 @@ fun CombineContent(modifier: Modifier = Modifier) {
             Spacer(Modifier.weight(1f))
             Image(
                 modifier = Modifier.size(imageSize.dp),
-                painter = painterResource(R.drawable.forum_24px),
+                painter = painterResource(R.drawable.menu_book_24px),
                 contentDescription = "loading...",
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
             )
