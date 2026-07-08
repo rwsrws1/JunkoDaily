@@ -1,6 +1,8 @@
 package com.example.learncompose.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -195,6 +197,10 @@ fun Greeting() {
             mutableStateListOf(false, false, false)
         }
         val multiChoiceSegmentedButtonOptions = listOf("Walk", "Ride", "Drive")
+        val iconColor by animateColorAsState(
+            targetValue = if (selectedOptions[1]) MaterialTheme.colorScheme.primary else Color.Black,
+            animationSpec = spring(stiffness = Spring.StiffnessHigh)
+        )
         MultiChoiceSegmentedButtonRow {
             multiChoiceSegmentedButtonOptions.forEachIndexed { index, label ->
                 SegmentedButton(
@@ -217,7 +223,8 @@ fun Greeting() {
                             "Ride" -> Icon(
                                 imageVector =
                                     Icons.Filled.Favorite,
-                                contentDescription = "Favorite"
+                                contentDescription = "Favorite",
+                                tint = iconColor
                             )
                             "Drive" -> Icon(
                                 imageVector =

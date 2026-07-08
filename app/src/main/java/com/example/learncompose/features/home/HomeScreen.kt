@@ -1,5 +1,9 @@
 package com.example.learncompose.features.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -53,6 +57,7 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -81,7 +86,9 @@ import com.example.learncompose.ui.screen.DrawingBoardScreen
 import com.example.learncompose.ui.screen.MediaPickerScreen
 import com.example.learncompose.ui.screen.ScratchCardScreen
 import com.example.learncompose.ui.theme.LearnComposeTheme
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 val localHomeHandler = staticCompositionLocalOf<(HomeContract.Intent) -> Unit> { {} }
 
@@ -114,6 +121,12 @@ fun CombineScreen(modifier: Modifier = Modifier) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var showBottomSheet by remember { mutableStateOf(false) }
 
+//    var rememberVisibility by remember { mutableStateOf(false) }
+//    LaunchedEffect(Unit) {
+//        delay(500.milliseconds)
+//        rememberVisibility = true
+//    }
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -133,89 +146,82 @@ fun CombineScreen(modifier: Modifier = Modifier) {
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ),
                 navigationIcon = {
-//                    IconButton (
-//                        onClick = {},
-//                    ) {
-//                        Icon(
-//                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-//                            contentDescription = ""
-//                        )
-//                    }
-                },
-                actions = {
-                    // 直接调用 AvatarSelector，不要套在 IconButton 里面！
                     AvatarSelector(
                         modifier = Modifier
-                            .padding(end = 8.dp) // 离边缘留点空隙
+                            .padding(start = 8.dp, end = 4.dp) // 离边缘留点空隙
                             .size(36.dp)       // 在顶栏里 36dp 看起来非常精致高级
                     )
+                },
+                actions = {
 
-//                    // 1. 定义控制菜单展开的状态
-//                    var menuExpanded by remember { mutableStateOf(false) }
-//
-//                    // 2. 用 Box 作为锚点，确保菜单永远对齐这个按钮的右上角
-//                    Box(modifier = Modifier.wrapContentSize(Alignment.TopEnd)) {
-//                        IconButton(onClick = { menuExpanded = true }) {
-//                            Icon(
-//                                imageVector = Icons.Filled.AccountCircle,
-//                                contentDescription = "用户菜单",
-//                                tint = MaterialTheme.colorScheme.onPrimaryContainer
-//                            )
-//                        }
-//
-//                        // 3. 高颜值定制化 DropdownMenu
-//                        DropdownMenu(
-//                            expanded = menuExpanded,
-//                            onDismissRequest = { menuExpanded = false },
-//                            // 通过 offset 让菜单向下微调，避免死死贴着顶栏，视觉上更轻盈
-//                            offset = DpOffset(x = (-8).dp, y = 4.dp),
-//                            modifier = Modifier
-//                                .width(170.dp)
-//                                .shadow(elevation = 8.dp, shape = RoundedCornerShape(16.dp)) // 增加柔和阴影
-//                                .clip(RoundedCornerShape(16.dp)) // 大圆角，更有现代高级感
-//                                .background(MaterialTheme.colorScheme.surfaceContainerHigh) // 使用 M3 容器色，拒绝死白
-//                        ) {
-//                            // 菜单项 1：个人中心
-//                            DropdownMenuItem(
-//                                text = { Text("个人中心", fontWeight = FontWeight.Medium, fontSize = 15.sp) },
-//                                leadingIcon = {
-//                                    Icon(
-//                                        imageVector = Icons.Filled.AccountCircle,
-//                                        contentDescription = null,
-//                                        modifier = Modifier.size(20.dp),
-//                                        tint = MaterialTheme.colorScheme.primary
-//                                    )
-//                                },
-//                                onClick = {
-//                                    menuExpanded = false // 点击后关闭
-//                                    intentHandler(HomeContract.Intent.UserInfo) // 触发原有逻辑
-//                                }
-//                            )
-//
-//                            // 分割线：增强视觉层次
-//                            HorizontalDivider(
-//                                modifier = Modifier.padding(vertical = 4.dp),
-//                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
-//                            )
-//
-//                            // 菜单项 2：其他设置（示例）
-//                            DropdownMenuItem(
-//                                text = { Text("设置", fontWeight = FontWeight.Medium, fontSize = 15.sp) },
-//                                leadingIcon = {
-//                                    Icon(
-//                                        imageVector = Icons.Filled.Menu,
-//                                        contentDescription = null,
-//                                        modifier = Modifier.size(20.dp),
-//                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-//                                    )
-//                                },
-//                                onClick = {
-//                                    menuExpanded = false
-//                                    // 在这里处理设置点击
-//                                }
-//                            )
-//                        }
-//                    }
+                    // 1. 定义控制菜单展开的状态
+                    var menuExpanded by remember { mutableStateOf(false) }
+
+                    // 2. 用 Box 作为锚点，确保菜单永远对齐这个按钮的右上角
+                    Box(modifier = Modifier.wrapContentSize(Alignment.TopEnd)) {
+
+                        IconButton(onClick = { menuExpanded = true }) {
+                            Icon(
+                                imageVector = Icons.Filled.Menu,
+                                contentDescription = "用户菜单",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+
+                        // 3. 高颜值定制化 DropdownMenu
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false },
+                            // 通过 offset 让菜单向下微调，避免死死贴着顶栏，视觉上更轻盈
+                            offset = DpOffset(x = (-8).dp, y = 4.dp),
+                            modifier = Modifier
+                                .width(170.dp)
+                                .shadow(elevation = 8.dp, shape = RoundedCornerShape(16.dp)) // 增加柔和阴影
+                                .clip(RoundedCornerShape(16.dp)) // 大圆角，更有现代高级感
+                                .background(MaterialTheme.colorScheme.surfaceContainerHigh) // 使用 M3 容器色，拒绝死白
+                        ) {
+                            // 菜单项 1：登出
+                            DropdownMenuItem(
+                                text = { Text("登出", fontWeight = FontWeight.Medium, fontSize = 15.sp) },
+                                leadingIcon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.logout_24px),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                },
+                                onClick = {
+                                    menuExpanded = false // 点击后关闭
+                                    intentHandler(HomeContract.Intent.UserInfo) // 触发原有逻辑
+                                }
+                            )
+
+                            // 分割线：增强视觉层次
+                            HorizontalDivider(
+                                modifier = Modifier.padding(vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                            )
+
+                            // 菜单项 2：其他设置（示例）
+                            DropdownMenuItem(
+                                text = { Text("设置", fontWeight = FontWeight.Medium, fontSize = 15.sp) },
+                                leadingIcon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.settings_24px_filled),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                },
+                                onClick = {
+                                    menuExpanded = false
+                                    // 在这里处理设置点击
+                                }
+                            )
+                        }
+                    }
+
                 },
                 scrollBehavior = scrollBehavior
             )
@@ -281,7 +287,7 @@ fun CombineScreen(modifier: Modifier = Modifier) {
                     showBottomSheet = true
                 }
             ) {
-                Icon(painterResource(R.drawable.menu_24px), contentDescription = "增加")
+                Icon(painterResource(R.drawable.add_24px), contentDescription = "增加")
             }
         },
         snackbarHost = {
@@ -329,6 +335,13 @@ fun CombineScreen(modifier: Modifier = Modifier) {
                     }
                 }
             }
+
+//            AnimatedVisibility(
+//                visible = rememberVisibility,
+//                enter = slideInVertically(animationSpec = tween(durationMillis = 3000, easing = FastOutSlowInEasing))
+//            ) {
+//                Greeting()
+//            }
 
             Greeting()
         }

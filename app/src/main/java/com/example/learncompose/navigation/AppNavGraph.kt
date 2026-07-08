@@ -1,5 +1,11 @@
 package com.example.learncompose.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -17,6 +23,7 @@ import com.example.learncompose.features.login.LoginScreen
 import com.example.learncompose.features.login.LoginViewModel
 import com.example.learncompose.features.welcome.WelcomeScreen
 import com.example.learncompose.features.welcome.WelcomeViewModel
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun AppNavGraph(startDestination: Screen = Screen.Welcome) {
@@ -42,7 +49,14 @@ fun AppNavGraph(startDestination: Screen = Screen.Welcome) {
                 )
             }
 
-            is Screen.Login -> NavEntry(key) {
+            is Screen.Login -> NavEntry(
+                key = key,
+                metadata = NavDisplay.transitionSpec {
+                    slideInHorizontally(animationSpec = tween(durationMillis = 1000)) { -it } togetherWith slideOutHorizontally(animationSpec = tween(durationMillis = 1000)) { it }
+                } + NavDisplay.popTransitionSpec {
+                    slideInHorizontally(animationSpec = tween(durationMillis = 1000)) { it } togetherWith slideOutHorizontally(animationSpec = tween(durationMillis = 1000)) { it }
+                }
+            ) {
                 val viewModel = hiltViewModel<LoginViewModel>()
                 LoginScreen(
                     viewModel = viewModel,
@@ -53,7 +67,14 @@ fun AppNavGraph(startDestination: Screen = Screen.Welcome) {
                 )
             }
 
-            is Screen.Home -> NavEntry(key) {
+            is Screen.Home -> NavEntry(
+                key = key,
+                metadata = NavDisplay.transitionSpec {
+                    slideInHorizontally(animationSpec = tween(durationMillis = 1000)) { it } togetherWith slideOutHorizontally(animationSpec = tween(durationMillis = 1000)) { -it }
+                } + NavDisplay.popTransitionSpec {
+                    slideInHorizontally(animationSpec = tween(durationMillis = 1000)) { -it } togetherWith slideOutHorizontally(animationSpec = tween(durationMillis = 1000)) { it }
+                }
+            ) {
                 val viewModel = hiltViewModel<HomeViewModel>()
                 HomeScreen(
                     viewModel = viewModel,
@@ -75,6 +96,12 @@ fun AppNavGraph(startDestination: Screen = Screen.Welcome) {
         ),
         backStack = rememberNavBackStack,
         onBack = { rememberNavBackStack.removeLastOrNull() },
-        entryProvider = entryProvider
+        entryProvider = entryProvider,
+        transitionSpec = {
+            fadeIn(tween(1000)) togetherWith fadeOut(tween(1000))
+        },
+        popTransitionSpec = {
+            fadeIn(tween(1000)) togetherWith fadeOut(tween(1000))
+        }
     )
 }
