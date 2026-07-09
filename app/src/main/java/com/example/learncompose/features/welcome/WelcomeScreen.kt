@@ -212,7 +212,6 @@ fun BottomContent(modifier: Modifier = Modifier, state: WelcomeContract.State) {
         Spacer(Modifier.size(10.dp))
         ButtonPrimary(
             modifier = Modifier.padding(horizontal = 20.dp).fillMaxWidth(),
-            isPressOnClick = true,
             onClick = {
             intentHandler(WelcomeContract.Intent.ClickEnter(state.items[0]))
         }) {

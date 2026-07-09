@@ -72,15 +72,29 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.learncompose.ui.theme.LearnComposeTheme
 import kotlinx.coroutines.delay
+import java.time.LocalDate
+import java.time.YearMonth
 import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun Greeting() {
+fun GreetingScreen() {
     FlowRow(
         Modifier
             .fillMaxSize().verticalScroll(rememberScrollState())
     ) {
+        var daysInMonth by remember { mutableIntStateOf(0) }
+        var currentDate by remember { mutableStateOf(LocalDate.now()) }
+        LaunchedEffect(Unit) {
+            // 提取年、月、日
+            val year = currentDate.year
+            val month = currentDate.monthValue // 返回正常的 1-12
+            val day = currentDate.dayOfMonth
+            // 指定年份和月份（这里使用上面获取的当前年月）
+            val yearMonth = YearMonth.of(year, month)
+            // 获取该月的天数
+            daysInMonth = yearMonth.lengthOfMonth()
+        }
         var checkBoxState1 by remember { mutableStateOf(false) }
         var checkBoxState2 by remember { mutableStateOf(false) }
         val parentState = remember(checkBoxState1, checkBoxState2) {
@@ -252,7 +266,7 @@ fun Greeting() {
         ) {
             Text(
                 modifier = Modifier.padding(16.dp),
-                text = "card")
+                text = "现在日期是 ${currentDate.year},${currentDate.monthValue},${currentDate.dayOfMonth}, 这个月有$daysInMonth 天")
         }
 
 
@@ -340,8 +354,8 @@ fun Greeting() {
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun GreetingScreenPreview() {
     LearnComposeTheme {
-        Greeting()
+        GreetingScreen()
     }
 }

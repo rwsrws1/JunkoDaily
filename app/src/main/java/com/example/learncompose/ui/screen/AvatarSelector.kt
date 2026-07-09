@@ -50,7 +50,7 @@ fun AvatarSelector(
                 .diskCacheKey("${avatarFile.absolutePath}?t=$avatarTimestamp")
                 .build()
         } else {
-            R.drawable.settings_accessibility_24px // 默认矢量图
+            R.drawable.face_24px // 默认矢量图
         }
     }
 

@@ -13,7 +13,10 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
@@ -25,8 +28,8 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun ButtonPrimary(
     modifier: Modifier = Modifier,
-    isEnabled: Boolean = true,
     isPressOnClick: Boolean = false,
+    isEnabled: Boolean = true,
     onClick: () -> Unit = {},
     content: @Composable (RowScope.() -> Unit)
 ) {
@@ -58,7 +61,6 @@ fun ButtonPrimary(
         interactionSource.interactions.collect { interaction ->
             when (interaction) {
                 is PressInteraction.Press -> {
-                    // 【情况 A：新一轮按下】 必须立刻粗暴中断之前残存的所有动画（不管是处于上一轮的释放还是弹跳中）
                     animJob?.cancel()
                     animJob = launch {
                         // 干净利落地缩小到 0.88f
@@ -67,6 +69,7 @@ fun ButtonPrimary(
                 }
 
                 is PressInteraction.Release -> {
+
                     // 【情况 B：手指抬起】 核心魔法在这里！
                     val previousPressJob = animJob
                     animJob = launch {
@@ -102,8 +105,29 @@ fun ButtonPrimary(
             focusedElevation = 10.dp
         ),
         enabled = isEnabled,
-        onClick = onClick
+        onClick = if (isPressOnClick) onClick else rememberDebounce { onClick() }
     ) {
         content()
+    }
+}
+
+@Composable
+fun rememberDebounce(
+    onClick: () -> Unit
+): () -> Unit {
+    // 记录上一次有效点击的时间戳
+    var lastClickTime by remember { mutableLongStateOf(0L) }
+    // 使用 rememberUpdatedState 确保拿到最新的 onClick 回调，防止闭包捕获旧状态
+    val currentOnClick by rememberUpdatedState(onClick)
+
+    return remember {
+        {
+            val currentTime = System.currentTimeMillis()
+            // 如果当前时间距离上次点击时间超过了设置的防抖阈值，则触发点击
+            if (currentTime - lastClickTime >= 500L) {
+                lastClickTime = currentTime
+                currentOnClick()
+            }
+        }
     }
 }

@@ -1,11 +1,6 @@
 package com.example.learncompose.features.home
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -15,33 +10,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.Button
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
@@ -56,9 +37,8 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -70,25 +50,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation3.runtime.rememberNavBackStack
 import com.example.learncompose.R
-import com.example.learncompose.ui.components.ChartDemoScreen
-import com.example.learncompose.ui.components.Greeting
-import com.example.learncompose.ui.screen.AudioPickerScreen
+import com.example.learncompose.features.home.navigation.HomeNavGraph
+import com.example.learncompose.features.home.navigation.HomeNavKey
+import com.example.learncompose.ui.components.GreetingScreen
 import com.example.learncompose.ui.screen.AvatarSelector
-import com.example.learncompose.ui.screen.DrawingBoardScreen
-import com.example.learncompose.ui.screen.MediaPickerScreen
-import com.example.learncompose.ui.screen.ScratchCardScreen
 import com.example.learncompose.ui.theme.LearnComposeTheme
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
 
 val localHomeHandler = staticCompositionLocalOf<(HomeContract.Intent) -> Unit> { {} }
 
@@ -120,12 +95,9 @@ fun CombineScreen(modifier: Modifier = Modifier) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var showBottomSheet by remember { mutableStateOf(false) }
-
-//    var rememberVisibility by remember { mutableStateOf(false) }
-//    LaunchedEffect(Unit) {
-//        delay(500.milliseconds)
-//        rememberVisibility = true
-//    }
+    var selectedIndex by remember { mutableIntStateOf(0) }
+    val selectedOptionsLabel = listOf("首页", "统计", "我的")
+    val rememberNavBackStack = rememberNavBackStack(HomeNavKey.Greeting)
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -228,59 +200,38 @@ fun CombineScreen(modifier: Modifier = Modifier) {
         },
         bottomBar = {
             NavigationBar {
-                NavigationBarItem(
-                    selected = true,
-                    onClick = { /* 切换页面 */ },
-                    icon = {
-                        BadgedBox(
-                            badge = {
-                                Badge()
-                            }) {
-                            Icon(Icons.Default.Home, contentDescription = null)
-                        }
-                    },
-                    label = { Text("首页", fontSize = 16.sp) }
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = {
-//                        intentHandler(HomeContract.Intent.Logout)
-                    },
-                    icon = { Icon(painterResource(R.drawable.settings_accessibility_24px), null) },
-                    label = { Text("我的", fontSize = 16.sp) }
-                )
+                selectedOptionsLabel.forEachIndexed { index, label ->
+                    NavigationBarItem(
+                        selected = selectedIndex == index,
+                        onClick = {
+                            selectedIndex = index
+                            rememberNavBackStack.clear()
+                            rememberNavBackStack.add(
+                                when (index) {
+                                    0 -> HomeNavKey.Greeting
+                                    1 -> HomeNavKey.CharDemo
+                                    2 -> HomeNavKey.MediaPiker
+                                    else -> HomeNavKey.Greeting
+                                }
+                            )
+                        },
+                        icon = {
+                            BadgedBox(
+                                badge = {
+                                    Badge()
+                                }) {
+                                when (label) {
+                                    "首页" -> Icon(painterResource(R.drawable.home_24px_filled), contentDescription = null)
+                                    "统计" -> Icon(painterResource(R.drawable.bar_chart_4_bars_24px), contentDescription = null)
+                                    "我的" -> Icon(painterResource(R.drawable.person_24px), contentDescription = null)
+                                }
+                            }
+                        },
+                        label = { Text(label, fontSize = 16.sp) }
+                    )
+                }
             }
         },
-//        bottomBar = {
-//            BottomAppBar(
-//                actions = {
-//                    IconButton(onClick = { /* do something */ }) {
-//                        Icon(Icons.Filled.Check, contentDescription = "Localized description")
-//                    }
-//                    IconButton(onClick = { /* do something */ }) {
-//                        Icon(
-//                            Icons.Filled.Edit,
-//                            contentDescription = "Localized description",
-//                        )
-//                    }
-//                    IconButton(onClick = { /* do something */ }) {
-//                        Icon(
-//                            Icons.Filled.Email,
-//                            contentDescription = "Localized description",
-//                        )
-//                    }
-//                },
-//                floatingActionButton = {
-//                    FloatingActionButton(
-//                        onClick = { /* do something */ },
-//                        containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
-//                        elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
-//                    ) {
-//                        Icon(Icons.Filled.Add, "Localized description")
-//                    }
-//                }
-//            )
-//        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
@@ -343,7 +294,7 @@ fun CombineScreen(modifier: Modifier = Modifier) {
 //                Greeting()
 //            }
 
-            Greeting()
+            HomeNavGraph(rememberNavBackStack)
         }
     }
 }

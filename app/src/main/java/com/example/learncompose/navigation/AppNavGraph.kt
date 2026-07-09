@@ -9,6 +9,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -23,33 +24,32 @@ import com.example.learncompose.features.login.LoginScreen
 import com.example.learncompose.features.login.LoginViewModel
 import com.example.learncompose.features.welcome.WelcomeScreen
 import com.example.learncompose.features.welcome.WelcomeViewModel
-import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
-fun AppNavGraph(startDestination: Screen = Screen.Welcome) {
+fun AppNavGraph(startDestination: AppNavKey = AppNavKey.Welcome) {
     val rememberNavBackStack = rememberNavBackStack(startDestination)
 
     val viewModel = hiltViewModel<MainViewModel>()
     // 全局登录状态拦截
-    if (rememberNavBackStack.last() != Screen.Welcome && viewModel.authState == AuthState.LoggedOut) {
+    if (rememberNavBackStack.last() != AppNavKey.Welcome && viewModel.authState == AuthState.LoggedOut) {
         rememberNavBackStack.clear()
-        rememberNavBackStack.add(Screen.Login(""))
+        rememberNavBackStack.add(AppNavKey.Login(""))
     }
 
     val entryProvider: (NavKey) -> NavEntry<NavKey> = { key: NavKey ->
         when (key) {
-            is Screen.Welcome -> NavEntry(key) {
+            is AppNavKey.Welcome -> NavEntry(key) {
                 val viewModel = hiltViewModel<WelcomeViewModel>()
                 WelcomeScreen(
                     viewModel = viewModel,
                     onNavigateToHome = { id ->
                         rememberNavBackStack.clear()
-                        rememberNavBackStack.add(Screen.Home)
+                        rememberNavBackStack.add(AppNavKey.Home)
                     }
                 )
             }
 
-            is Screen.Login -> NavEntry(
+            is AppNavKey.Login -> NavEntry(
                 key = key,
                 metadata = NavDisplay.transitionSpec {
                     slideInHorizontally(animationSpec = tween(durationMillis = 1000)) { -it } togetherWith slideOutHorizontally(animationSpec = tween(durationMillis = 1000)) { it }
@@ -62,12 +62,12 @@ fun AppNavGraph(startDestination: Screen = Screen.Welcome) {
                     viewModel = viewModel,
                     onNavigateToHome = {
                         rememberNavBackStack.clear()
-                        rememberNavBackStack.add(Screen.Home)
+                        rememberNavBackStack.add(AppNavKey.Home)
                     }
                 )
             }
 
-            is Screen.Home -> NavEntry(
+            is AppNavKey.Home -> NavEntry(
                 key = key,
                 metadata = NavDisplay.transitionSpec {
                     slideInHorizontally(animationSpec = tween(durationMillis = 1000)) { it } togetherWith slideOutHorizontally(animationSpec = tween(durationMillis = 1000)) { -it }
@@ -81,7 +81,7 @@ fun AppNavGraph(startDestination: Screen = Screen.Welcome) {
                 )
             }
 
-            is Screen.Loading -> NavEntry(key) {
+            is AppNavKey.Loading -> NavEntry(key) {
                 CommonScreen()
             }
 
@@ -89,7 +89,7 @@ fun AppNavGraph(startDestination: Screen = Screen.Welcome) {
         }
     }
 
-    NavDisplay(
+    NavDisplay<NavKey>(
         entryDecorators = listOf(
             rememberSaveableStateHolderNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator()
