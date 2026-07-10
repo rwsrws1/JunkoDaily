@@ -9,10 +9,9 @@ import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDe
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
-import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.example.learncompose.ui.components.ChartDemoScreen
+import com.example.learncompose.features.statistics.StatisticsScreen
 import com.example.learncompose.ui.components.GreetingScreen
 import com.example.learncompose.ui.screen.MediaPickerScreen
 import kotlin.collections.listOf
@@ -28,20 +27,20 @@ fun HomeNavGraph(rememberNavBackStack: NavBackStack<NavKey>) {
         backStack = rememberNavBackStack,
         onBack = { rememberNavBackStack.removeLastOrNull() },
         transitionSpec = {
-            fadeIn(tween(1000)) togetherWith fadeOut(tween(1000))
+            fadeIn(tween(100)) togetherWith fadeOut(tween(100))
         },
         popTransitionSpec = {
-            fadeIn(tween(1000)) togetherWith fadeOut(tween(1000))
+            fadeIn(tween(100)) togetherWith fadeOut(tween(100))
         }
     ) { key ->
         when (key) {
             is HomeNavKey.Greeting -> NavEntry(key) {
                 GreetingScreen()
             }
-            is HomeNavKey.CharDemo -> NavEntry(key) {
-                ChartDemoScreen()
+            is HomeNavKey.Statistics -> NavEntry(key) {
+                StatisticsScreen()
             }
-            is HomeNavKey.MediaPiker -> NavEntry(key) {
+            is HomeNavKey.Profile -> NavEntry(key) {
                 MediaPickerScreen()
             }
             else -> NavEntry(key) {}

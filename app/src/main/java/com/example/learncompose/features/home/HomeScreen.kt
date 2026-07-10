@@ -38,10 +38,10 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
@@ -60,7 +60,6 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import com.example.learncompose.R
 import com.example.learncompose.features.home.navigation.HomeNavGraph
 import com.example.learncompose.features.home.navigation.HomeNavKey
-import com.example.learncompose.ui.components.GreetingScreen
 import com.example.learncompose.ui.screen.AvatarSelector
 import com.example.learncompose.ui.theme.LearnComposeTheme
 import kotlinx.coroutines.launch
@@ -95,9 +94,14 @@ fun CombineScreen(modifier: Modifier = Modifier) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var showBottomSheet by remember { mutableStateOf(false) }
-    var selectedIndex by remember { mutableIntStateOf(0) }
-    val selectedOptionsLabel = listOf("首页", "统计", "我的")
-    val rememberNavBackStack = rememberNavBackStack(HomeNavKey.Greeting)
+
+    var currentKey: HomeNavKey by remember { mutableStateOf(HomeNavKey.Greeting) }
+    val homeNaviKeys = listOf(HomeNavKey.Greeting, HomeNavKey.Statistics, HomeNavKey.Profile)
+    val stacks = homeNaviKeys.associateWith { key ->
+        rememberNavBackStack(key)
+    }
+    val currentStack = stacks[currentKey]!!
+    val savableStateHolder = rememberSaveableStateHolder()
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -200,34 +204,31 @@ fun CombineScreen(modifier: Modifier = Modifier) {
         },
         bottomBar = {
             NavigationBar {
-                selectedOptionsLabel.forEachIndexed { index, label ->
+                homeNaviKeys.forEach { key ->
                     NavigationBarItem(
-                        selected = selectedIndex == index,
+                        selected = currentKey == key,
                         onClick = {
-                            selectedIndex = index
-                            rememberNavBackStack.clear()
-                            rememberNavBackStack.add(
-                                when (index) {
-                                    0 -> HomeNavKey.Greeting
-                                    1 -> HomeNavKey.CharDemo
-                                    2 -> HomeNavKey.MediaPiker
-                                    else -> HomeNavKey.Greeting
-                                }
-                            )
+                            currentKey = key
                         },
                         icon = {
                             BadgedBox(
                                 badge = {
                                     Badge()
                                 }) {
-                                when (label) {
-                                    "首页" -> Icon(painterResource(R.drawable.home_24px_filled), contentDescription = null)
-                                    "统计" -> Icon(painterResource(R.drawable.bar_chart_4_bars_24px), contentDescription = null)
-                                    "我的" -> Icon(painterResource(R.drawable.person_24px), contentDescription = null)
+                                when (key) {
+                                    is HomeNavKey.Greeting -> Icon(painterResource(R.drawable.home_24px_filled), contentDescription = null)
+                                    is HomeNavKey.Statistics -> Icon(painterResource(R.drawable.bar_chart_4_bars_24px), contentDescription = null)
+                                    is HomeNavKey.Profile -> Icon(painterResource(R.drawable.person_24px), contentDescription = null)
                                 }
                             }
                         },
-                        label = { Text(label, fontSize = 16.sp) }
+                        label = {
+                            when (key) {
+                                is HomeNavKey.Greeting -> Text("首页", fontSize = 16.sp)
+                                is HomeNavKey.Statistics -> Text("统计", fontSize = 16.sp)
+                                is HomeNavKey.Profile -> Text("我的", fontSize = 16.sp)
+                            }
+                        }
                     )
                 }
             }
@@ -294,7 +295,9 @@ fun CombineScreen(modifier: Modifier = Modifier) {
 //                Greeting()
 //            }
 
-            HomeNavGraph(rememberNavBackStack)
+            savableStateHolder.SaveableStateProvider(currentKey.toString()) {
+                HomeNavGraph(currentStack)
+            }
         }
     }
 }

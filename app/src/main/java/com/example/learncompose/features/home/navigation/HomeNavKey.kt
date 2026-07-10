@@ -5,9 +5,9 @@ import kotlinx.serialization.Serializable
 
 sealed interface HomeNavKey : NavKey {
     @Serializable
-    object Greeting : HomeNavKey
+    data object Greeting : HomeNavKey
     @Serializable
-    object CharDemo : HomeNavKey
+    data object Statistics : HomeNavKey
     @Serializable
-    object MediaPiker : HomeNavKey
+    data object Profile : HomeNavKey
 }
