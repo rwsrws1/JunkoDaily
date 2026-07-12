@@ -150,6 +150,7 @@ fun GreetingScreen() {
                 }
             }
         }
+
         var switchState by remember { mutableStateOf(false) }
         Switch(
             checked = switchState,
@@ -212,7 +213,7 @@ fun GreetingScreen() {
         }
         val multiChoiceSegmentedButtonOptions = listOf("Walk", "Ride", "Drive")
         val iconColor by animateColorAsState(
-            targetValue = if (selectedOptions[1]) MaterialTheme.colorScheme.primary else Color.Black,
+            targetValue = if (selectedOptions[1]) Color.Red else Color.Black,
             animationSpec = spring(stiffness = Spring.StiffnessHigh)
         )
         MultiChoiceSegmentedButtonRow {

@@ -5,9 +5,11 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -24,7 +26,7 @@ fun MediaPickerScreen() {
         }
     )
 
-    Column {
+    Column(modifier = Modifier.fillMaxSize()) {
         // 示例 A：只选择图片
         Button(onClick = {
             photoPickerLauncher.launch(

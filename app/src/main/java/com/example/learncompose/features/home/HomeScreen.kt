@@ -1,6 +1,5 @@
 package com.example.learncompose.features.home
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -11,8 +10,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
@@ -26,7 +23,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -47,7 +46,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -57,6 +56,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigationevent.compose.LocalNavigationEventDispatcherOwner
+import androidx.navigationevent.compose.rememberNavigationEventDispatcherOwner
 import com.example.learncompose.R
 import com.example.learncompose.features.home.navigation.HomeNavGraph
 import com.example.learncompose.features.home.navigation.HomeNavKey
@@ -87,7 +88,7 @@ fun HomeScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CombineScreen(modifier: Modifier = Modifier) {
+fun CombineScreen() {
     val intentHandler = localHomeHandler.current
     val snackBarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -114,13 +115,13 @@ fun CombineScreen(modifier: Modifier = Modifier) {
                         fontWeight = FontWeight.Bold
                     )
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                ),
+//                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+//                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+//                    scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer,
+//                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+//                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+//                    actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+//                ),
                 navigationIcon = {
                     AvatarSelector(
                         modifier = Modifier
@@ -138,9 +139,8 @@ fun CombineScreen(modifier: Modifier = Modifier) {
 
                         IconButton(onClick = { menuExpanded = true }) {
                             Icon(
-                                imageVector = Icons.Filled.Menu,
+                                painter = painterResource(R.drawable.menu_24px),
                                 contentDescription = "用户菜单",
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
 
@@ -150,21 +150,20 @@ fun CombineScreen(modifier: Modifier = Modifier) {
                             onDismissRequest = { menuExpanded = false },
                             // 通过 offset 让菜单向下微调，避免死死贴着顶栏，视觉上更轻盈
                             offset = DpOffset(x = (-8).dp, y = 4.dp),
-                            modifier = Modifier
-                                .width(170.dp)
-                                .shadow(elevation = 8.dp, shape = RoundedCornerShape(16.dp)) // 增加柔和阴影
-                                .clip(RoundedCornerShape(16.dp)) // 大圆角，更有现代高级感
-                                .background(MaterialTheme.colorScheme.surfaceContainerHigh) // 使用 M3 容器色，拒绝死白
+                            modifier = Modifier.width(170.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            shadowElevation = 8.dp,
+//                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
                         ) {
                             // 菜单项 1：登出
                             DropdownMenuItem(
+                                modifier = Modifier.clip(RoundedCornerShape(16.dp)),
                                 text = { Text("登出", fontWeight = FontWeight.Medium, fontSize = 15.sp) },
                                 leadingIcon = {
                                     Icon(
                                         painter = painterResource(R.drawable.logout_24px),
                                         contentDescription = null,
                                         modifier = Modifier.size(20.dp),
-                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 },
                                 onClick = {
@@ -181,13 +180,13 @@ fun CombineScreen(modifier: Modifier = Modifier) {
 
                             // 菜单项 2：其他设置（示例）
                             DropdownMenuItem(
+                                modifier = Modifier.clip(RoundedCornerShape(16.dp)),
                                 text = { Text("设置", fontWeight = FontWeight.Medium, fontSize = 15.sp) },
                                 leadingIcon = {
                                     Icon(
                                         painter = painterResource(R.drawable.settings_24px_filled),
                                         contentDescription = null,
                                         modifier = Modifier.size(20.dp),
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 },
                                 onClick = {
@@ -205,6 +204,35 @@ fun CombineScreen(modifier: Modifier = Modifier) {
         bottomBar = {
             NavigationBar {
                 homeNaviKeys.forEach { key ->
+                    var painterResource: Painter
+                    var textContent: String
+
+                    when (key) {
+                        is HomeNavKey.Greeting -> {
+                            textContent = "首页"
+                            painterResource = if (currentKey == key ) {
+                                painterResource(R.drawable.home_24px_filled)
+                            } else {
+                                painterResource(R.drawable.home_24px)
+                            }
+                        }
+                        is HomeNavKey.Statistics -> {
+                            textContent = "统计"
+                            painterResource = if (currentKey == key ) {
+                                painterResource(R.drawable.insert_chart_24px_filled)
+                            } else {
+                                painterResource(R.drawable.insert_chart_24px)
+                            }
+                        }
+                        is HomeNavKey.Profile -> {
+                            textContent = "我的"
+                            painterResource = if (currentKey == key ) {
+                                painterResource(R.drawable.person_24px_filled)
+                            } else {
+                                painterResource(R.drawable.person_24px)
+                            }
+                        }
+                    }
                     NavigationBarItem(
                         selected = currentKey == key,
                         onClick = {
@@ -215,19 +243,17 @@ fun CombineScreen(modifier: Modifier = Modifier) {
                                 badge = {
                                     Badge()
                                 }) {
-                                when (key) {
-                                    is HomeNavKey.Greeting -> Icon(painterResource(R.drawable.home_24px_filled), contentDescription = null)
-                                    is HomeNavKey.Statistics -> Icon(painterResource(R.drawable.bar_chart_4_bars_24px), contentDescription = null)
-                                    is HomeNavKey.Profile -> Icon(painterResource(R.drawable.person_24px), contentDescription = null)
-                                }
+                                Icon(
+                                    painter = painterResource,
+                                    contentDescription = null
+                                )
                             }
                         },
                         label = {
-                            when (key) {
-                                is HomeNavKey.Greeting -> Text("首页", fontSize = 16.sp)
-                                is HomeNavKey.Statistics -> Text("统计", fontSize = 16.sp)
-                                is HomeNavKey.Profile -> Text("我的", fontSize = 16.sp)
-                            }
+                            Text(
+                                text = textContent,
+                                fontSize = 16.sp
+                            )
                         }
                     )
                 }
@@ -288,13 +314,6 @@ fun CombineScreen(modifier: Modifier = Modifier) {
                 }
             }
 
-//            AnimatedVisibility(
-//                visible = rememberVisibility,
-//                enter = slideInVertically(animationSpec = tween(durationMillis = 3000, easing = FastOutSlowInEasing))
-//            ) {
-//                Greeting()
-//            }
-
             savableStateHolder.SaveableStateProvider(currentKey.toString()) {
                 HomeNavGraph(currentStack)
             }
@@ -306,6 +325,11 @@ fun CombineScreen(modifier: Modifier = Modifier) {
 @Composable
 fun HomeScreenPreview() {
     LearnComposeTheme {
-        CombineScreen()
+        // NavDisplay internally uses NavigationBackHandler which requires LocalNavigationEventDispatcherOwner.
+        // In Previews, we need to provide a root dispatcher manually.
+        val dispatcherOwner = rememberNavigationEventDispatcherOwner(parent = null)
+        CompositionLocalProvider(LocalNavigationEventDispatcherOwner provides dispatcherOwner) {
+            CombineScreen()
+        }
     }
 }
