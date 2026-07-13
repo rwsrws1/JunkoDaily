@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
@@ -26,9 +27,9 @@ data class Stroke(
 @Composable
 fun DrawingBoardScreen() {
     // 保存所有已经绘制完成的笔画
-    val strokes = remember { mutableStateListOf<Stroke>() }
+    val strokes = rememberSaveable { mutableStateListOf<Stroke>() }
     // 保存当前正在绘制的笔画的坐标点
-    var currentPoints = remember { mutableStateListOf<Offset>() }
+    val currentPoints = rememberSaveable { mutableStateListOf<Offset>() }
 
     Canvas(
         modifier = Modifier

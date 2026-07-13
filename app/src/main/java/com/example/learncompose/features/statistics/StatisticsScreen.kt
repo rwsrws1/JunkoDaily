@@ -30,6 +30,7 @@ import com.example.learncompose.R
 import com.example.learncompose.features.statistics.navigation.StatisticsNavKey
 import com.example.learncompose.ui.components.ChartDemoScreen
 import com.example.learncompose.ui.components.CommonScreen
+import com.example.learncompose.ui.screen.AudioPickerScreen
 import com.example.learncompose.ui.screen.DrawingBoardScreen
 import com.example.learncompose.ui.screen.MediaPickerScreen
 import com.example.learncompose.ui.screen.ScratchCardScreen
@@ -69,10 +70,11 @@ fun StatisticsScreen(modifier: Modifier = Modifier) {
             }
         }
         HorizontalPager(
-            state = pageState
+            state = pageState,
+            beyondViewportPageCount = 2
         ) { page ->
             when (page) {
-                0 -> MediaPickerScreen()
+                0 -> AudioPickerScreen()
                 1 -> ChartDemoScreen()
                 2 -> CommonScreen()
             }

@@ -1,6 +1,7 @@
 package com.example.learncompose.ui.components
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -9,6 +10,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -23,16 +26,25 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+val FloatAnimatableSaver = Saver<Animatable<Float, AnimationVector1D>, Float>(
+    save = { it.value }, // 保存时，只提取当前的 Float 值
+    restore = { Animatable(it) } // 恢复时，用保存的 Float 值重新创建 Animatable
+)
+
 /**
  * 图表动效演示主界面 (可直接放到 setContent 中预览)
  */
 @Composable
 fun ChartDemoScreen() {
-    val sampleData = listOf(25f, 50f, 15f, 80f, 40f, 65f)
-    val chartColors = listOf(
-        Color(0xFF5C6BC0), Color(0xFF26A69A), Color(0xFFEF5350),
-        Color(0xFFFFCA28), Color(0xFFAB47BC), Color(0xFF29B6F6)
-    )
+    val sampleData = rememberSaveable {
+        listOf(25f, 50f, 15f, 80f, 40f, 65f)
+    }
+    val chartColors = rememberSaveable {
+        listOf(
+            Color(0xFF5C6BC0), Color(0xFF26A69A), Color(0xFFEF5350),
+            Color(0xFFFFCA28), Color(0xFFAB47BC), Color(0xFF29B6F6)
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -79,7 +91,7 @@ fun ChartSection(title: String, content: @Composable () -> Unit) {
 @Composable
 fun AnimatedBarChart(data: List<Float>, colors: List<Color>) {
     // 创建一个从 0 到 1 的动画进度状态
-    val progress = remember { Animatable(0f) }
+    val progress = rememberSaveable(saver = FloatAnimatableSaver) { Animatable(0f) }
 
     LaunchedEffect(Unit) {
         progress.animateTo(

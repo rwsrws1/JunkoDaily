@@ -1,21 +1,26 @@
 package com.example.learncompose.ui.components
 
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -30,6 +35,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.AddCircle
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -52,6 +58,8 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TriStateCheckbox
+import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
+import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -66,10 +74,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.example.learncompose.R
 import com.example.learncompose.ui.theme.LearnComposeTheme
 import kotlinx.coroutines.delay
 import java.time.LocalDate
@@ -78,11 +89,50 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun GreetingScreen() {
-    FlowRow(
+fun GreetingScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
+    Column(
         Modifier
             .fillMaxSize().verticalScroll(rememberScrollState())
     ) {
+
+        data class CarouselItem(
+            val id: Int,
+            @DrawableRes val imageResId: Int,
+            val contentDescription: String
+        )
+
+        val carouselItems = remember {
+            listOf(
+                CarouselItem(0, R.drawable.menu_book_24px, "cupcake"),
+                CarouselItem(1, R.drawable.reply_24px, "donut"),
+                CarouselItem(2, R.drawable.settings_24px_filled, "eclair"),
+                CarouselItem(3, R.drawable.add_box_24px, "froyo"),
+                CarouselItem(4, R.drawable.done_outline_24px, "gingerbread"),
+            )
+        }
+
+        HorizontalUncontainedCarousel(
+            state = rememberCarouselState { carouselItems.count() },
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(top = 16.dp, bottom = 16.dp),
+            itemWidth = 120.dp,
+            itemSpacing = 8.dp,
+            contentPadding = PaddingValues(horizontal = 16.dp)
+        ) { i ->
+            val item = carouselItems[i]
+            Image(
+                modifier = Modifier
+                    .height(205.dp)
+                    .fillMaxWidth()
+                    .maskClip(MaterialTheme.shapes.extraLarge),
+                painter = painterResource(id = item.imageResId),
+                contentDescription = item.contentDescription,
+                contentScale = ContentScale.Fit
+            )
+        }
+
         var daysInMonth by remember { mutableIntStateOf(0) }
         var currentDate by remember { mutableStateOf(LocalDate.now()) }
         LaunchedEffect(Unit) {
@@ -182,6 +232,15 @@ fun GreetingScreen() {
         }
         Text("item$item")
 
+        AssistChip(
+            onClick = {
+                onNavigatorToDrawingBoard()
+            },
+            label = {
+                Text("DrawingBoard")
+            }
+        )
+
         var selectedIndex by remember { mutableIntStateOf(0) }
         val segmentedButtonOptions = listOf("Day", "Month", "Week")
         SingleChoiceSegmentedButtonRow {
@@ -278,6 +337,10 @@ fun GreetingScreen() {
         ) {
             // 【避坑指南】使用 items 时必须提供唯一的 key，否则删除时动画会错乱
             items(items = itemList, key = { it }) { item ->
+
+                if (item == "邮件 1") {
+                    Text("列表")
+                }
 
                 // 2. 记住每个条目的滑动状态
                 val dismissState = rememberSwipeToDismissBoxState(
