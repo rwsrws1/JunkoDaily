@@ -133,7 +133,7 @@ fun AnimatedBarChart(data: List<Float>, colors: List<Color>) {
  */
 @Composable
 fun AnimatedLineChart(data: List<Float>, lineColor: Color) {
-    val progress = remember { Animatable(0f) }
+    val progress = rememberSaveable(saver = FloatAnimatableSaver) { Animatable(0f) }
 
     LaunchedEffect(Unit) {
         progress.animateTo(
@@ -200,7 +200,7 @@ fun AnimatedLineChart(data: List<Float>, lineColor: Color) {
  */
 @Composable
 fun AnimatedPieOrDonutChart(data: List<Float>, colors: List<Color>, isDonut: Boolean) {
-    val progress = remember { Animatable(0f) }
+    val progress = rememberSaveable(saver = FloatAnimatableSaver) { Animatable(0f) }
 
     LaunchedEffect(Unit) {
         progress.animateTo(

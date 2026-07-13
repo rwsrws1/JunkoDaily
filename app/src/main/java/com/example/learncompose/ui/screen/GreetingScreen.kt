@@ -15,11 +15,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -63,12 +68,15 @@ import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -87,12 +95,20 @@ import java.time.LocalDate
 import java.time.YearMonth
 import kotlin.time.Duration.Companion.milliseconds
 
+@OptIn(ExperimentalMaterial3Api::class)
+val sliderStateSaver = Saver<SliderState, Float>(
+    save = { it.value },
+    restore = { SliderState(it) }
+)
+
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun GreetingScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
     Column(
         Modifier
-            .fillMaxSize().verticalScroll(rememberScrollState())
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))
     ) {
 
         data class CarouselItem(
@@ -114,10 +130,10 @@ fun GreetingScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
         HorizontalUncontainedCarousel(
             state = rememberCarouselState { carouselItems.count() },
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(0.95F)
                 .wrapContentHeight()
                 .padding(top = 16.dp, bottom = 16.dp),
-            itemWidth = 120.dp,
+            itemWidth = 400.dp,
             itemSpacing = 8.dp,
             contentPadding = PaddingValues(horizontal = 16.dp)
         ) { i ->
@@ -133,8 +149,8 @@ fun GreetingScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
             )
         }
 
-        var daysInMonth by remember { mutableIntStateOf(0) }
-        var currentDate by remember { mutableStateOf(LocalDate.now()) }
+        var daysInMonth by rememberSaveable() { mutableIntStateOf(0) }
+        var currentDate by rememberSaveable() { mutableStateOf(LocalDate.now()) }
         LaunchedEffect(Unit) {
             // 提取年、月、日
             val year = currentDate.year
@@ -145,41 +161,38 @@ fun GreetingScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
             // 获取该月的天数
             daysInMonth = yearMonth.lengthOfMonth()
         }
-        var checkBoxState1 by remember { mutableStateOf(false) }
-        var checkBoxState2 by remember { mutableStateOf(false) }
-        val parentState = remember(checkBoxState1, checkBoxState2) {
-            if (checkBoxState1 && checkBoxState2) {
-                ToggleableState.On
-            } else if (!checkBoxState1 && ! checkBoxState2) {
-                ToggleableState.Off
-            } else {
-                ToggleableState.Indeterminate
+
+        val childCheckedStates = rememberSaveable() { mutableStateListOf(false, false, false) }
+        val parentState by remember {
+            derivedStateOf {
+                when {
+                    childCheckedStates.all { it } -> ToggleableState.On
+                    childCheckedStates.none { it } -> ToggleableState.Off
+                    else -> ToggleableState.Indeterminate
+                }
             }
         }
-        val onParentClick = {
-            val p = parentState != ToggleableState.On
-            checkBoxState1 = p
-            checkBoxState2 = p
-        }
+
         TriStateCheckbox(
             state = parentState,
-            onClick = onParentClick,
+            onClick = {
+                val newState = parentState != ToggleableState.On
+                childCheckedStates.forEachIndexed { index, _ ->
+                    childCheckedStates[index] = newState
+                }
+            },
         )
-        Checkbox(
-            checked = checkBoxState1,
-            onCheckedChange = {
-                checkBoxState1 = it
-            }
-        )
-        Checkbox(
-            checked = checkBoxState2,
-            onCheckedChange = {
-                checkBoxState2 = it
-            }
-        )
+        childCheckedStates.forEachIndexed { index, checked ->
+            Checkbox(
+                checked = checked,
+                onCheckedChange = { isCheck ->
+                    childCheckedStates[index] = isCheck
+                }
+            )
+        }
 
         val options = listOf("11", "22", "33")
-        var selectOption by remember { mutableStateOf(options[0]) }
+        var selectOption by rememberSaveable() { mutableStateOf(options[0]) }
         options.forEach { text ->
             RadioButton(
                 selected = text == selectOption,
@@ -190,7 +203,7 @@ fun GreetingScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
             Text(text)
         }
 
-        var isShowDialog by remember { mutableStateOf(false) }
+        var isShowDialog by rememberSaveable() { mutableStateOf(false) }
         if (isShowDialog) {
             Dialog(
                 onDismissRequest = { isShowDialog = false }
@@ -201,7 +214,7 @@ fun GreetingScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
             }
         }
 
-        var switchState by remember { mutableStateOf(false) }
+        var switchState by rememberSaveable() { mutableStateOf(false) }
         Switch(
             checked = switchState,
             onCheckedChange = {
@@ -211,7 +224,7 @@ fun GreetingScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
 
         val interactionScope = remember { MutableInteractionSource() }
         val isPress by interactionScope.collectIsPressedAsState()
-        var item by remember { mutableStateOf(0) }
+        var item by rememberSaveable() { mutableIntStateOf(0) }
         val pressListener = {
             item++
             Unit
@@ -241,7 +254,7 @@ fun GreetingScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
             }
         )
 
-        var selectedIndex by remember { mutableIntStateOf(0) }
+        var selectedIndex by rememberSaveable() { mutableIntStateOf(0) }
         val segmentedButtonOptions = listOf("Day", "Month", "Week")
         SingleChoiceSegmentedButtonRow {
             segmentedButtonOptions.forEachIndexed { index, label ->
@@ -267,10 +280,12 @@ fun GreetingScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
                 )
             }
         }
-        val selectedOptions = remember {
+        val selectedOptions = rememberSaveable() {
             mutableStateListOf(false, false, false)
         }
-        val multiChoiceSegmentedButtonOptions = listOf("Walk", "Ride", "Drive")
+        val multiChoiceSegmentedButtonOptions = rememberSaveable() {
+            listOf("Walk", "Ride", "Drive")
+        }
         val iconColor by animateColorAsState(
             targetValue = if (selectedOptions[1]) Color.Red else Color.Black,
             animationSpec = spring(stiffness = Spring.StiffnessHigh)
@@ -311,9 +326,12 @@ fun GreetingScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
             }
         }
 
-        var sliderState by remember { mutableFloatStateOf(0.5f) }
+        var sliderStateValue by rememberSaveable() { mutableFloatStateOf(0.5f) }
+        val sliderState = rememberSaveable(saver = sliderStateSaver) {
+            SliderState(sliderStateValue)
+        }
         Slider(
-            state = SliderState(sliderState)
+            state = sliderState
         )
         OutlinedCard(
             modifier = Modifier.fillMaxWidth().height(100.dp).padding(10.dp),
@@ -330,7 +348,7 @@ fun GreetingScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
         }
 
 
-        val itemList = remember { mutableStateListOf("邮件 1", "邮件 2", "邮件 3", "邮件 4", "邮件 5", "邮件 6", "邮件 7") }
+        val itemList = rememberSaveable() { mutableStateListOf("邮件 1", "邮件 2", "邮件 3", "邮件 4", "邮件 5", "邮件 6", "邮件 7") }
         LazyColumn(
             modifier = Modifier.fillMaxWidth().height(300.dp).border(2.dp, color = MaterialTheme.colorScheme.surfaceVariant).padding(10.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
