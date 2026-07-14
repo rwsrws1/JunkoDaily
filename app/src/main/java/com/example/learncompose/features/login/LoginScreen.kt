@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -23,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
@@ -182,6 +184,13 @@ fun CombineContent(state: LoginContract.State = LoginContract.State()) {
                         text = annotatedString,
                         style = MaterialTheme.typography.bodySmall
                     )
+
+//                    TextButton(
+//                        modifier = Modifier.align(Alignment.Start),
+//                        onClick = {}
+//                    ) {
+//                        Text("不用了")
+//                    }
                 }
 
                 Spacer(Modifier.weight(2f))
