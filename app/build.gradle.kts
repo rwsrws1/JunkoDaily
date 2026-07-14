@@ -61,6 +61,9 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-compose:3.0.0")
 //    implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.0")
 
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.ui)
+
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)

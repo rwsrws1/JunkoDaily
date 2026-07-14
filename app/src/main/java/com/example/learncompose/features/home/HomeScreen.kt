@@ -29,14 +29,18 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -59,6 +63,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.PopupPositionProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -294,12 +299,22 @@ fun CombineScreen(currentKey: HomeNavKey = HomeNavKey.Greeting) {
                 }
             },
             floatingActionButton = {
-                FloatingActionButton(
-                    onClick = {
-                        showBottomSheet = true
+                TooltipBox(
+                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(5.dp),
+                    state = rememberTooltipState(),
+                    tooltip = {
+                        PlainTooltip() {
+                            Text("提示")
+                        }
                     }
                 ) {
-                    Icon(painterResource(R.drawable.add_24px), contentDescription = "增加")
+                    FloatingActionButton(
+                        onClick = {
+                            showBottomSheet = true
+                        }
+                    ) {
+                        Icon(painterResource(R.drawable.add_24px), contentDescription = "增加")
+                    }
                 }
             },
             snackbarHost = {

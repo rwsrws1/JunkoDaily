@@ -47,7 +47,9 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.AddCircle
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -96,6 +98,7 @@ import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.example.learncompose.R
 import com.example.learncompose.ui.theme.LearnComposeTheme
 import kotlinx.coroutines.delay
@@ -288,6 +291,51 @@ fun GreetingScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
             }
         }
 
+        var isShowDialog by rememberSaveable { mutableStateOf(false) }
+
+        Button(
+            onClick = {
+                isShowDialog = true
+            }
+        ) {
+            Text("弹窗")
+        }
+
+        if (isShowDialog) {
+            AlertDialog(
+                onDismissRequest = {
+                    isShowDialog = false
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            isShowDialog = false
+                        }
+                    ) {
+                        Text("confirm")
+                    }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = {
+                            isShowDialog = false
+                        }
+                    ) {
+                        Text("dismiss")
+                    }
+                },
+                icon = {
+                    Icon(painter = painterResource(R.drawable.shopping_cart_checkout_24px), null)
+                },
+                title = {
+                    Text("标题")
+                },
+                text = {
+                    Text("正文")
+                }
+            )
+        }
+
         TriStateCheckbox(
             state = parentState,
             onClick = {
@@ -316,17 +364,6 @@ fun GreetingScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
                 }
             )
             Text(text)
-        }
-
-        var isShowDialog by rememberSaveable() { mutableStateOf(false) }
-        if (isShowDialog) {
-            Dialog(
-                onDismissRequest = { isShowDialog = false }
-            ) {
-                Card {
-                    Text("确定吗?", Modifier.padding(16.dp))
-                }
-            }
         }
 
         var switchState by rememberSaveable() { mutableStateOf(false) }
