@@ -122,7 +122,7 @@ fun CombineScreen(currentKey: HomeNavKey = HomeNavKey.Greeting) {
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                modifier = Modifier.fillMaxWidth(0.7f)
+                modifier = Modifier.width(280.dp)
             ) {
                     AvatarSelector(
                         modifier = Modifier
@@ -132,7 +132,7 @@ fun CombineScreen(currentKey: HomeNavKey = HomeNavKey.Greeting) {
                 HorizontalDivider()
             }
         },
-        gesturesEnabled = true
+        gesturesEnabled = drawerState.isOpen
     ) {
 
         Scaffold(
