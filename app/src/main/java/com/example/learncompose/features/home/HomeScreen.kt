@@ -1,5 +1,7 @@
 package com.example.learncompose.features.home
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -10,6 +12,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
@@ -30,7 +34,9 @@ import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -44,6 +50,7 @@ import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,9 +62,12 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
@@ -72,6 +82,7 @@ import androidx.navigationevent.compose.rememberNavigationEventDispatcherOwner
 import com.example.learncompose.R
 import com.example.learncompose.features.home.navigation.HomeNavGraph
 import com.example.learncompose.features.home.navigation.HomeNavKey
+import com.example.learncompose.ui.components.SearchComponent
 import com.example.learncompose.ui.screen.AvatarSelector
 import com.example.learncompose.ui.theme.LearnComposeTheme
 import kotlinx.coroutines.launch
@@ -109,6 +120,14 @@ fun CombineScreen(currentKey: HomeNavKey = HomeNavKey.Greeting) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    var menuExpanded by rememberSaveable { mutableStateOf(false) }
+    var searchState by rememberSaveable { mutableStateOf(false) }
+    val textFieldState: TextFieldState = rememberTextFieldState()
+    val onSearch: (String) -> Unit = {
+        searchState = false
+    }
+    val searchResults: List<String> = listOf("111", "222", "333")
+    val focusRequester = remember { FocusRequester() }
 
 //    var currentKey: HomeNavKey by remember { mutableStateOf(HomeNavKey.Greeting) }
     val homeNaviKeys = listOf(HomeNavKey.Greeting, HomeNavKey.Statistics, HomeNavKey.Profile)
@@ -124,11 +143,11 @@ fun CombineScreen(currentKey: HomeNavKey = HomeNavKey.Greeting) {
             ModalDrawerSheet(
                 modifier = Modifier.width(280.dp)
             ) {
-                    AvatarSelector(
-                        modifier = Modifier
-                            .padding(start = 8.dp, end = 4.dp)
-                            .size(36.dp)
-                    )
+                AvatarSelector(
+                    modifier = Modifier
+                        .padding(start = 8.dp, end = 4.dp)
+                        .size(36.dp)
+                )
                 HorizontalDivider()
             }
         },
@@ -138,13 +157,32 @@ fun CombineScreen(currentKey: HomeNavKey = HomeNavKey.Greeting) {
         Scaffold(
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
+
                 TopAppBar(
                     title = {
-                        Text(
-                            text = "Compose",
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        if (searchState) {
+                            ProvideTextStyle(
+                                value = MaterialTheme.typography.bodyMedium
+                            ) {
+                                SearchComponent(
+                                    modifier = Modifier.padding(end = 16.dp),
+                                    textFieldState = textFieldState,
+                                    onSearch = onSearch,
+                                    searchResults = searchResults,
+                                    focusRequester = focusRequester
+                                )
+                            }
+
+                            SideEffect {
+                                focusRequester.requestFocus()
+                            }
+                        } else {
+                            Text(
+                                text = "Compose",
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     },
 //                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
 //                    containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -154,89 +192,96 @@ fun CombineScreen(currentKey: HomeNavKey = HomeNavKey.Greeting) {
 //                    actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer
 //                ),
                     navigationIcon = {
-                        IconButton(
-                            onClick = {
-                                scope.launch {
-                                    drawerState.apply {
-                                        if (isClosed) open() else close()
+                        if (!searchState) {
+                            IconButton(
+                                onClick = {
+                                    scope.launch {
+                                        drawerState.apply {
+                                            if (isClosed) open() else close()
+                                        }
                                     }
                                 }
+                            ) {
+                                Icon(painterResource(R.drawable.face_24px), null)
                             }
-                        ) {
-                            Icon(painterResource(R.drawable.face_24px), null)
                         }
                     },
                     actions = {
-
-                        // 1. 定义控制菜单展开的状态
-                        var menuExpanded by remember { mutableStateOf(false) }
-
-                        // 2. 用 Box 作为锚点，确保菜单永远对齐这个按钮的右上角
-                        Box(modifier = Modifier.wrapContentSize(Alignment.TopEnd)) {
-
-                            IconButton(onClick = { menuExpanded = true }) {
-                                Icon(
-                                    painter = painterResource(R.drawable.menu_24px),
-                                    contentDescription = "用户菜单",
-                                )
-                            }
-
-                            // 3. 高颜值定制化 DropdownMenu
-                            DropdownMenu(
-                                expanded = menuExpanded,
-                                onDismissRequest = { menuExpanded = false },
-                                // 通过 offset 让菜单向下微调，避免死死贴着顶栏，视觉上更轻盈
-                                offset = DpOffset(x = (-8).dp, y = 4.dp),
-                                modifier = Modifier.width(170.dp),
-                                shape = RoundedCornerShape(16.dp),
-                                shadowElevation = 8.dp,
-//                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                        if (!searchState) {
+                            IconButton(
+                                onClick = {
+                                    searchState = true
+                                }
                             ) {
-                                // 菜单项 1：登出
-                                DropdownMenuItem(
-                                    modifier = Modifier.clip(RoundedCornerShape(16.dp)),
-                                    text = { Text("登出", fontWeight = FontWeight.Medium, fontSize = 15.sp) },
-                                    leadingIcon = {
-                                        Icon(
-                                            painter = painterResource(R.drawable.logout_24px),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(20.dp),
-                                        )
-                                    },
-                                    onClick = {
-                                        menuExpanded = false // 点击后关闭
-                                        intentHandler(HomeContract.Intent.UserInfo) // 触发原有逻辑
-                                    }
-                                )
+                                Icon(painter = painterResource(R.drawable.search_24px), null)
+                            }
+                            // 2. 用 Box 作为锚点，确保菜单永远对齐这个按钮的右上角
+                            Box(modifier = Modifier.wrapContentSize(Alignment.TopEnd)) {
 
-                                // 分割线：增强视觉层次
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(vertical = 4.dp),
-                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
-                                )
+                                IconButton(onClick = { menuExpanded = true }) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.menu_24px),
+                                        contentDescription = "用户菜单",
+                                    )
+                                }
 
-                                // 菜单项 2：其他设置（示例）
-                                DropdownMenuItem(
-                                    modifier = Modifier.clip(RoundedCornerShape(16.dp)),
-                                    text = { Text("设置", fontWeight = FontWeight.Medium, fontSize = 15.sp) },
-                                    leadingIcon = {
-                                        Icon(
-                                            painter = painterResource(R.drawable.settings_24px_filled),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(20.dp),
-                                        )
-                                    },
-                                    onClick = {
-                                        menuExpanded = false
-                                        // 在这里处理设置点击
-                                    }
-                                )
+                                // 3. 高颜值定制化 DropdownMenu
+                                DropdownMenu(
+                                    expanded = menuExpanded,
+                                    onDismissRequest = { menuExpanded = false },
+                                    // 通过 offset 让菜单向下微调，避免死死贴着顶栏，视觉上更轻盈
+                                    offset = DpOffset(x = (-8).dp, y = 4.dp),
+                                    modifier = Modifier.width(170.dp),
+                                    shape = RoundedCornerShape(16.dp),
+                                    shadowElevation = 8.dp,
+//                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                                ) {
+                                    // 菜单项 1：登出
+                                    DropdownMenuItem(
+                                        modifier = Modifier.clip(RoundedCornerShape(16.dp)),
+                                        text = { Text("登出", fontWeight = FontWeight.Medium, fontSize = 15.sp) },
+                                        leadingIcon = {
+                                            Icon(
+                                                painter = painterResource(R.drawable.logout_24px),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(20.dp),
+                                            )
+                                        },
+                                        onClick = {
+                                            menuExpanded = false // 点击后关闭
+                                            intentHandler(HomeContract.Intent.UserInfo) // 触发原有逻辑
+                                        }
+                                    )
+
+                                    // 分割线：增强视觉层次
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(vertical = 4.dp),
+                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                                    )
+
+                                    // 菜单项 2：其他设置（示例）
+                                    DropdownMenuItem(
+                                        modifier = Modifier.clip(RoundedCornerShape(16.dp)),
+                                        text = { Text("设置", fontWeight = FontWeight.Medium, fontSize = 15.sp) },
+                                        leadingIcon = {
+                                            Icon(
+                                                painter = painterResource(R.drawable.settings_24px_filled),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(20.dp),
+                                            )
+                                        },
+                                        onClick = {
+                                            menuExpanded = false
+                                            // 在这里处理设置点击
+                                        }
+                                    )
+                                }
                             }
                         }
-
                     },
                     scrollBehavior = scrollBehavior
                 )
+
             },
             bottomBar = {
                 NavigationBar {
@@ -321,11 +366,11 @@ fun CombineScreen(currentKey: HomeNavKey = HomeNavKey.Greeting) {
                 SnackbarHost(hostState = snackBarHostState)
             }
         ) { paddingValues ->
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .padding(16.dp),
+                    .padding(16.dp)
             ) {
 
                 if (showBottomSheet) {
@@ -366,9 +411,8 @@ fun CombineScreen(currentKey: HomeNavKey = HomeNavKey.Greeting) {
                 savableStateHolder.SaveableStateProvider(currentKey.toString()) {
                     HomeNavGraph(currentStack)
                 }
+
             }
-
-
         }
 
 

@@ -1,6 +1,7 @@
 package com.example.learncompose.features.login
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -90,6 +91,7 @@ fun CombineContent(state: LoginContract.State = LoginContract.State()) {
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .windowInsetsPadding(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))
             .padding(20.dp)
     ) {

@@ -1,12 +1,21 @@
 package com.example.learncompose.navigation
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
@@ -52,9 +61,7 @@ fun AppNavGraph(startDestination: AppNavKey = AppNavKey.Welcome) {
             is AppNavKey.Login -> NavEntry(
                 key = key,
                 metadata = NavDisplay.transitionSpec {
-                    slideInHorizontally(animationSpec = tween(durationMillis = 1000)) { -it } togetherWith slideOutHorizontally(animationSpec = tween(durationMillis = 1000)) { it }
-                } + NavDisplay.popTransitionSpec {
-                    slideInHorizontally(animationSpec = tween(durationMillis = 1000)) { it } togetherWith slideOutHorizontally(animationSpec = tween(durationMillis = 1000)) { it }
+                    fadeIn(tween(500)) togetherWith scaleOut(animationSpec = tween(500))
                 }
             ) {
                 val viewModel = hiltViewModel<LoginViewModel>()
@@ -70,9 +77,7 @@ fun AppNavGraph(startDestination: AppNavKey = AppNavKey.Welcome) {
             is AppNavKey.Home -> NavEntry(
                 key = key,
                 metadata = NavDisplay.transitionSpec {
-                    slideInHorizontally(animationSpec = tween(durationMillis = 1000)) { it } togetherWith slideOutHorizontally(animationSpec = tween(durationMillis = 1000)) { -it }
-                } + NavDisplay.popTransitionSpec {
-                    slideInHorizontally(animationSpec = tween(durationMillis = 1000)) { -it } togetherWith slideOutHorizontally(animationSpec = tween(durationMillis = 1000)) { it }
+                    scaleIn(animationSpec = tween(500)) togetherWith fadeOut(tween(500))
                 }
             ) {
                 val viewModel = hiltViewModel<HomeViewModel>()

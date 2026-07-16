@@ -44,7 +44,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AudioPickerScreen() {
+fun TravelScreen() {
 
     Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         data class CommonItem(
@@ -198,5 +198,5 @@ fun AudioPickerScreen() {
 @Preview(showBackground = true)
 @Composable
 private fun Preview() {
-    AudioPickerScreen()
+    TravelScreen()
 }

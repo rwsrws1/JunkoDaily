@@ -43,8 +43,6 @@ fun HomeNavGraph(rememberNavBackStack: NavBackStack<NavKey>) {
                 key = key,
                 metadata = NavDisplay.transitionSpec {
                     slideInHorizontally(animationSpec = tween(500)) { it } togetherWith ExitTransition.None
-                } + NavDisplay.popTransitionSpec {
-                    slideInHorizontally(animationSpec = tween(500)) { it } togetherWith ExitTransition.None
                 }
             ) {
                 GreetingScreen(

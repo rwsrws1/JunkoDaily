@@ -49,10 +49,14 @@ fun Context.getActivity(): Activity? {
     return null
 }
 
+/**
+ * isSupportLandscape = true 需要添加
+ * android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|uiMode"
+ */
 @SuppressLint("SourceLockedOrientationActivity")
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
-fun CustomComposeVideoPlayer(uri: Uri, modifier: Modifier = Modifier) {
+fun CustomComposeVideoPlayer(uri: Uri, modifier: Modifier = Modifier, isSupportLandscape: Boolean = false) {
     val context = LocalContext.current
     // 【修改点 3: 获取并记住当前 Activity】
     val activity = remember { context.getActivity() }
@@ -111,7 +115,7 @@ fun CustomComposeVideoPlayer(uri: Uri, modifier: Modifier = Modifier) {
 
         if (isSimulatedFullscreen) {
             // 进入全屏：如果是横屏视频 -> 请求系统旋转到横屏
-            if (videoAspectRatio > 1f) {
+            if (videoAspectRatio > 1f && isSupportLandscape) {
                 activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
             } else {
                 // 如果是竖屏视频 -> 请求系统保持在竖屏
