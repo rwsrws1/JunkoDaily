@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(
+class AppViewModel @Inject constructor(
     val dataStore: UserDataStore,
     val authRepository: IAuthRepository
 ) : ViewModel() {
@@ -27,7 +27,7 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             val isAgree = dataStore.getIsAgreeTerms()
             startDestination = if (isAgree) {
-                AppNavKey.Home
+                AppNavKey.Main
             } else {
                 AppNavKey.Welcome
             }

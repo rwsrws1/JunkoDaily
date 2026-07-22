@@ -11,7 +11,7 @@ class WelcomeContract {
     sealed interface Intent {
         sealed interface ViewModelIntent : Intent {}
         data class ClickEnter(val id: String = "") : ViewModelIntent
-        object PlusItem : ViewModelIntent
+        data object PlusItem : ViewModelIntent
         data class ShowMessage(val message: String = "") : Intent
     }
     sealed interface SideEffect {

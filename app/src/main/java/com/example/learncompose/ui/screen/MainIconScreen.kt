@@ -27,7 +27,7 @@ import androidx.window.core.layout.WindowWidthSizeClass
 import com.example.learncompose.R
 
 @Composable
-fun CommonScreen(modifier: Modifier = Modifier) {
+fun MainIconScreen(modifier: Modifier = Modifier) {
     CombineContent()
 }
 

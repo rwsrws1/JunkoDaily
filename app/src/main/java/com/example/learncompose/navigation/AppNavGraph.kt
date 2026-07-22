@@ -1,34 +1,24 @@
 package com.example.learncompose.navigation
 
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandIn
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.animation.shrinkOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
-import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.example.learncompose.app.MainViewModel
-import com.example.learncompose.ui.components.CommonScreen
+import com.example.learncompose.app.AppViewModel
+import com.example.learncompose.ui.components.MainIconScreen
 import com.example.learncompose.data.repository.AuthState
-import com.example.learncompose.features.home.HomeScreen
-import com.example.learncompose.features.home.HomeViewModel
+import com.example.learncompose.features.main.MainScreen
+import com.example.learncompose.features.main.MainViewModel
 import com.example.learncompose.features.login.LoginScreen
 import com.example.learncompose.features.login.LoginViewModel
 import com.example.learncompose.features.welcome.WelcomeScreen
@@ -38,7 +28,7 @@ import com.example.learncompose.features.welcome.WelcomeViewModel
 fun AppNavGraph(startDestination: AppNavKey = AppNavKey.Welcome) {
     val rememberNavBackStack = rememberNavBackStack(startDestination)
 
-    val viewModel = hiltViewModel<MainViewModel>()
+    val viewModel = hiltViewModel<AppViewModel>()
     // 全局登录状态拦截
     if (rememberNavBackStack.last() != AppNavKey.Welcome && viewModel.authState == AuthState.LoggedOut) {
         rememberNavBackStack.clear()
@@ -51,9 +41,9 @@ fun AppNavGraph(startDestination: AppNavKey = AppNavKey.Welcome) {
                 val viewModel = hiltViewModel<WelcomeViewModel>()
                 WelcomeScreen(
                     viewModel = viewModel,
-                    onNavigateToHome = { id ->
+                    onNavigateToMain = { id ->
                         rememberNavBackStack.clear()
-                        rememberNavBackStack.add(AppNavKey.Home)
+                        rememberNavBackStack.add(AppNavKey.Main)
                     }
                 )
             }
@@ -61,33 +51,33 @@ fun AppNavGraph(startDestination: AppNavKey = AppNavKey.Welcome) {
             is AppNavKey.Login -> NavEntry(
                 key = key,
                 metadata = NavDisplay.transitionSpec {
-                    fadeIn(tween(500)) togetherWith scaleOut(animationSpec = tween(500))
+                    fadeIn(tween(500)) togetherWith fadeOut(animationSpec = tween(500))
                 }
             ) {
                 val viewModel = hiltViewModel<LoginViewModel>()
                 LoginScreen(
                     viewModel = viewModel,
-                    onNavigateToHome = {
+                    onNavigateToMain = {
                         rememberNavBackStack.clear()
-                        rememberNavBackStack.add(AppNavKey.Home)
+                        rememberNavBackStack.add(AppNavKey.Main)
                     }
                 )
             }
 
-            is AppNavKey.Home -> NavEntry(
+            is AppNavKey.Main -> NavEntry(
                 key = key,
                 metadata = NavDisplay.transitionSpec {
                     scaleIn(animationSpec = tween(500)) togetherWith fadeOut(tween(500))
                 }
             ) {
-                val viewModel = hiltViewModel<HomeViewModel>()
-                HomeScreen(
+                val viewModel = hiltViewModel<MainViewModel>()
+                MainScreen(
                     viewModel = viewModel,
                 )
             }
 
             is AppNavKey.Loading -> NavEntry(key) {
-                CommonScreen()
+                MainIconScreen()
             }
 
             else -> NavEntry(key) {}

@@ -11,5 +11,5 @@ sealed interface AppNavKey : NavKey {
     @Serializable
     data object Loading : AppNavKey
     @Serializable
-    data object Home : AppNavKey
+    data object Main : AppNavKey
 }

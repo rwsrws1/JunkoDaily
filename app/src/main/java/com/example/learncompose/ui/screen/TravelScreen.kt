@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.*
@@ -46,7 +47,9 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun TravelScreen() {
 
-    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .verticalScroll(rememberScrollState())) {
         data class CommonItem(
             val id: Int,
             @DrawableRes val imageResId: Int,
@@ -93,10 +96,21 @@ fun TravelScreen() {
             }
         }
 
+        val tittlePadding = screenWidth * 0.025f
+        Text(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = tittlePadding,
+                    vertical = 10.dp
+                ),
+            text = "景点",
+            style = MaterialTheme.typography.titleMedium
+        )
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 12.dp)
         ) {
             HorizontalPager(
                 state = pagerState,
@@ -151,6 +165,17 @@ fun TravelScreen() {
             }
         }
 
+        Text(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = tittlePadding,
+                    vertical = 10.dp
+                ),
+            text = "人像",
+            style = MaterialTheme.typography.titleMedium
+        )
+
         val carouselItems = remember {
             listOf(
                 CommonItem(0, R.drawable.girl1),
@@ -175,8 +200,7 @@ fun TravelScreen() {
             state = carouselState,
             modifier = Modifier
                 .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(vertical = 12.dp),
+                .wrapContentHeight(),
             preferredItemWidth = screenWidth * 0.4f,
             itemSpacing = 12.dp,
             contentPadding = PaddingValues(horizontal = 12.dp)

@@ -66,7 +66,7 @@ val LocalWelcomeIntentHandler = staticCompositionLocalOf<(WelcomeContract.Intent
 @Composable
 fun WelcomeScreen(
     viewModel: WelcomeViewModel = viewModel(),
-    onNavigateToHome: (String) -> Unit = {}
+    onNavigateToMain: (String) -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackBarHostState = remember { SnackbarHostState() }
@@ -96,7 +96,7 @@ fun WelcomeScreen(
     LaunchedEffect(viewModel.sideEffect) {
         viewModel.sideEffect.collect { effect ->
             when (effect) {
-                is WelcomeContract.SideEffect.LoginAsVisitor -> onNavigateToHome(effect.id)
+                is WelcomeContract.SideEffect.LoginAsVisitor -> onNavigateToMain(effect.id)
             }
         }
     }
@@ -274,7 +274,7 @@ fun BottomContent(modifier: Modifier = Modifier, state: WelcomeContract.State) {
 
 @PreviewScreenSizes
 @Composable
-fun Preview() {
+private fun Preview() {
     LearnComposeTheme {
         CombineContent()
     }

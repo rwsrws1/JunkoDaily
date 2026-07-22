@@ -1,4 +1,4 @@
-package com.example.learncompose.features.home.navigation
+package com.example.learncompose.features.main.navigation
 
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -15,14 +15,14 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.example.learncompose.features.statistics.StatisticsScreen
-import com.example.learncompose.ui.screen.GreetingScreen
+import com.example.learncompose.features.home.HomeScreen
+import com.example.learncompose.ui.screen.ComponentsScreen
 import com.example.learncompose.ui.screen.DrawingBoardScreen
 import com.example.learncompose.ui.screen.MediaPickerScreen
 import kotlin.collections.listOf
 
 @Composable
-fun HomeNavGraph(rememberNavBackStack: NavBackStack<NavKey>) {
+fun MainNavGraph(rememberNavBackStack: NavBackStack<NavKey>) {
 
     NavDisplay<NavKey>(
         entryDecorators = listOf(
@@ -39,23 +39,23 @@ fun HomeNavGraph(rememberNavBackStack: NavBackStack<NavKey>) {
         }
     ) { key ->
         when (key) {
-            is HomeNavKey.Greeting -> NavEntry(
+            is MainNavKey.Home -> NavEntry(key) {
+                HomeScreen()
+            }
+            is MainNavKey.Components -> NavEntry(
                 key = key,
                 metadata = NavDisplay.transitionSpec {
                     slideInHorizontally(animationSpec = tween(500)) { it } togetherWith ExitTransition.None
                 }
             ) {
-                GreetingScreen(
-                    onNavigatorToDrawingBoard = { rememberNavBackStack.add(HomeNavKey.DrawingBoard) }
+                ComponentsScreen(
+                    onNavigatorToDrawingBoard = { rememberNavBackStack.add(MainNavKey.DrawingBoard) }
                 )
             }
-            is HomeNavKey.Statistics -> NavEntry(key) {
-                StatisticsScreen()
-            }
-            is HomeNavKey.Profile -> NavEntry(key) {
+            is MainNavKey.Profile -> NavEntry(key) {
                 MediaPickerScreen()
             }
-            is HomeNavKey.DrawingBoard -> NavEntry(
+            is MainNavKey.DrawingBoard -> NavEntry(
                 key = key,
                 metadata = NavDisplay.transitionSpec {
                     slideInHorizontally(animationSpec = tween(500)) { it } togetherWith ExitTransition.None

@@ -30,7 +30,7 @@ class LoginViewModel @Inject constructor(
                 _uiState.update { it.copy(authState = globalAuthState) }
 
                 if (globalAuthState is AuthState.LoggedIn) {
-                    _sideEffect.send(LoginContract.SideEffect.NavigateToHome)
+                    _sideEffect.send(LoginContract.SideEffect.NavigateToMain)
                 }
             }
         }

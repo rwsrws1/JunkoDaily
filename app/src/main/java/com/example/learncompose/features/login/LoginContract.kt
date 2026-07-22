@@ -14,6 +14,6 @@ class LoginContract {
     }
 
     sealed interface SideEffect {
-        object NavigateToHome : SideEffect
+        data object NavigateToMain : SideEffect
     }
 }
