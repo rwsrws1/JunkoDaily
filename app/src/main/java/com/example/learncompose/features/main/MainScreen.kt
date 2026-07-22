@@ -352,7 +352,6 @@ fun CombineScreen(currentKey: MainNavKey = MainNavKey.Home) {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .padding(horizontal = 4.dp, vertical = 2.dp)
             ) {
 
                 if (showBottomSheet) {
