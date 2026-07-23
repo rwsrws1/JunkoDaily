@@ -4,6 +4,9 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.ScrollScope
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,9 +45,11 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.learncompose.R
 import kotlinx.coroutines.delay
@@ -61,7 +66,8 @@ fun TravelScreen() {
     )
 
     val screenWidth = LocalWindowInfo.current.containerDpSize.width
-    val horizontalPadding = screenWidth * 0.05f
+    val pageSpacing = screenWidth * 0.05f
+    val horizontalPadding = 12.dp
 
     val pageItems = remember {
         listOf(
@@ -141,21 +147,41 @@ fun TravelScreen() {
         )
     }
 
+    // 1. 获取系统默认的滑动物理特性
+    val defaultFlingBehavior = ScrollableDefaults.flingBehavior()
+
+    // 2. 创建一个减速版的 FlingBehavior
+    val slowFlingBehavior = remember(defaultFlingBehavior) {
+        object : FlingBehavior {
+            override suspend fun ScrollScope.performFling(initialVelocity: Float): Float {
+                // 核心逻辑：将初始速度乘以一个小于 1 的阻尼系数
+                // 例如 0.4f 表示把甩动速度削弱到原来的 40%
+                // 这个值你可以根据实际手感进行微调（0.1f ~ 0.9f）
+                val dampedVelocity = initialVelocity * 0.6f
+
+                // 将减弱后的速度交给系统默认的处理机制
+                return with(defaultFlingBehavior) {
+                    performFling(dampedVelocity)
+                }
+            }
+        }
+    }
+
     // === 2. 使用 LazyVerticalGrid 作为整个页面的根节点 ===
     // 删除了 Column 和 verticalScroll
     LazyVerticalGrid(
         modifier = Modifier.fillMaxSize(),
         columns = GridCells.Adaptive(minSize = 150.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        // 为了不让 Pager 被挤压，我们把 padding 设在底部和左右
-        contentPadding = PaddingValues(bottom = 16.dp, start = 16.dp, end = 16.dp)
+        contentPadding = PaddingValues(vertical = 12.dp, horizontal = horizontalPadding),
+        horizontalArrangement = Arrangement.spacedBy(horizontalPadding),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        flingBehavior = slowFlingBehavior
     ) {
         // --- 第一部分：景点标题 (跨满整行) ---
         item(span = { GridItemSpan(maxLineSpan) }) {
             Row(modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 16.dp), // 水平 Padding 已经由 Grid 的 contentPadding 提供了
+                .padding(vertical = 4.dp, horizontal = horizontalPadding),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(painter = painterResource(R.drawable.landscape_2_24px), null)
@@ -170,9 +196,10 @@ fun TravelScreen() {
             Box(modifier = Modifier.fillMaxWidth()) {
                 HorizontalPager(
                     state = pagerState,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.ignoreParentPadding(horizontalPadding).fillMaxWidth(),
                     pageSize = PageSize.Fill,
-                    pageSpacing = horizontalPadding
+                    pageSpacing = pageSpacing,
+                    contentPadding = PaddingValues(horizontal = horizontalPadding)
                 ) { page ->
                     val realIndex = page % actualPageCount
                     val item = pageItems[realIndex]
@@ -218,7 +245,7 @@ fun TravelScreen() {
         item(span = { GridItemSpan(maxLineSpan) }) {
             Row(modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 16.dp),
+                .padding(vertical = 4.dp, horizontal = horizontalPadding),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(painter = painterResource(R.drawable.nature_people_24px), null)
@@ -232,12 +259,13 @@ fun TravelScreen() {
             HorizontalUncontainedCarousel(
                 state = carouselState,
                 modifier = Modifier
+                    .ignoreParentPadding(horizontalPadding)
                     .fillMaxWidth()
                     .wrapContentHeight()
                     .nestedScroll(stopPagerScrollConnection),
                 itemWidth = screenWidth * 0.4f,
                 itemSpacing = 12.dp,
-                contentPadding = PaddingValues(horizontal = 0.dp) // Grid 外层已经有 16dp 了
+                contentPadding = PaddingValues(horizontal = horizontalPadding)
             ) { i ->
                 val item = carouselItems[i]
                 Image(
@@ -255,7 +283,7 @@ fun TravelScreen() {
         item(span = { GridItemSpan(maxLineSpan) }) {
             Row(modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 16.dp),
+                .padding(vertical = 4.dp, horizontal = horizontalPadding),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(painter = painterResource(R.drawable.distance_24px), null)
@@ -275,6 +303,24 @@ fun TravelScreen() {
                 contentScale = ContentScale.Crop // 推荐使用 Crop 让网格图片填满
             )
         }
+    }
+}
+
+// 定义一个突破父容器 Padding 的 Modifier
+fun Modifier.ignoreParentPadding(horizontalPadding: Dp) = this.layout { measurable, constraints ->
+    val paddingPx = horizontalPadding.roundToPx()
+
+    // 1. 强行放大测量约束，把被父容器扣掉的宽度（左右两边）加回来
+    val expandedConstraints = constraints.copy(
+        maxWidth = constraints.maxWidth + paddingPx * 2
+    )
+    val placeable = measurable.measure(expandedConstraints)
+
+    // 2. 关键修改：向父容器报告 constraints.maxWidth (原始的受限宽度)
+    // 这样父容器仍然觉得你在规规矩矩地待在原位，不会改变整体居中对齐方式
+    layout(constraints.maxWidth, placeable.height) {
+        // 3. 向左偏移，抵消父容器左侧的 padding，使得组件真正贴到屏幕左边缘
+        placeable.place(-paddingPx, 0)
     }
 }
 

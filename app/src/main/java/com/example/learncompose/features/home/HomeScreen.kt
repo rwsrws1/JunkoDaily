@@ -20,10 +20,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.paging.PagingData
 import com.example.learncompose.features.home.navigation.HomeNavKey
 import com.example.learncompose.ui.components.ChartDemoScreen
 import com.example.learncompose.ui.components.MainIconScreen
+import com.example.learncompose.ui.screen.FeedItem
+import com.example.learncompose.ui.screen.FeedItemType
+import com.example.learncompose.ui.screen.OptimizedFeedScreen
 import com.example.learncompose.ui.screen.TravelScreen
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,6 +39,20 @@ fun HomeScreen(modifier: Modifier = Modifier) {
     var selectedDestination by rememberSaveable { mutableIntStateOf(topTabs.indexOf(HomeNavKey.Travel)) }
     val pageState = rememberPagerState(initialPage = selectedDestination, pageCount = {topTabs.size})
     val scop = rememberCoroutineScope()
+
+
+    val fakeList = List(50) { index ->
+        val isImage = index % 3 == 0 // 每隔 3 个造一个图片类型
+        FeedItem(
+            id = index.toString(),
+            type = if (isImage) FeedItemType.IMAGE else FeedItemType.TEXT,
+            content = "这是第 $index 条模拟假数据",
+            imageUrl = if (isImage) "https://picsum.photos/seed/$index/400/200" else null // 用 picsum 生成随机占位图
+        )
+    }
+
+    // 2. 直接塞给 Flow
+    val mockPagingDataFlow: Flow<PagingData<FeedItem>> = flowOf(PagingData.from(fakeList))
 
     Column(modifier = modifier) {
         PrimaryTabRow(selectedTabIndex = pageState.currentPage) {
@@ -53,7 +73,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                                 text = when (destination) {
                                     is HomeNavKey.Travel -> "旅行"
                                     is HomeNavKey.Chart -> "统计"
-                                    is HomeNavKey.MainIcon -> "图标"
+                                    is HomeNavKey.MainIcon -> "列表"
                                 },
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -70,7 +90,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             when (page) {
                 0 -> TravelScreen()
                 1 -> ChartDemoScreen()
-                2 -> MainIconScreen()
+                2 -> OptimizedFeedScreen(mockPagingDataFlow)
             }
         }
     }

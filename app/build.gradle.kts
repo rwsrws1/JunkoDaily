@@ -51,22 +51,29 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material3.adaptive)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
-    implementation(libs.androidx.compose.material3.adaptive)
-    implementation(libs.datastore.preferences)
-    implementation(libs.lifecycle.process)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.lifecycle.process)
+
     implementation("androidx.core:core-splashscreen:1.2.0")
     implementation("io.coil-kt.coil3:coil-compose:3.0.0")
-//    implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.0")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.0")
 
-    implementation(libs.media3.exoplayer)
-    implementation(libs.media3.ui)
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
+
+    implementation(libs.androidx.paging.runtime.ktx)
+    implementation(libs.androidx.paging.compose)
 
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.android)
-    implementation(libs.hilt.navigation.compose)
+    implementation(libs.androidx.hilt.navigation.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

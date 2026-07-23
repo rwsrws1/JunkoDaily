@@ -395,11 +395,7 @@ fun CombineScreen(currentKey: MainNavKey = MainNavKey.Home) {
 
             }
         }
-
-
     }
-
-
 }
 
 @Preview(showBackground = true)
