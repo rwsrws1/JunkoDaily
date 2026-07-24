@@ -4,7 +4,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -16,7 +15,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.example.learncompose.app.AppViewModel
 import com.example.learncompose.ui.components.MainIconScreen
-import com.example.learncompose.data.repository.AuthState
+import com.example.learncompose.data.repo.AuthState
 import com.example.learncompose.features.main.MainScreen
 import com.example.learncompose.features.main.MainViewModel
 import com.example.learncompose.features.login.LoginScreen

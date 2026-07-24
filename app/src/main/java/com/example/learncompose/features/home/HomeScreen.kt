@@ -7,7 +7,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,16 +19,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.paging.PagingData
 import com.example.learncompose.features.home.navigation.HomeNavKey
 import com.example.learncompose.ui.components.ChartDemoScreen
-import com.example.learncompose.ui.components.MainIconScreen
-import com.example.learncompose.ui.screen.FeedItem
-import com.example.learncompose.ui.screen.FeedItemType
-import com.example.learncompose.ui.screen.OptimizedFeedScreen
+import com.example.learncompose.ui.screen.FeedScreen
 import com.example.learncompose.ui.screen.TravelScreen
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,20 +32,6 @@ fun HomeScreen(modifier: Modifier = Modifier) {
     var selectedDestination by rememberSaveable { mutableIntStateOf(topTabs.indexOf(HomeNavKey.Travel)) }
     val pageState = rememberPagerState(initialPage = selectedDestination, pageCount = {topTabs.size})
     val scop = rememberCoroutineScope()
-
-
-    val fakeList = List(50) { index ->
-        val isImage = index % 3 == 0 // 每隔 3 个造一个图片类型
-        FeedItem(
-            id = index.toString(),
-            type = if (isImage) FeedItemType.IMAGE else FeedItemType.TEXT,
-            content = "这是第 $index 条模拟假数据",
-            imageUrl = if (isImage) "https://picsum.photos/seed/$index/400/200" else null // 用 picsum 生成随机占位图
-        )
-    }
-
-    // 2. 直接塞给 Flow
-    val mockPagingDataFlow: Flow<PagingData<FeedItem>> = flowOf(PagingData.from(fakeList))
 
     Column(modifier = modifier) {
         PrimaryTabRow(selectedTabIndex = pageState.currentPage) {
@@ -90,7 +69,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             when (page) {
                 0 -> TravelScreen()
                 1 -> ChartDemoScreen()
-                2 -> OptimizedFeedScreen(mockPagingDataFlow)
+                2 -> FeedScreen()
             }
         }
     }

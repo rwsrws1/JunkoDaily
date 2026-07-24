@@ -1,6 +1,6 @@
 package com.example.learncompose.features.login
 
-import com.example.learncompose.data.repository.AuthState
+import com.example.learncompose.data.repo.AuthState
 
 class LoginContract {
     data class State(

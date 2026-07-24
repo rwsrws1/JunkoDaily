@@ -232,7 +232,7 @@ fun CombineScreen(currentKey: MainNavKey = MainNavKey.Home) {
                                         },
                                         onClick = {
                                             menuExpanded = false // 点击后关闭
-                                            intentHandler(MainContract.Intent.UserInfo) // 触发原有逻辑
+                                            intentHandler(MainContract.Intent.Logout) // 触发原有逻辑
                                         }
                                     )
 

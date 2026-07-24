@@ -1,7 +1,7 @@
 package com.example.learncompose.data.di
 
-import com.example.learncompose.data.repository.AuthRepositoryImpl
-import com.example.learncompose.data.repository.IAuthRepository
+import com.example.learncompose.data.repo.AuthRepositoryImpl
+import com.example.learncompose.data.repo.IAuthRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

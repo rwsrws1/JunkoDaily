@@ -1,7 +1,8 @@
-package com.example.learncompose.data.repository
+package com.example.learncompose.data.repo
 
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import com.example.learncompose.data.UserInfo
 import com.example.learncompose.data.local.UserDataStore
 import com.example.learncompose.data.remote.MockRemoteServer
 import kotlinx.coroutines.flow.SharingStarted
@@ -16,8 +17,6 @@ sealed interface AuthState {
     object LoggedOut : AuthState
     data class LoggedIn(val userInfo: UserInfo = UserInfo()) : AuthState
 }
-
-data class UserInfo(val userId: String = "", val userName: String = "")
 
 interface IAuthRepository {
     val authState: StateFlow<AuthState>

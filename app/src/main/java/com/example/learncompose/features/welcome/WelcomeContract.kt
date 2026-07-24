@@ -1,6 +1,6 @@
 package com.example.learncompose.features.welcome
 
-import com.example.learncompose.data.repository.AuthState
+import com.example.learncompose.data.repo.AuthState
 
 class WelcomeContract {
     data class State(

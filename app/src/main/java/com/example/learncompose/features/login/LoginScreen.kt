@@ -51,7 +51,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowHeightSizeClass
 import com.example.learncompose.R
-import com.example.learncompose.data.repository.AuthState
+import com.example.learncompose.data.repo.AuthState
 import com.example.learncompose.ui.components.Loading
 import com.example.learncompose.ui.components.ButtonPrimary
 import com.example.learncompose.ui.theme.LearnComposeTheme

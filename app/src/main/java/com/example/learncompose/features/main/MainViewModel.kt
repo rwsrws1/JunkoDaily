@@ -2,7 +2,7 @@ package com.example.learncompose.features.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.learncompose.data.repository.IAuthRepository
+import com.example.learncompose.data.repo.IAuthRepository
 import com.example.learncompose.features.main.navigation.MainNavKey
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +20,7 @@ class MainViewModel @Inject constructor(
 
     fun handleIntent(intent: MainContract.Intent) {
         when (intent) {
-            is MainContract.Intent.UserInfo -> {
+            is MainContract.Intent.Logout -> {
                 viewModelScope.launch {
                     repository.logout()
                 }
