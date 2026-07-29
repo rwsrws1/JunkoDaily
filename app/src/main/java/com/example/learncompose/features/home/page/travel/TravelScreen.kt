@@ -1,8 +1,8 @@
-package com.example.learncompose.ui.screen
+package com.example.learncompose.features.home.page.travel
 
+import android.graphics.Bitmap
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.foundation.gestures.ScrollScope
@@ -46,25 +46,33 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
+import coil3.request.bitmapConfig
+import coil3.request.crossfade
 import com.example.learncompose.R
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
+// === 1. 状态和数据定义移到最外层 ===
+data class CommonItem(
+    val id: Int,
+    val imageResId: Int,
+    val contentDescription: String = ""
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TravelScreen() {
-    // === 1. 状态和数据定义移到最外层 ===
-    data class CommonItem(
-        val id: Int,
-        val imageResId: Int,
-        val contentDescription: String = ""
-    )
-
+    val context = LocalContext.current
     val screenWidth = LocalWindowInfo.current.containerDpSize.width
     val pageSpacing = screenWidth * 0.05f
     val horizontalPadding = 12.dp
@@ -133,17 +141,17 @@ fun TravelScreen() {
             CommonItem(4, R.drawable.dali5),
             CommonItem(5, R.drawable.dali6),
             CommonItem(6, R.drawable.dali7),
-            CommonItem(6, R.drawable.dali8),
-            CommonItem(6, R.drawable.dali9),
-            CommonItem(6, R.drawable.dali10),
-            CommonItem(6, R.drawable.dali11),
-            CommonItem(6, R.drawable.dali12),
-            CommonItem(6, R.drawable.dali13),
-            CommonItem(6, R.drawable.dali14),
-            CommonItem(6, R.drawable.dali15),
-            CommonItem(6, R.drawable.dali16),
-            CommonItem(6, R.drawable.dali17),
-            CommonItem(6, R.drawable.dali18),
+            CommonItem(7, R.drawable.dali8),
+            CommonItem(8, R.drawable.dali9),
+            CommonItem(9, R.drawable.dali10),
+            CommonItem(10, R.drawable.dali11),
+            CommonItem(11, R.drawable.dali12),
+            CommonItem(12, R.drawable.dali13),
+            CommonItem(13, R.drawable.dali14),
+            CommonItem(14, R.drawable.dali15),
+            CommonItem(15, R.drawable.dali16),
+            CommonItem(16, R.drawable.dali17),
+            CommonItem(17, R.drawable.dali18),
         )
     }
 
@@ -208,11 +216,11 @@ fun TravelScreen() {
                             .fillMaxWidth()
                             .clip(MaterialTheme.shapes.extraLarge)
                     ) {
-                        Image(
+                        AsyncImageOptimize(
+                            model = item.imageResId,
                             modifier = Modifier.fillMaxWidth(),
-                            painter = painterResource(id = item.imageResId),
-                            contentDescription = item.contentDescription,
-                            contentScale = ContentScale.FillWidth
+                            contentScale = ContentScale.FillWidth,
+                            disableCachePolicy = true
                         )
                     }
                 }
@@ -268,13 +276,11 @@ fun TravelScreen() {
                 contentPadding = PaddingValues(horizontal = horizontalPadding)
             ) { i ->
                 val item = carouselItems[i]
-                Image(
+                AsyncImageOptimize(
+                    model = item.imageResId,
                     modifier = Modifier
                         .height(205.dp)
                         .maskClip(MaterialTheme.shapes.extraLarge),
-                    painter = painterResource(id = item.imageResId),
-                    contentDescription = item.contentDescription,
-                    contentScale = ContentScale.Crop
                 )
             }
         }
@@ -294,16 +300,51 @@ fun TravelScreen() {
 
         // --- 第六部分：真正的网格内容 ---
         items(gridItems) {
-            Image(
+            AsyncImageOptimize(
+                model = it.imageResId,
                 modifier = Modifier
                     .aspectRatio(1f / 1f)
                     .clip(MaterialTheme.shapes.extraLarge),
-                painter = painterResource(it.imageResId),
-                contentDescription = null,
-                contentScale = ContentScale.Crop // 推荐使用 Crop 让网格图片填满
             )
         }
     }
+}
+
+@Composable
+fun AsyncImageOptimize(
+    model: Any?,
+    modifier: Modifier = Modifier,
+    targetSizePx: Int? = 360, // 针对列表缩略图的像素大小，默认 360x360
+    contentScale: ContentScale = ContentScale.Crop,
+    disableCachePolicy: Boolean = false
+) {
+    val context = LocalContext.current
+    val imageRequest = remember(model, targetSizePx) {
+        ImageRequest.Builder(context)
+            .data(model)
+            .apply {
+                targetSizePx?.let {
+                    size(targetSizePx, targetSizePx)
+                }
+            }
+            .apply {
+                if (disableCachePolicy) {
+                    diskCachePolicy(CachePolicy.ENABLED)
+                    memoryCachePolicy(CachePolicy.DISABLED)
+                }
+            }
+            .bitmapConfig(Bitmap.Config.RGB_565) // 极省内存的格式
+            .allowHardware(true) // 优先使用硬件内存
+            .crossfade(true)
+            .build()
+    }
+
+    AsyncImage(
+        model = imageRequest,
+        contentDescription = null,
+        modifier = modifier,
+        contentScale = contentScale
+    )
 }
 
 // 定义一个突破父容器 Padding 的 Modifier

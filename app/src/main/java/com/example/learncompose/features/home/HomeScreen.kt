@@ -19,10 +19,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.learncompose.data.room.UserScreen
+import com.example.learncompose.data.room.UserViewModel
 import com.example.learncompose.features.home.navigation.HomeNavKey
 import com.example.learncompose.ui.components.ChartDemoScreen
 import com.example.learncompose.ui.screen.FeedScreen
-import com.example.learncompose.ui.screen.TravelScreen
+import com.example.learncompose.features.home.page.travel.TravelScreen
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,11 +67,11 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         }
         HorizontalPager(
             state = pageState,
-            beyondViewportPageCount = 2
+            beyondViewportPageCount = 0
         ) { page ->
             when (page) {
                 0 -> TravelScreen()
-                1 -> ChartDemoScreen()
+                1 -> UserScreen()
                 2 -> FeedScreen()
             }
         }
