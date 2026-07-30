@@ -2,12 +2,16 @@ package com.example.learncompose.data.room
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class UserViewModel(private val repository: UserRepository) : ViewModel() {
+@HiltViewModel
+class UserViewModel @Inject constructor(
+    private val repository: UserRepository) : ViewModel() {
 
     // 将 Flow 转为 StateFlow，确保 UI 配置变更（如旋转屏幕）时数据不丢失
     val users: StateFlow<List<User>> = repository.allUsers
@@ -20,7 +24,7 @@ class UserViewModel(private val repository: UserRepository) : ViewModel() {
     fun addUser(name: String, age: Int) {
         if (name.isBlank()) return
         viewModelScope.launch {
-            repository.insert(User(name = name, age = age))
+            repository.insert(User(fullName = name, age = age))
         }
     }
 

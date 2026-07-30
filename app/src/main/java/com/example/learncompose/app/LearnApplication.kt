@@ -13,13 +13,13 @@ import coil3.SingletonImageLoader
 import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.memory.MemoryCache
-import com.example.learncompose.data.room.AppContainer
+//import com.example.learncompose.data.room.AppContainer
 
 @HiltAndroidApp
 class LearnApplication : Application(), SingletonImageLoader.Factory {
     override fun onCreate() {
         super.onCreate()
-        AppContainer.init(this)
+//        AppContainer.init(this)
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
             override fun onActivityCreated(p0: Activity, p1: Bundle?) {
             }

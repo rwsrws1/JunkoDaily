@@ -1,5 +1,6 @@
 package com.example.learncompose.data.room
 
+import android.database.Cursor
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -18,4 +19,11 @@ interface UserDao {
 
     @Delete
     suspend fun deleteUser(user: User)
+
+    // 👈 直接返回 Cursor，方便 ContentProvider 包装
+    @Query("SELECT * FROM users")
+    fun selectAllUsersCursor(): Cursor
+
+    @Query("SELECT * FROM users WHERE id = :id")
+    fun selectUserByIdCursor(id: Long): Cursor
 }

@@ -8,19 +8,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.learncompose.data.contract.FeatureScreen
 
 @Composable
 fun UserScreen() {
-//    val database = AppDatabase.getDatabase(LocalContext.current)
-//    val userDao = database.userDao()
-//    val repository = UserRepository(userDao)
+//    val factory = UserViewModelFactory(AppContainer.userRepository)
+//    // 3. 通过 factory 获取 ViewModel
+//    val viewModel: UserViewModel = viewModel(factory = factory)
 
-    val factory = UserViewModelFactory(AppContainer.userRepository)
-
-    // 3. 通过 factory 获取 ViewModel
-    val viewModel: UserViewModel = viewModel(factory = factory)
+    val viewModel: UserViewModel = hiltViewModel()
 
     // 自动随生命周期收集 Flow 状态
     val userList by viewModel.users.collectAsStateWithLifecycle()
@@ -71,7 +70,7 @@ fun UserScreen() {
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(text = "${user.name} (${user.age} 岁)")
+                        Text(text = "${user.fullName} (${user.age} 岁)")
                         TextButton(onClick = { viewModel.deleteUser(user) }) {
                             Text("删除")
                         }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.displayCutout
@@ -81,11 +82,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.learncompose.R
+import com.example.learncompose.data.contract.FeatureScreen
+import com.example.learncompose.data.worker.DownloadContent
+import com.example.learncompose.data.worker.DownloadScreen
 import com.example.learncompose.ui.theme.LearnComposeTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -154,6 +159,21 @@ fun ComponentsScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
             ) {
                 Text("弹窗")
             }
+
+
+            Spacer(modifier = Modifier.height(10.dp))
+            if (LocalInspectionMode.current) {
+                DownloadContent(
+                    workInfo = null,
+                    onStartDownload = {},
+                    onCancelDownload = {}
+                )
+            } else {
+                DownloadScreen()
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            FeatureScreen()
+            Spacer(modifier = Modifier.height(10.dp))
 
             if (isShowDialog) {
                 AlertDialog(

@@ -1,8 +1,11 @@
 package com.example.learncompose.data.room
 
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class UserRepository(private val userDao: UserDao) {
+@Singleton
+class UserRepository @Inject constructor(private val userDao: UserDao) {
     val allUsers: Flow<List<User>> = userDao.getAllUsers()
 
     suspend fun insert(user: User) = userDao.insertUser(user)
