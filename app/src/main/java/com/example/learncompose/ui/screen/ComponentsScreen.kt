@@ -88,7 +88,10 @@ import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.learncompose.R
+import com.example.learncompose.data.broadcast.PowerStatusScreen
 import com.example.learncompose.data.contract.FeatureScreen
+import com.example.learncompose.data.network.NetworkStatusScreen
+import com.example.learncompose.data.service.TrackerScreen
 import com.example.learncompose.data.worker.DownloadContent
 import com.example.learncompose.data.worker.DownloadScreen
 import com.example.learncompose.ui.theme.LearnComposeTheme
@@ -160,7 +163,11 @@ fun ComponentsScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
                 Text("弹窗")
             }
 
-
+            NetworkStatusScreen()
+            Spacer(modifier = Modifier.height(10.dp))
+            PowerStatusScreen()
+            Spacer(modifier = Modifier.height(10.dp))
+            TrackerScreen()
             Spacer(modifier = Modifier.height(10.dp))
             if (LocalInspectionMode.current) {
                 DownloadContent(

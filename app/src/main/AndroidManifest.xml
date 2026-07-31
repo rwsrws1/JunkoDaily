@@ -30,6 +30,10 @@
     <!-- 2. Android 13 (API 33) + 发送通知权限 -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
     <application
         android:name=".app.LearnApplication"
         android:allowBackup="true"
@@ -46,6 +50,11 @@
             android:foregroundServiceType="dataSync"
             tools:node="merge" />
 
+        <service
+            android:name=".data.service.LocationService"
+            android:foregroundServiceType="location"
+            android:exported="false" />
+
         <provider
             android:name=".data.room.UserContentProvider"
             android:authorities="com.example.myapp.userprovider"
@@ -57,6 +66,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:theme="@style/Theme.LearnCompose">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -65,10 +75,6 @@
             </intent-filter>
         </activity>
 
-        <service
-            android:name="androidx.work.impl.foreground.SystemForegroundService"
-            android:foregroundServiceType="dataSync"
-            tools:node="merge" />
     </application>
 
 </manifest>

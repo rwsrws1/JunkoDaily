@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import coil3.compose.AsyncImage
@@ -382,4 +383,10 @@ fun EmptyView(text: String) {
     ) {
         Text(text = text, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun Preview() {
+    ContentProviderDemoScreen()
 }

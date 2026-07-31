@@ -3,11 +3,15 @@ package com.example.learncompose.data.worker
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.BackoffPolicy
+import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import androidx.work.WorkRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +21,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,9 +40,20 @@ class DownloadViewModel @Inject constructor(application: Application) : ViewMode
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    // 约束条件：必须有网络才触发（断网中断后，恢复网络会自动重启任务）
+    val constraints = Constraints.Builder()
+        .setRequiredNetworkType(NetworkType.CONNECTED)
+        .build()
+
     fun startDownload() {
         val workRequest = OneTimeWorkRequestBuilder<DownloadWorker>()
             .addTag("download_tag")
+            .setConstraints(constraints) // 设置网络约束
+            .setBackoffCriteria(
+                backoffPolicy = BackoffPolicy.EXPONENTIAL, // 指数退避算法（重试间隔随着失败次数递增，如 10s, 20s, 40s...）
+                backoffDelay = WorkRequest.MIN_BACKOFF_MILLIS, // 最小重试间隔（系统限制最低为 10 秒）
+                timeUnit = TimeUnit.MILLISECONDS
+            )
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .build()
 
