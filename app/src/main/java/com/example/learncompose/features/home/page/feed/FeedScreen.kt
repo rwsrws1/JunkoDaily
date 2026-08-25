@@ -7,8 +7,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,6 +25,7 @@ import androidx.paging.compose.itemKey
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import com.example.learncompose.R
 import com.example.learncompose.features.home.HomeViewModel
 import com.example.learncompose.features.home.page.feed.data.FeedItem
 import com.example.learncompose.features.home.page.feed.data.FeedItemType
@@ -165,7 +164,7 @@ fun OptimizedFeedScreen(
                 },
                 shape = MaterialTheme.shapes.medium
             ) {
-                Icon(Icons.Default.KeyboardArrowUp, contentDescription = "回到顶部")
+                Icon(painter = painterResource(R.drawable.arrow_drop_up_24px), contentDescription = "回到顶部")
             }
         }
     }

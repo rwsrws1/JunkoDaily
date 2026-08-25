@@ -28,15 +28,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.ThumbUp
-import androidx.compose.material.icons.outlined.AddCircle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
@@ -278,7 +269,7 @@ fun ComponentsScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
                 ) {
                     Icon(
                         modifier = Modifier.size(50.dp),
-                        imageVector = if (isPress) Icons.Filled.Add else Icons.Outlined.AddCircle, contentDescription = "")
+                        painter = if (isPress) painterResource(R.drawable.add_circle_24px_filled) else painterResource(R.drawable.add_circle_24px), contentDescription = "")
                 }
                 Text("item$item")
             }
@@ -331,7 +322,7 @@ fun ComponentsScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
                                 activeContent = {
                                     Icon(
                                         modifier = Modifier.size(18.dp),
-                                        imageVector = Icons.Default.Edit,
+                                        painter = painterResource(R.drawable.bolt_24px_filled),
                                         contentDescription = null)
                                 }
                             )
@@ -367,19 +358,19 @@ fun ComponentsScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
                         label = {
                             when (label) {
                                 "Walk" -> Icon(
-                                    imageVector =
-                                        Icons.Filled.ThumbUp,
+                                    painter =
+                                        painterResource(R.drawable.settings_accessibility_24px),
                                     contentDescription = "ThumbUp"
                                 )
                                 "Ride" -> Icon(
-                                    imageVector =
-                                        Icons.Filled.Favorite,
+                                    painter =
+                                        painterResource(R.drawable.favorite_24px_filled),
                                     contentDescription = "Favorite",
                                     tint = iconColor
                                 )
                                 "Drive" -> Icon(
-                                    imageVector =
-                                        Icons.Default.Star,
+                                    painter =
+                                        painterResource(R.drawable.star_half_24px),
                                     contentDescription = "Star"
                                 )
                             }
@@ -447,9 +438,9 @@ fun ComponentsScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
                                 contentAlignment = alignment
                             ) {
                                 if (dismissState.targetValue == SwipeToDismissBoxValue.EndToStart) {
-                                    Icon(Icons.Default.Delete, contentDescription = "删除", tint = Color.White)
+                                    Icon(painter = painterResource(R.drawable.delete_24px_filled), contentDescription = "删除", tint = Color.White)
                                 } else if (dismissState.targetValue == SwipeToDismissBoxValue.StartToEnd) {
-                                    Icon(Icons.Default.Email, contentDescription = "已读", tint = Color.White)
+                                    Icon(painter = painterResource(R.drawable.shopping_cart_checkout_24px), contentDescription = "已读", tint = Color.White)
                                 }
                             }
                         },

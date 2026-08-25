@@ -33,6 +33,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.carousel.CarouselDefaults
+import androidx.compose.material3.carousel.HorizontalCenteredHeroCarousel
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.*
@@ -264,16 +267,17 @@ fun TravelScreen() {
 
         // --- 第四部分：横向画廊 Carousel (跨满整行) ---
         item(span = { GridItemSpan(maxLineSpan) }) {
-            HorizontalUncontainedCarousel(
+            HorizontalMultiBrowseCarousel(
                 state = carouselState,
                 modifier = Modifier
-                    .ignoreParentPadding(horizontalPadding)
+//                    .ignoreParentPadding(horizontalPadding)
                     .fillMaxWidth()
                     .wrapContentHeight()
                     .nestedScroll(stopPagerScrollConnection),
-                itemWidth = screenWidth * 0.4f,
+                preferredItemWidth = screenWidth * 0.4f,
                 itemSpacing = 12.dp,
-                contentPadding = PaddingValues(horizontal = horizontalPadding)
+                flingBehavior = CarouselDefaults.multiBrowseFlingBehavior(carouselState),
+//                contentPadding = PaddingValues(horizontal = horizontalPadding)
             ) { i ->
                 val item = carouselItems[i]
                 AsyncImageOptimize(

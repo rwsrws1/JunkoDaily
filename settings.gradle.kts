@@ -24,3 +24,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "LearnCompose"
 include(":app")
+include(":core")
+include(":arithmetic_lib")
