@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan // 记得导入这个
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -267,25 +268,44 @@ fun TravelScreen() {
 
         // --- 第四部分：横向画廊 Carousel (跨满整行) ---
         item(span = { GridItemSpan(maxLineSpan) }) {
-            HorizontalMultiBrowseCarousel(
-                state = carouselState,
+//            HorizontalMultiBrowseCarousel(
+//                state = carouselState,
+//                modifier = Modifier
+////                    .ignoreParentPadding(horizontalPadding)
+//                    .fillMaxWidth()
+//                    .wrapContentHeight()
+//                    .nestedScroll(stopPagerScrollConnection),
+//                preferredItemWidth = screenWidth * 0.4f,
+//                itemSpacing = 12.dp,
+//                flingBehavior = CarouselDefaults.multiBrowseFlingBehavior(carouselState),
+////                contentPadding = PaddingValues(horizontal = horizontalPadding)
+//            ) { i ->
+//                val item = carouselItems[i]
+//                AsyncImageOptimize(
+//                    model = item.imageResId,
+//                    modifier = Modifier
+//                        .height(205.dp)
+//                        .maskClip(MaterialTheme.shapes.extraLarge),
+//                )
+//            }
+
+            LazyRow(
                 modifier = Modifier
-//                    .ignoreParentPadding(horizontalPadding)
                     .fillMaxWidth()
-                    .wrapContentHeight()
+                    .ignoreParentPadding(horizontalPadding)
                     .nestedScroll(stopPagerScrollConnection),
-                preferredItemWidth = screenWidth * 0.4f,
-                itemSpacing = 12.dp,
-                flingBehavior = CarouselDefaults.multiBrowseFlingBehavior(carouselState),
-//                contentPadding = PaddingValues(horizontal = horizontalPadding)
-            ) { i ->
-                val item = carouselItems[i]
-                AsyncImageOptimize(
-                    model = item.imageResId,
-                    modifier = Modifier
-                        .height(205.dp)
-                        .maskClip(MaterialTheme.shapes.extraLarge),
-                )
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(horizontal = horizontalPadding)
+            ) {
+                items(count = carouselItems.count(), key = { it }) { index ->
+                    AsyncImageOptimize(
+                        model = carouselItems[index].imageResId,
+                        modifier = Modifier
+                            .height(205.dp)
+                            .aspectRatio(1f / 1.4f)
+                            .clip(MaterialTheme.shapes.extraLarge),
+                    )
+                }
             }
         }
 
