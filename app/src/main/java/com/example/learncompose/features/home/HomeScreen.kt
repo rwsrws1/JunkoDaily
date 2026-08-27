@@ -3,7 +3,6 @@ package com.example.learncompose.features.home
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
@@ -19,16 +18,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.learncompose.data.room.UserScreen
-import com.example.learncompose.data.room.UserViewModel
 import com.example.learncompose.features.home.navigation.HomeNavKey
-import com.example.learncompose.ui.components.ChartDemoScreen
 import com.example.learncompose.ui.screen.FeedScreen
 import com.example.learncompose.features.home.page.travel.TravelScreen
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
     val topTabs = listOf(HomeNavKey.Travel, HomeNavKey.Chart, HomeNavKey.MainIcon)

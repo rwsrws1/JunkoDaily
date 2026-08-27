@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan // 记得导入这个
@@ -30,7 +29,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -73,7 +71,6 @@ data class CommonItem(
     val contentDescription: String = ""
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TravelScreen() {
     val context = LocalContext.current
@@ -126,7 +123,6 @@ fun TravelScreen() {
             CommonItem(6, R.drawable.girl7)
         )
     }
-    val carouselState = rememberCarouselState { carouselItems.count() }
 
     val stopPagerScrollConnection = remember {
         object : NestedScrollConnection {

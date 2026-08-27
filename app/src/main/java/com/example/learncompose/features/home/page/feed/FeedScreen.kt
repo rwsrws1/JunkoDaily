@@ -154,7 +154,7 @@ fun OptimizedFeedScreen(
             visible = showScrollToTop,
             enter = fadeIn(),
             exit = fadeOut(),
-            modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp)
+            modifier = Modifier.align(Alignment.BottomStart).padding(16.dp)
         ) {
             FloatingActionButton(
                 onClick = {

@@ -402,8 +402,6 @@ fun CombineScreen(currentKey: MainNavKey = MainNavKey.Home) {
 @Composable
 private fun Preview() {
     LearnComposeTheme {
-        // NavDisplay internally uses NavigationBackHandler which requires LocalNavigationEventDispatcherOwner.
-        // In Previews, we need to provide a root dispatcher manually.
         val dispatcherOwner = rememberNavigationEventDispatcherOwner(parent = null)
         CompositionLocalProvider(LocalNavigationEventDispatcherOwner provides dispatcherOwner) {
             CombineScreen()

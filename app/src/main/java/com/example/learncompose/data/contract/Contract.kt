@@ -128,7 +128,6 @@ fun getPhotosFromGallery(context: Context): List<MediaImage> {
 
 // ==================== Compose 页面展示层 ====================
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContentProviderDemoScreen() {
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -139,7 +138,7 @@ fun ContentProviderDemoScreen() {
             .height(400.dp)
     ) {
         // Tab 选项卡
-        TabRow(selectedTabIndex = selectedTab) {
+        PrimaryTabRow(selectedTabIndex = selectedTab) {
             Tab(
                 selected = selectedTab == 0,
                 onClick = { selectedTab = 0 },

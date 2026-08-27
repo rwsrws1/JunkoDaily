@@ -1,8 +1,15 @@
 package com.example.learncompose.ui.screen
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntOffsetAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -10,7 +17,6 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -22,6 +28,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -31,6 +38,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -45,6 +53,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderState
@@ -72,12 +81,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.state.ToggleableState
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.learncompose.R
 import com.example.learncompose.data.broadcast.PowerStatusScreen
 import com.example.learncompose.data.contract.FeatureScreen
@@ -98,7 +114,7 @@ val sliderStateSaver = Saver<SliderState, Float>(
     restore = { SliderState(it) }
 )
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ComponentsScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
     val scope = rememberCoroutineScope()
@@ -146,10 +162,40 @@ fun ComponentsScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
             }
 
             var isShowDialog by rememberSaveable { mutableStateOf(false) }
+
+
+            val textMeasurer = rememberTextMeasurer()
+            val textWidth = remember {
+                textMeasurer.measure(
+                    text = "这是一段特效文字", style = TextStyle(
+                        fontWeight = FontWeight.Bold,
+                        fontStyle = FontStyle.Italic,
+                        fontSize = 30.sp,
+                        letterSpacing = 10.sp)
+                ).size.width.toFloat()
+            }
+            val infiniteTransition = rememberInfiniteTransition()
+            val value by infiniteTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = textWidth + 200f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = 3000),
+                    repeatMode = RepeatMode.Restart
+                )
+            )
+            val brush = Brush.linearGradient(colors = listOf(Color.Red.copy(alpha = 0.6f), Color.Green.copy(alpha = 0.6f), Color.Red.copy(alpha = 0.6f)), start = Offset(x = value - 200f, y = 0f), end = Offset(x = value, y = 100f))
+            Text(text = "这是一段特效文字", style = TextStyle(
+                brush = brush,
+                fontWeight = FontWeight.Bold,
+                fontStyle = FontStyle.Italic,
+                fontSize = 30.sp,
+                letterSpacing = 10.sp
+            ))
+
             Button(
                 onClick = {
                     isShowDialog = true
-                }
+                },
             ) {
                 Text("弹窗")
             }
