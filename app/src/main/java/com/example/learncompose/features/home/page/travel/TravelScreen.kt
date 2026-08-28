@@ -1,15 +1,28 @@
 package com.example.learncompose.features.home.page.travel
 
 import android.graphics.Bitmap
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.BoundsTransform
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.SharedTransitionDefaults
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.foundation.gestures.ScrollScope
 import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -25,24 +38,23 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan // 记得导入这个
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.carousel.CarouselDefaults
-import androidx.compose.material3.carousel.HorizontalCenteredHeroCarousel
-import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
-import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
-import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -51,6 +63,7 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -175,95 +188,150 @@ fun TravelScreen() {
         }
     }
 
-    // === 2. 使用 LazyVerticalGrid 作为整个页面的根节点 ===
-    // 删除了 Column 和 verticalScroll
-    LazyVerticalGrid(
-        modifier = Modifier.fillMaxSize(),
-        columns = GridCells.Adaptive(minSize = 150.dp),
-        contentPadding = PaddingValues(vertical = 12.dp, horizontal = horizontalPadding),
-        horizontalArrangement = Arrangement.spacedBy(horizontalPadding),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        flingBehavior = slowFlingBehavior
+    var isShowDetail by rememberSaveable { mutableStateOf(false) }
+    var detailPictureId by rememberSaveable { mutableIntStateOf(0) }
+
+    val layGrinState = rememberLazyGridState()
+
+    val customBoundsTransform = BoundsTransform { initialBounds, targetBounds ->
+        // 你可以使用 tween(固定时间) 也可以使用 spring(弹性)
+        tween(durationMillis = 600, easing = FastOutSlowInEasing)
+    }
+
+    SharedTransitionLayout(
+
     ) {
-        // --- 第一部分：景点标题 (跨满整行) ---
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp, horizontal = horizontalPadding),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(painter = painterResource(R.drawable.landscape_2_24px), null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "风景", style = MaterialTheme.typography.titleMedium)
-            }
-        }
-
-        // --- 第二部分：顶部无限轮播 Pager (跨满整行) ---
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            // ... 你原本的 HorizontalPager 和 指示器 Box 代码 ...
-            Box(modifier = Modifier.fillMaxWidth()) {
-                HorizontalPager(
-                    state = pagerState,
-                    modifier = Modifier.ignoreParentPadding(horizontalPadding).fillMaxWidth(),
-                    pageSize = PageSize.Fill,
-                    pageSpacing = pageSpacing,
-                    contentPadding = PaddingValues(horizontal = horizontalPadding)
-                ) { page ->
-                    val realIndex = page % actualPageCount
-                    val item = pageItems[realIndex]
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(MaterialTheme.shapes.extraLarge)
-                    ) {
-                        AsyncImageOptimize(
-                            model = item.imageResId,
-                            modifier = Modifier.fillMaxWidth(),
-                            contentScale = ContentScale.FillWidth,
-                            disableCachePolicy = true
+        AnimatedContent(
+            targetState = isShowDetail,
+            transitionSpec = {
+                fadeIn(animationSpec = tween(600)) togetherWith ExitTransition.None
+            },
+        ) { isShow ->
+            if (isShow) {
+                Column(
+                    Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)
+                        .clickable(
+                            interactionSource = null,
+                            indication = null,
+                            onClick = {
+                                isShowDetail = false
+                            }
                         )
-                    }
-                }
-
-                // 指示器圆点
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 16.dp, bottom = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    repeat(actualPageCount) { index ->
-                        val currentRealPage = pagerState.currentPage % actualPageCount
-                        val isSelected = currentRealPage == index
-                        Box(
-                            modifier = Modifier
-                                .size(if (isSelected) 8.dp else 6.dp)
-                                .background(
-                                    color = if (isSelected) Color.White else Color.White.copy(alpha = 0.4f),
-                                    shape = CircleShape
-                                )
-                        )
-                    }
+                    Spacer(Modifier.weight(1F))
+                    Image(
+                        painterResource(detailPictureId), null,
+                        Modifier.fillMaxWidth().sharedBounds(
+                            sharedContentState = rememberSharedContentState("detail_element${detailPictureId}"),
+                            animatedVisibilityScope = this@AnimatedContent,
+                            boundsTransform = customBoundsTransform,
+                            resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Crop),
+                            clipInOverlayDuringTransition = OverlayClip(RoundedCornerShape(0.dp))
+                        ).clip(RoundedCornerShape(0.dp))
+                            .clickable(
+                                interactionSource = null,
+                                indication = null,
+                                onClick = {}
+                            ),
+                        contentScale = ContentScale.FillWidth
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = "测试测试",
+                        textAlign = TextAlign.Center,
+                    )
+                    Spacer(Modifier.weight(1F))
                 }
-            }
-        }
+            } else {
+                LazyVerticalGrid(
+                    state = layGrinState,
+                    modifier = Modifier.fillMaxSize(),
+                    columns = GridCells.Adaptive(minSize = 150.dp),
+                    contentPadding = PaddingValues(vertical = 12.dp, horizontal = horizontalPadding),
+                    horizontalArrangement = Arrangement.spacedBy(horizontalPadding),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    flingBehavior = slowFlingBehavior
+                ) {
+                    // --- 第一部分：景点标题 (跨满整行) ---
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Row(modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp, horizontal = horizontalPadding),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(painter = painterResource(R.drawable.landscape_2_24px), null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = "风景", style = MaterialTheme.typography.titleMedium)
+                        }
+                    }
 
-        // --- 第三部分：人像标题 (跨满整行) ---
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp, horizontal = horizontalPadding),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(painter = painterResource(R.drawable.nature_people_24px), null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "人像", style = MaterialTheme.typography.titleMedium)
-            }
-        }
+                    // --- 第二部分：顶部无限轮播 Pager (跨满整行) ---
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        // ... 你原本的 HorizontalPager 和 指示器 Box 代码 ...
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            HorizontalPager(
+                                state = pagerState,
+                                modifier = Modifier.ignoreParentPadding(horizontalPadding).fillMaxWidth(),
+                                pageSize = PageSize.Fill,
+                                pageSpacing = pageSpacing,
+                                contentPadding = PaddingValues(horizontal = horizontalPadding)
+                            ) { page ->
+                                val realIndex = page % actualPageCount
+                                val item = pageItems[realIndex]
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(MaterialTheme.shapes.extraLarge)
+                                ) {
+                                    AsyncImageOptimize(
+                                        model = item.imageResId,
+                                        modifier = Modifier.fillMaxWidth().aspectRatio(3f / 2f),
+                                        contentScale = ContentScale.FillWidth,
+                                        disableCachePolicy = true
+                                    )
+                                }
+                            }
 
-        // --- 第四部分：横向画廊 Carousel (跨满整行) ---
-        item(span = { GridItemSpan(maxLineSpan) }) {
+                            // 指示器圆点
+                            Row(
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .padding(end = 16.dp, bottom = 12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                repeat(actualPageCount) { index ->
+                                    val currentRealPage = pagerState.currentPage % actualPageCount
+                                    val isSelected = currentRealPage == index
+                                    Box(
+                                        modifier = Modifier
+                                            .size(if (isSelected) 8.dp else 6.dp)
+                                            .background(
+                                                color = if (isSelected) Color.White else Color.White.copy(alpha = 0.4f),
+                                                shape = CircleShape
+                                            )
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // --- 第三部分：人像标题 (跨满整行) ---
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Row(modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp, horizontal = horizontalPadding),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(painter = painterResource(R.drawable.nature_people_24px), null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = "人像", style = MaterialTheme.typography.titleMedium)
+                        }
+                    }
+
+                    // --- 第四部分：横向画廊 Carousel (跨满整行) ---
+                    item(span = { GridItemSpan(maxLineSpan) }) {
 //            HorizontalMultiBrowseCarousel(
 //                state = carouselState,
 //                modifier = Modifier
@@ -285,49 +353,74 @@ fun TravelScreen() {
 //                )
 //            }
 
-            LazyRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .ignoreParentPadding(horizontalPadding)
-                    .nestedScroll(stopPagerScrollConnection),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(horizontal = horizontalPadding)
-            ) {
-                items(count = carouselItems.count(), key = { it }) { index ->
-                    AsyncImageOptimize(
-                        model = carouselItems[index].imageResId,
-                        modifier = Modifier
-                            .height(205.dp)
-                            .aspectRatio(1f / 1.4f)
-                            .clip(MaterialTheme.shapes.extraLarge),
-                    )
+                        LazyRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .ignoreParentPadding(horizontalPadding)
+                                .nestedScroll(stopPagerScrollConnection),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            contentPadding = PaddingValues(horizontal = horizontalPadding)
+                        ) {
+                            items(count = carouselItems.count(), key = { it }) { index ->
+                                AsyncImageOptimize(
+                                    model = carouselItems[index].imageResId,
+                                    modifier = Modifier
+                                        .height(205.dp)
+                                        .aspectRatio(1f / 1.4f)
+                                        .clip(MaterialTheme.shapes.extraLarge),
+                                )
+                            }
+                        }
+                    }
+
+                    // --- 第五部分：网格列表的标题 (跨满整行) ---
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        Row(modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp, horizontal = horizontalPadding),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(painter = painterResource(R.drawable.distance_24px), null)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = "地点", style = MaterialTheme.typography.titleMedium)
+                        }
+                    }
+
+                    // --- 第六部分：真正的网格内容 ---
+                    items(
+                        items = gridItems,
+                        key = { it.id }
+                    ) {
+                        AsyncImageOptimize(
+                            model = it.imageResId,
+                            modifier = Modifier
+                                .aspectRatio(1f / 1f)
+                                .sharedBounds(
+                                    sharedContentState = rememberSharedContentState("detail_element${it.imageResId}"),
+                                    animatedVisibilityScope = this@AnimatedContent,
+                                    boundsTransform = customBoundsTransform,
+                                    resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Crop),
+                                    clipInOverlayDuringTransition = OverlayClip(MaterialTheme.shapes.extraLarge)
+                                )
+                                .clip(MaterialTheme.shapes.extraLarge)
+                                .clickable(
+                                    onClick = {
+                                        detailPictureId = it.imageResId
+                                        isShowDetail = true
+                                    }
+                                )
+                        )
+                    }
                 }
+
             }
+
         }
 
-        // --- 第五部分：网格列表的标题 (跨满整行) ---
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp, horizontal = horizontalPadding),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(painter = painterResource(R.drawable.distance_24px), null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "地点", style = MaterialTheme.typography.titleMedium)
-            }
-        }
-
-        // --- 第六部分：真正的网格内容 ---
-        items(gridItems) {
-            AsyncImageOptimize(
-                model = it.imageResId,
-                modifier = Modifier
-                    .aspectRatio(1f / 1f)
-                    .clip(MaterialTheme.shapes.extraLarge),
-            )
-        }
     }
+
+    // === 2. 使用 LazyVerticalGrid 作为整个页面的根节点 ===
+    // 删除了 Column 和 verticalScroll
 }
 
 @Composable
