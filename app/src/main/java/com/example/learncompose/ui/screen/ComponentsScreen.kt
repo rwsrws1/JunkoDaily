@@ -185,6 +185,8 @@ fun ComponentsScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
             )
             val brush = Brush.linearGradient(colors = listOf(Color.Red.copy(alpha = 0.6f), Color.Green.copy(alpha = 0.6f), Color.Red.copy(alpha = 0.6f)), start = Offset(x = value - 200f, y = 0f), end = Offset(x = value, y = 100f))
 
+            StackRecentScreen()
+
             CardToPageTransitionDemo()
 
             Text(text = "这是一段特效文字", style = TextStyle(

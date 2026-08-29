@@ -2,7 +2,6 @@ package com.example.learncompose.ui.screen
 
 import android.media.MediaPlayer
 import android.net.Uri
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -10,21 +9,25 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.example.learncompose.ui.components.CustomComposeVideoPlayer
+import kotlinx.coroutines.delay
+import java.util.Locale
 
 @Composable
 fun MediaPickerScreen() {
     val context = LocalContext.current
 
-    // 修改 MediaPickerScreen 中的状态定义
     var selectedMediaUriString by rememberSaveable { mutableStateOf<String?>(null) }
     val selectedMediaUri = selectedMediaUriString?.let { Uri.parse(it) }
     var selectedAudioUri by remember { mutableStateOf<Uri?>(null) }
@@ -32,6 +35,12 @@ fun MediaPickerScreen() {
 
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
     var isAudioPlaying by remember { mutableStateOf(false) }
+
+    // --- 音频进度与时长状态 ---
+    var audioDuration by remember { mutableLongStateOf(0L) }
+    var currentPosition by remember { mutableLongStateOf(0L) }
+    var isUserSeeking by remember { mutableStateOf(false) }
+    var dragPosition by remember { mutableFloatStateOf(0f) }
 
     // --- Launchers ---
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -50,16 +59,37 @@ fun MediaPickerScreen() {
         onResult = { uri -> selectedAudioUri = uri }
     )
 
-    // --- 音频生命周期 ---
+    // --- 音频生命周期与初始化 ---
     DisposableEffect(selectedAudioUri) {
         if (selectedAudioUri != null) {
-            mediaPlayer = MediaPlayer.create(context, selectedAudioUri)
-            mediaPlayer?.setOnCompletionListener { isAudioPlaying = false }
+            val player = MediaPlayer.create(context, selectedAudioUri)
+            mediaPlayer = player
+            audioDuration = player?.duration?.toLong()?.coerceAtLeast(0L) ?: 0L
+            currentPosition = 0L
+
+            player?.setOnCompletionListener {
+                isAudioPlaying = false
+                currentPosition = 0L
+            }
         }
         onDispose {
             mediaPlayer?.release()
             mediaPlayer = null
             isAudioPlaying = false
+            audioDuration = 0L
+            currentPosition = 0L
+        }
+    }
+
+    // --- 播放中周期性刷新进度 ---
+    LaunchedEffect(isAudioPlaying, isUserSeeking) {
+        while (isAudioPlaying && !isUserSeeking) {
+            mediaPlayer?.let { player ->
+                if (player.isPlaying) {
+                    currentPosition = player.currentPosition.toLong()
+                }
+            }
+            delay(200) // 每 200ms 更新一次进度
         }
     }
 
@@ -96,21 +126,75 @@ fun MediaPickerScreen() {
 
         selectedAudioUri?.let { uri ->
             Text("选中的音乐: $uri")
-            Button(onClick = {
-                mediaPlayer?.let { player ->
-                    if (player.isPlaying) {
-                        player.pause()
-                        isAudioPlaying = false
-                    } else {
-                        player.start()
-                        isAudioPlaying = true
-                    }
+
+            // --- 音乐控制面板 ---
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                // 播放/暂停按钮
+                Button(
+                    onClick = {
+                        mediaPlayer?.let { player ->
+                            if (player.isPlaying) {
+                                player.pause()
+                                isAudioPlaying = false
+                            } else {
+                                player.start()
+                                isAudioPlaying = true
+                            }
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(if (isAudioPlaying) "暂停音频 ⏸️" else "播放音频 ▶️")
                 }
-            }) {
-                Text(if (isAudioPlaying) "暂停音频 ⏸️" else "播放音频 ▶️")
+
+                // 进度条 Slider
+                val sliderValue = if (isUserSeeking) dragPosition else currentPosition.toFloat()
+                Slider(
+                    value = sliderValue.coerceIn(0f, audioDuration.toFloat().coerceAtLeast(1f)),
+                    valueRange = 0f..audioDuration.toFloat().coerceAtLeast(1f),
+                    onValueChange = { newValue ->
+                        isUserSeeking = true
+                        dragPosition = newValue
+                    },
+                    onValueChangeFinished = {
+                        mediaPlayer?.seekTo(dragPosition.toInt())
+                        currentPosition = dragPosition.toLong()
+                        isUserSeeking = false
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // 当前时长 / 总时长
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    val displayPosition = if (isUserSeeking) dragPosition.toLong() else currentPosition
+                    Text(
+                        text = formatTime(displayPosition),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(
+                        text = formatTime(audioDuration),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
         }
     }
+}
+
+// 毫秒转 mm:ss 格式
+private fun formatTime(ms: Long): String {
+    val totalSeconds = (ms / 1000).coerceAtLeast(0)
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
 }
 
 @Preview(showBackground = true)
