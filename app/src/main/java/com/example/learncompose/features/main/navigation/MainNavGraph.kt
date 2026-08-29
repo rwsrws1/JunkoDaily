@@ -24,7 +24,10 @@ import com.example.learncompose.ui.screen.MediaPickerScreen
 import kotlin.collections.listOf
 
 @Composable
-fun MainNavGraph(rememberNavBackStack: NavBackStack<NavKey>) {
+fun MainNavGraph(
+    rememberNavBackStack: NavBackStack<NavKey>,
+    onNavigateToLoading: () -> Unit = {}
+) {
 
     NavDisplay<NavKey>(
         entryDecorators = listOf(
@@ -42,7 +45,9 @@ fun MainNavGraph(rememberNavBackStack: NavBackStack<NavKey>) {
     ) { key ->
         when (key) {
             is MainNavKey.Home -> NavEntry(key) {
-                HomeScreen()
+                HomeScreen(
+                    onNavigateToLoading = onNavigateToLoading
+                )
             }
             is MainNavKey.Components -> NavEntry(
                 key = key,

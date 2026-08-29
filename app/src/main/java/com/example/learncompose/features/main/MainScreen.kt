@@ -84,19 +84,20 @@ val localMainHandler = staticCompositionLocalOf<(MainContract.Intent) -> Unit> {
 @Composable
 fun MainScreen(
     viewModel: MainViewModel = hiltViewModel<MainViewModel>(),
+    onNavigateToLoading: () -> Unit = {}
 ) {
 
     val currentKey by viewModel.currentKey.collectAsStateWithLifecycle()
 
     CompositionLocalProvider(localMainHandler provides viewModel::handleIntent) {
-        CombineScreen(currentKey)
+        CombineScreen(currentKey, onNavigateToLoading)
     }
 
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CombineScreen(currentKey: MainNavKey = MainNavKey.Home) {
+fun CombineScreen(currentKey: MainNavKey = MainNavKey.Home, onNavigateToLoading: () -> Unit = {}) {
     val intentHandler = localMainHandler.current
     val snackBarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -390,7 +391,7 @@ fun CombineScreen(currentKey: MainNavKey = MainNavKey.Home) {
                 }
 
                 savableStateHolder.SaveableStateProvider(currentKey.toString()) {
-                    MainNavGraph(currentStack)
+                    MainNavGraph(currentStack, onNavigateToLoading)
                 }
 
             }

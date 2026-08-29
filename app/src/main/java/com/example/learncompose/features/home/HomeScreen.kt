@@ -1,5 +1,6 @@
 package com.example.learncompose.features.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -25,13 +26,16 @@ import com.example.learncompose.features.home.page.travel.TravelScreen
 import kotlinx.coroutines.launch
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    onNavigateToLoading: () -> Unit = {}
+) {
     val topTabs = listOf(HomeNavKey.Travel, HomeNavKey.Chart, HomeNavKey.MainIcon)
     var selectedDestination by rememberSaveable { mutableIntStateOf(topTabs.indexOf(HomeNavKey.Travel)) }
     val pageState = rememberPagerState(initialPage = selectedDestination, pageCount = {topTabs.size})
     val scop = rememberCoroutineScope()
 
-    Column(modifier = modifier) {
+    Column(modifier = modifier.background(MaterialTheme.colorScheme.background)) {
         PrimaryTabRow(selectedTabIndex = pageState.currentPage) {
             topTabs.forEachIndexed { index, destination ->
                 Tab(
@@ -65,7 +69,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             beyondViewportPageCount = 0
         ) { page ->
             when (page) {
-                0 -> TravelScreen()
+                0 -> TravelScreen(onNavigateToLoading)
                 1 -> UserScreen()
                 2 -> FeedScreen()
             }

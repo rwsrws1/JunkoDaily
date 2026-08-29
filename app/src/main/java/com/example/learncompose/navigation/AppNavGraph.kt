@@ -6,6 +6,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavEntry
@@ -22,6 +24,10 @@ import com.example.learncompose.features.login.LoginScreen
 import com.example.learncompose.features.login.LoginViewModel
 import com.example.learncompose.features.welcome.WelcomeScreen
 import com.example.learncompose.features.welcome.WelcomeViewModel
+
+val LocalAppNavigator = staticCompositionLocalOf<(AppNavKey) -> Unit> {
+    {}
+}
 
 @Composable
 fun AppNavGraph(startDestination: AppNavKey = AppNavKey.Welcome) {
@@ -72,6 +78,9 @@ fun AppNavGraph(startDestination: AppNavKey = AppNavKey.Welcome) {
                 val viewModel = hiltViewModel<MainViewModel>()
                 MainScreen(
                     viewModel = viewModel,
+                    onNavigateToLoading = {
+                        rememberNavBackStack.add(AppNavKey.Loading)
+                    }
                 )
             }
 
@@ -83,19 +92,23 @@ fun AppNavGraph(startDestination: AppNavKey = AppNavKey.Welcome) {
         }
     }
 
-    NavDisplay<NavKey>(
-        entryDecorators = listOf(
-            rememberSaveableStateHolderNavEntryDecorator(),
-            rememberViewModelStoreNavEntryDecorator()
-        ),
-        backStack = rememberNavBackStack,
-        onBack = { rememberNavBackStack.removeLastOrNull() },
-        entryProvider = entryProvider,
-        transitionSpec = {
-            fadeIn(tween(1000)) togetherWith fadeOut(tween(1000))
-        },
-        popTransitionSpec = {
-            fadeIn(tween(1000)) togetherWith fadeOut(tween(1000))
-        }
-    )
+    CompositionLocalProvider(
+        LocalAppNavigator provides { navKey -> rememberNavBackStack.add(navKey) }
+    ) {
+        NavDisplay<NavKey>(
+            entryDecorators = listOf(
+                rememberSaveableStateHolderNavEntryDecorator(),
+                rememberViewModelStoreNavEntryDecorator()
+            ),
+            backStack = rememberNavBackStack,
+            onBack = { rememberNavBackStack.removeLastOrNull() },
+            entryProvider = entryProvider,
+            transitionSpec = {
+                fadeIn(tween(1000)) togetherWith fadeOut(tween(1000))
+            },
+            popTransitionSpec = {
+                fadeIn(tween(1000)) togetherWith fadeOut(tween(1000))
+            }
+        )
+    }
 }

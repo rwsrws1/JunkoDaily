@@ -74,6 +74,8 @@ import coil3.request.allowHardware
 import coil3.request.bitmapConfig
 import coil3.request.crossfade
 import com.example.learncompose.R
+import com.example.learncompose.navigation.AppNavKey
+import com.example.learncompose.navigation.LocalAppNavigator
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -85,8 +87,11 @@ data class CommonItem(
 )
 
 @Composable
-fun TravelScreen() {
-    val context = LocalContext.current
+fun TravelScreen(
+    onNavigateToLoading: () -> Unit = {}
+) {
+    val navigatorTo = LocalAppNavigator.current
+
     val screenWidth = LocalWindowInfo.current.containerDpSize.width
     val pageSpacing = screenWidth * 0.05f
     val horizontalPadding = 12.dp
@@ -246,7 +251,7 @@ fun TravelScreen() {
             } else {
                 LazyVerticalGrid(
                     state = layGrinState,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
                     columns = GridCells.Adaptive(minSize = 150.dp),
                     contentPadding = PaddingValues(vertical = 12.dp, horizontal = horizontalPadding),
                     horizontalArrangement = Arrangement.spacedBy(horizontalPadding),
@@ -283,6 +288,11 @@ fun TravelScreen() {
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clip(MaterialTheme.shapes.extraLarge)
+                                        .clickable(
+                                            onClick = {
+                                                onNavigateToLoading()
+                                            }
+                                        )
                                 ) {
                                     AsyncImageOptimize(
                                         model = item.imageResId,
@@ -367,7 +377,12 @@ fun TravelScreen() {
                                     modifier = Modifier
                                         .height(205.dp)
                                         .aspectRatio(1f / 1.4f)
-                                        .clip(MaterialTheme.shapes.extraLarge),
+                                        .clip(MaterialTheme.shapes.extraLarge)
+                                        .clickable(
+                                            onClick = {
+                                                navigatorTo(AppNavKey.Loading)
+                                            }
+                                        ),
                                 )
                             }
                         }
