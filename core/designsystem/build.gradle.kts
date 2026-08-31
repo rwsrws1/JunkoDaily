@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.core"
+    namespace = "com.example.learncompose.core.designsystem"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1

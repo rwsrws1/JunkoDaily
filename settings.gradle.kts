@@ -21,8 +21,11 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
+includeBuild("build-logic")
 
 rootProject.name = "LearnCompose"
+
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 include(":app")
-include(":core")
 include(":arithmetic_lib")
+include(":core:designsystem")

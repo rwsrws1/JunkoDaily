@@ -1,4 +1,4 @@
-package com.example.core
+package com.example.learncompose.core.designsystem
 
 import org.junit.Test
 
