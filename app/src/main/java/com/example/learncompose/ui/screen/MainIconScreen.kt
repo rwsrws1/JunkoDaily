@@ -23,7 +23,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
-import androidx.window.core.layout.WindowWidthSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import com.example.learncompose.R
 
 @Composable
@@ -42,16 +42,12 @@ fun CombineContent(modifier: Modifier = Modifier) {
             .padding(20.dp)
     ) {
         var imageSize = 0
-        when (windowSizeClass.windowWidthSizeClass) {
-            WindowWidthSizeClass.COMPACT -> {
-                imageSize = 150
-            }
-            WindowWidthSizeClass.MEDIUM -> {
-                imageSize = 150
-            }
-            WindowWidthSizeClass.EXPANDED -> {
-                imageSize = 200
-            }
+        imageSize = if (windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)) {
+            200
+        } else if (windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)) {
+            150
+        } else {
+            150
         }
 
         Column(

@@ -49,7 +49,7 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.window.core.layout.WindowHeightSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import com.example.learncompose.R
 import com.example.learncompose.data.repo.AuthState
 import com.example.learncompose.ui.components.Loading
@@ -91,17 +91,12 @@ fun CombineContent(state: LoginContract.State = LoginContract.State()) {
             .padding(20.dp)
     ) {
         val parentHeight = maxHeight
-        var bottomPadding = 0
-        when (windowSizeClass.windowHeightSizeClass) {
-            WindowHeightSizeClass.COMPACT -> {
-                bottomPadding = 0
-            }
-            WindowHeightSizeClass.MEDIUM -> {
-                bottomPadding = 100
-            }
-            WindowHeightSizeClass.EXPANDED -> {
-                bottomPadding = 200
-            }
+        val bottomPadding = if (windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_EXPANDED_LOWER_BOUND)) {
+            200
+        } else if (windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND)) {
+            100
+        } else {
+            0
         }
         Column(
             modifier = Modifier

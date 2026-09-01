@@ -53,7 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.window.core.layout.WindowWidthSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import com.example.learncompose.R
 import com.example.learncompose.ui.components.ButtonPrimary
 import com.example.learncompose.ui.theme.LearnComposeTheme
@@ -132,19 +132,12 @@ fun CombineContent(state: WelcomeContract.State = WelcomeContract.State()) {
             .padding(20.dp)
     ) {
         val parentHeight = maxHeight
-        var horizontalPadding = 0
-        when (windowSizeClass.windowWidthSizeClass) {
-            WindowWidthSizeClass.COMPACT -> {
-                horizontalPadding = 0
-            }
-
-            WindowWidthSizeClass.MEDIUM -> {
-                horizontalPadding = 100
-            }
-
-            WindowWidthSizeClass.EXPANDED -> {
-                horizontalPadding = 200
-            }
+        val horizontalPadding = if (windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)) {
+            200
+        } else if (windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)) {
+            100
+        } else {
+            0
         }
         Column(
             modifier = Modifier

@@ -1,5 +1,4 @@
-import com.android.build.api.dsl.ApplicationExtension
-import com.android.build.api.dsl.LibraryExtension
+import com.android.build.api.dsl.CommonExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.apply
@@ -9,9 +8,9 @@ import org.gradle.kotlin.dsl.dependencies
 class AndroidComposeConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
-            apply(plugin = "com.android.application")
             apply(plugin = "org.jetbrains.kotlin.plugin.compose")
-            extensions.configure<ApplicationExtension> {
+
+            extensions.configure<CommonExtension> {
                 buildFeatures.apply {
                     compose = true
                 }

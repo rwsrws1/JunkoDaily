@@ -1,34 +1,32 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.compose)
+//    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
+//    alias(libs.plugins.room)
+    alias(libs.plugins.custom.android.environment)
     alias(libs.plugins.custom.android.compose)
+    alias(libs.plugins.custom.android.room)
 }
 
 android {
     namespace = "com.example.learncompose"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+//    compileSdk {
+//        version = release(36) {
+//            minorApiLevel = 1
+//        }
+//    }
 
     defaultConfig {
         applicationId = "com.example.learncompose"
-        minSdk = 29
-        //noinspection OldTargetApi
-        targetSdk = 36
+//        minSdk = 29
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+//        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        //noinspection WrongGradleMethod
-        ksp {
-            arg("room.schemaLocation", "$projectDir/schemas")
-        }
     }
 
     buildTypes {
@@ -40,14 +38,18 @@ android {
             )
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    buildFeatures {
-        compose = true
-    }
+//    compileOptions {
+//        sourceCompatibility = JavaVersion.VERSION_11
+//        targetCompatibility = JavaVersion.VERSION_11
+//    }
+//    buildFeatures {
+//        compose = true
+//    }
 }
+
+//room {
+//    schemaDirectory("$projectDir/schemas")
+//}
 
 dependencies {
     implementation(libs.androidx.core.ktx)
@@ -61,9 +63,9 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.core.splashscreen)
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
+//    implementation(libs.androidx.room.runtime)
+//    implementation(libs.androidx.room.ktx)
+//    ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.work.runtime)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)

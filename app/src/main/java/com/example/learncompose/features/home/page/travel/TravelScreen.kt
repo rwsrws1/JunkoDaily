@@ -8,7 +8,10 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.SharedTransitionDefaults
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -17,8 +20,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.FlingBehavior
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.ScrollScope
 import androidx.compose.foundation.gestures.ScrollableDefaults
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,20 +39,34 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan // 记得导入这个
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
+import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
+import androidx.compose.foundation.overscroll
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberOverscrollEffect
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.carousel.CarouselDefaults
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
+import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
+import androidx.compose.material3.carousel.rememberCarouselState
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -55,6 +75,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -66,6 +88,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
@@ -77,6 +100,8 @@ import com.example.learncompose.R
 import com.example.learncompose.navigation.AppNavKey
 import com.example.learncompose.navigation.LocalAppNavigator
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
 
 // === 1. 状态和数据定义移到最外层 ===
@@ -86,6 +111,7 @@ data class CommonItem(
     val contentDescription: String = ""
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TravelScreen(
     onNavigateToLoading: () -> Unit = {}
@@ -95,6 +121,8 @@ fun TravelScreen(
     val screenWidth = LocalWindowInfo.current.containerDpSize.width
     val pageSpacing = screenWidth * 0.05f
     val horizontalPadding = 12.dp
+
+    val staggeredGridState = rememberLazyStaggeredGridState()
 
     val pageItems = remember {
         listOf(
@@ -142,13 +170,7 @@ fun TravelScreen(
         )
     }
 
-    val stopPagerScrollConnection = remember {
-        object : NestedScrollConnection {
-            override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
-                return Offset(x = available.x, y = 0f)
-            }
-        }
-    }
+    val carouselState = rememberCarouselState(itemCount = {carouselItems.count()})
 
     val gridItems = remember {
         listOf(
@@ -195,12 +217,81 @@ fun TravelScreen(
 
     var isShowDetail by rememberSaveable { mutableStateOf(false) }
     var detailPictureId by rememberSaveable { mutableIntStateOf(0) }
-
-    val layGrinState = rememberLazyGridState()
-
     val customBoundsTransform = BoundsTransform { initialBounds, targetBounds ->
         // 你可以使用 tween(固定时间) 也可以使用 spring(弹性)
         tween(durationMillis = 600, easing = FastOutSlowInEasing)
+    }
+
+//    val coroutineScope = rememberCoroutineScope()
+//    val stretchOffset = remember { Animatable(0f) }
+//    val stretchScrollConnection = remember {
+//        object : NestedScrollConnection {
+//            override fun onPostScroll(
+//                consumed: Offset,
+//                available: Offset,
+//                source: NestedScrollSource
+//            ): Offset {
+//                if (source == NestedScrollSource.UserInput && available.x != 0f) {
+//                    val damping = 0.1f
+//                    val newTarget = stretchOffset.value + available.x * damping
+//                    val clamped = newTarget.coerceIn(-100f, 100f)
+//                    coroutineScope.launch {
+//                        stretchOffset.snapTo(clamped)
+//                    }
+//                    return Offset(available.x, 0f)
+//                }
+//                return Offset.Zero
+//            }
+//
+//            override suspend fun onPostFling(
+//                consumed: Velocity,
+//                available: Velocity
+//            ): Velocity {
+//                stretchOffset.animateTo(
+//                    targetValue = 0f,
+//                    animationSpec = spring(
+//                        dampingRatio = Spring.DampingRatioNoBouncy,
+//                        stiffness = Spring.StiffnessMedium
+//                    )
+//                )
+//                return Velocity.Zero
+//            }
+//        }
+//    }
+//    val currentOffset = stretchOffset.value
+//    val scaleFactor = 1f + (abs(currentOffset) / 2000f)
+//    val transformOrigin = if (currentOffset >= 0f) {
+//        TransformOrigin(pivotFractionX = 0f, pivotFractionY = 0.5f)
+//    } else {
+//        TransformOrigin(pivotFractionX = 1f, pivotFractionY = 0.5f)
+//    }
+
+
+    val stopScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset {
+                return if (available.x < 0f) {
+                    Offset(x = available.x, y = 0f)
+                } else {
+                    Offset.Zero
+                }
+            }
+
+            override suspend fun onPostFling(
+                consumed: Velocity,
+                available: Velocity
+            ): Velocity {
+                return if (available.x < 0f) {
+                    Velocity(x = available.x, y = 0f)
+                } else {
+                    Velocity.Zero
+                }
+            }
+        }
     }
 
     SharedTransitionLayout(
@@ -249,17 +340,17 @@ fun TravelScreen(
                     Spacer(Modifier.weight(1F))
                 }
             } else {
-                LazyVerticalGrid(
-                    state = layGrinState,
+                LazyVerticalStaggeredGrid(
+                    state = staggeredGridState,
                     modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
-                    columns = GridCells.Adaptive(minSize = 150.dp),
-                    contentPadding = PaddingValues(vertical = 12.dp, horizontal = horizontalPadding),
+                    columns = StaggeredGridCells.Adaptive(minSize = 150.dp),
+                    contentPadding = PaddingValues(vertical = 12.dp),
                     horizontalArrangement = Arrangement.spacedBy(horizontalPadding),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalItemSpacing = 12.dp,
                     flingBehavior = slowFlingBehavior
                 ) {
                     // --- 第一部分：景点标题 (跨满整行) ---
-                    item(span = { GridItemSpan(maxLineSpan) }) {
+                    item(span = StaggeredGridItemSpan.FullLine) {
                         Row(modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp, horizontal = horizontalPadding),
@@ -272,12 +363,12 @@ fun TravelScreen(
                     }
 
                     // --- 第二部分：顶部无限轮播 Pager (跨满整行) ---
-                    item(span = { GridItemSpan(maxLineSpan) }) {
+                    item(span = StaggeredGridItemSpan.FullLine) {
                         // ... 你原本的 HorizontalPager 和 指示器 Box 代码 ...
                         Box(modifier = Modifier.fillMaxWidth()) {
                             HorizontalPager(
                                 state = pagerState,
-                                modifier = Modifier.ignoreParentPadding(horizontalPadding).fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth(),
                                 pageSize = PageSize.Fill,
                                 pageSpacing = pageSpacing,
                                 contentPadding = PaddingValues(horizontal = horizontalPadding)
@@ -328,7 +419,7 @@ fun TravelScreen(
                     }
 
                     // --- 第三部分：人像标题 (跨满整行) ---
-                    item(span = { GridItemSpan(maxLineSpan) }) {
+                    item(span = StaggeredGridItemSpan.FullLine) {
                         Row(modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp, horizontal = horizontalPadding),
@@ -341,18 +432,17 @@ fun TravelScreen(
                     }
 
                     // --- 第四部分：横向画廊 Carousel (跨满整行) ---
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-//            HorizontalMultiBrowseCarousel(
+                    item(span = StaggeredGridItemSpan.FullLine) {
+
+//            HorizontalUncontainedCarousel(
 //                state = carouselState,
 //                modifier = Modifier
-////                    .ignoreParentPadding(horizontalPadding)
 //                    .fillMaxWidth()
 //                    .wrapContentHeight()
-//                    .nestedScroll(stopPagerScrollConnection),
-//                preferredItemWidth = screenWidth * 0.4f,
+//                    .nestedScroll(stopScrollConnection),
+//                itemWidth = screenWidth * 0.4f,
 //                itemSpacing = 12.dp,
-//                flingBehavior = CarouselDefaults.multiBrowseFlingBehavior(carouselState),
-////                contentPadding = PaddingValues(horizontal = horizontalPadding)
+//                contentPadding = PaddingValues(horizontal = horizontalPadding)
 //            ) { i ->
 //                val item = carouselItems[i]
 //                AsyncImageOptimize(
@@ -366,8 +456,13 @@ fun TravelScreen(
                         LazyRow(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .ignoreParentPadding(horizontalPadding)
-                                .nestedScroll(stopPagerScrollConnection),
+//                                .nestedScroll(stopScrollConnection)
+//                                .nestedScroll(stretchScrollConnection)
+//                                .graphicsLayer {
+//                                    scaleX = scaleFactor
+//                                    this.transformOrigin = transformOrigin
+//                                }
+                            ,
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             contentPadding = PaddingValues(horizontal = horizontalPadding)
                         ) {
@@ -386,10 +481,11 @@ fun TravelScreen(
                                 )
                             }
                         }
+
                     }
 
                     // --- 第五部分：网格列表的标题 (跨满整行) ---
-                    item(span = { GridItemSpan(maxLineSpan) }) {
+                    item(span = StaggeredGridItemSpan.FullLine) {
                         Row(modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp, horizontal = horizontalPadding),
@@ -402,16 +498,19 @@ fun TravelScreen(
                     }
 
                     // --- 第六部分：真正的网格内容 ---
-                    items(
-                        items = gridItems,
-                        key = { it.id }
-                    ) {
+                    itemsIndexed(
+                        gridItems
+                    ) { index, item ->
+                        val isLeftColumn = index % 2 == 0
+                        val startPad = if (isLeftColumn) horizontalPadding else 0.dp
+                        val endPad = if (isLeftColumn) 0.dp else horizontalPadding
                         AsyncImageOptimize(
-                            model = it.imageResId,
+                            model = item.imageResId,
                             modifier = Modifier
+                                .padding(start = startPad, end = endPad)
                                 .aspectRatio(1f / 1f)
                                 .sharedBounds(
-                                    sharedContentState = rememberSharedContentState("detail_element${it.imageResId}"),
+                                    sharedContentState = rememberSharedContentState("detail_element${item.imageResId}"),
                                     animatedVisibilityScope = this@AnimatedContent,
                                     boundsTransform = customBoundsTransform,
                                     resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Crop),
@@ -420,7 +519,7 @@ fun TravelScreen(
                                 .clip(MaterialTheme.shapes.extraLarge)
                                 .clickable(
                                     onClick = {
-                                        detailPictureId = it.imageResId
+                                        detailPictureId = item.imageResId
                                         isShowDetail = true
                                     }
                                 )
