@@ -51,12 +51,12 @@
             tools:node="merge" />
 
         <service
-            android:name=".data.service.LocationService"
+            android:name=".feature.experiment.data.service.LocationService"
             android:foregroundServiceType="location"
             android:exported="false" />
 
         <provider
-            android:name=".data.room.UserContentProvider"
+            android:name=".feature.experiment.data.room.UserContentProvider"
             android:authorities="com.example.myapp.userprovider"
             android:exported="true"
             tools:ignore="ExportedContentProvider" />

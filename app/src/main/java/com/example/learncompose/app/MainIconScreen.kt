@@ -1,4 +1,4 @@
-package com.example.learncompose.ui.components
+package com.example.learncompose.app
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -20,11 +20,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
-import com.example.learncompose.R
+import com.example.learncompose.core.designsystem.icons.AppIcons
 
 @Composable
 fun MainIconScreen(modifier: Modifier = Modifier) {
@@ -58,7 +57,7 @@ fun CombineContent(modifier: Modifier = Modifier) {
             Spacer(Modifier.weight(1f))
             Image(
                 modifier = Modifier.size(imageSize.dp),
-                painter = painterResource(R.drawable.menu_book_24px),
+                painter = AppIcons.main,
                 contentDescription = "loading...",
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
             )
