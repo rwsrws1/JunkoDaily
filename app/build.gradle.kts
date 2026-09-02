@@ -53,7 +53,16 @@ android {
 //}
 
 dependencies {
+    implementation(projects.core.data)
+    implementation(projects.core.database)
+    implementation(projects.core.datastore)
     implementation(projects.core.designsystem)
+    implementation(projects.core.network)
+
+    implementation(projects.feature.auth)
+    implementation(projects.feature.experiment)
+    implementation(projects.feature.home)
+    implementation(projects.feature.introduction)
 
 //    implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

@@ -1,4 +1,4 @@
-package com.example.learncompose.otherApp
+package com.example.learncompose.otherapp
 
 import android.content.Context
 import android.net.Uri

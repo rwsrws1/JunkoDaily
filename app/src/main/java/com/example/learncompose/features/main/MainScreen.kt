@@ -76,7 +76,7 @@ import com.example.learncompose.core.designsystem.LearnComposeTheme
 import com.example.learncompose.features.main.navigation.MainNavGraph
 import com.example.learncompose.features.main.navigation.MainNavKey
 import com.example.learncompose.core.designsystem.components.SearchComponent
-import com.example.learncompose.ui.screen.AvatarSelector
+import com.example.learncompose.screen.AvatarSelector
 import kotlinx.coroutines.launch
 
 val localMainHandler = staticCompositionLocalOf<(MainContract.Intent) -> Unit> { {} }

@@ -1,4 +1,4 @@
-package com.example.learncompose.ui.screen
+package com.example.learncompose.screen
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures

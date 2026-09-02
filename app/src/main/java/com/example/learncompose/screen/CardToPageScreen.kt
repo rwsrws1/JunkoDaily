@@ -1,5 +1,6 @@
-package com.example.learncompose.ui.screen
+package com.example.learncompose.screen
 
+import android.R
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
@@ -11,7 +12,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -57,7 +57,7 @@ fun CardToPageTransitionDemo() {
                     ) {
                         Column {
                             Image(
-                                painter = painterResource(id = android.R.drawable.ic_menu_gallery),
+                                painter = painterResource(id = R.drawable.ic_menu_gallery),
                                 contentDescription = "Cover",
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
@@ -100,7 +100,7 @@ fun CardToPageTransitionDemo() {
                         .clickable { showDetails = false } // 点击返回
                 ) {
                     Image(
-                        painter = painterResource(id = android.R.drawable.ic_menu_gallery),
+                        painter = painterResource(id = R.drawable.ic_menu_gallery),
                         contentDescription = "Cover",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier

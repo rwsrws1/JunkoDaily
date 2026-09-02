@@ -1,4 +1,4 @@
-package com.example.learncompose.ui.screen
+package com.example.learncompose.screen
 
 import android.content.Context
 import android.net.Uri
@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
 import com.example.learncompose.R
 import java.io.File
 import java.io.FileOutputStream
@@ -42,7 +43,7 @@ fun AvatarSelector(
     // 💡 核心修复：根据时间戳动态构建 Coil 的 ImageRequest
     val imageModel = remember(avatarTimestamp) {
         if (avatarTimestamp > 0L) {
-            coil3.request.ImageRequest.Builder(context)
+            ImageRequest.Builder(context)
                 .data(avatarFile)
                 // 关键点：在缓存 Key 后面拼上时间戳！
                 // 这样每次选新图，Key 都不一样，Coil 就会强制刷新内存和磁盘缓存

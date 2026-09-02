@@ -16,9 +16,9 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.example.learncompose.features.home.HomeScreen
-import com.example.learncompose.ui.screen.ComponentsScreen
-import com.example.learncompose.ui.screen.DrawingBoardScreen
-import com.example.learncompose.ui.screen.MediaPickerScreen
+import com.example.learncompose.screen.ComponentsScreen
+import com.example.learncompose.screen.DrawingBoardScreen
+import com.example.learncompose.screen.MediaPickerScreen
 import kotlin.collections.listOf
 
 @Composable

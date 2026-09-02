@@ -1,4 +1,4 @@
-package com.example.learncompose.ui.screen
+package com.example.learncompose.screen
 
 import android.media.MediaPlayer
 import android.net.Uri

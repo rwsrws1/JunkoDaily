@@ -456,7 +456,7 @@ fun TravelScreen(
                         LazyRow(
                             modifier = Modifier
                                 .fillMaxWidth()
-//                                .nestedScroll(stopScrollConnection)
+                                .nestedScroll(stopScrollConnection)
 //                                .nestedScroll(stretchScrollConnection)
 //                                .graphicsLayer {
 //                                    scaleX = scaleFactor
