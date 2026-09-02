@@ -95,13 +95,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.learncompose.R
+import com.example.learncompose.core.designsystem.LearnComposeTheme
 import com.example.learncompose.data.broadcast.PowerStatusScreen
 import com.example.learncompose.data.contract.FeatureScreen
 import com.example.learncompose.data.network.NetworkStatusScreen
 import com.example.learncompose.data.service.TrackerScreen
 import com.example.learncompose.data.worker.DownloadContent
 import com.example.learncompose.data.worker.DownloadScreen
-import com.example.learncompose.ui.theme.LearnComposeTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate

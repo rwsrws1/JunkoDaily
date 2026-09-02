@@ -72,11 +72,11 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigationevent.compose.LocalNavigationEventDispatcherOwner
 import androidx.navigationevent.compose.rememberNavigationEventDispatcherOwner
 import com.example.learncompose.R
+import com.example.learncompose.core.designsystem.LearnComposeTheme
 import com.example.learncompose.features.main.navigation.MainNavGraph
 import com.example.learncompose.features.main.navigation.MainNavKey
-import com.example.learncompose.ui.components.SearchComponent
+import com.example.learncompose.core.designsystem.components.SearchComponent
 import com.example.learncompose.ui.screen.AvatarSelector
-import com.example.learncompose.ui.theme.LearnComposeTheme
 import kotlinx.coroutines.launch
 
 val localMainHandler = staticCompositionLocalOf<(MainContract.Intent) -> Unit> { {} }
@@ -153,7 +153,8 @@ fun CombineScreen(currentKey: MainNavKey = MainNavKey.Home, onNavigateToLoading:
                                     textFieldState = textFieldState,
                                     onSearch = onSearch,
                                     searchResults = searchResults,
-                                    focusRequester = focusRequester
+                                    focusRequester = focusRequester,
+                                    trailingIconId = R.drawable.search_24px
                                 )
                             }
 

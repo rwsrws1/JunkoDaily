@@ -55,8 +55,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.core.layout.WindowSizeClass
 import com.example.learncompose.R
-import com.example.learncompose.ui.components.ButtonPrimary
-import com.example.learncompose.ui.theme.LearnComposeTheme
+import com.example.learncompose.core.designsystem.LearnComposeTheme
+import com.example.learncompose.core.designsystem.components.ButtonPrimary
 import kotlinx.coroutines.launch
 
 val LocalWelcomeIntentHandler = staticCompositionLocalOf<(WelcomeContract.Intent) -> Unit> {

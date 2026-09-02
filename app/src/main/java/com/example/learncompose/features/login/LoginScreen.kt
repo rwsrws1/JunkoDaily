@@ -51,10 +51,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import com.example.learncompose.R
+import com.example.learncompose.core.designsystem.LearnComposeTheme
 import com.example.learncompose.data.repo.AuthState
-import com.example.learncompose.ui.components.Loading
-import com.example.learncompose.ui.components.ButtonPrimary
-import com.example.learncompose.ui.theme.LearnComposeTheme
+import com.example.learncompose.core.designsystem.components.Loading
+import com.example.learncompose.core.designsystem.components.ButtonPrimary
 
 val LocalLoginIntentHandler = staticCompositionLocalOf<(LoginContract.Intent) -> Unit> {
     {}

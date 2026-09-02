@@ -98,4 +98,5 @@ room = { id = "androidx.room", version.ref = "room" }
 custom-android-environment = { id = "custom.android.environment" }
 custom-android-compose = { id = "custom.android.compose" }
 custom-android-room = { id = "custom.android.room" }
+custom-android-hilt = { id = "custom.android.hilt" }
 

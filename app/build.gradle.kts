@@ -1,13 +1,14 @@
 plugins {
     alias(libs.plugins.android.application)
 //    alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.hilt.android)
-    alias(libs.plugins.ksp)
+//    alias(libs.plugins.kotlin.serialization)
+//    alias(libs.plugins.hilt.android)
+//    alias(libs.plugins.ksp)
 //    alias(libs.plugins.room)
     alias(libs.plugins.custom.android.environment)
     alias(libs.plugins.custom.android.compose)
     alias(libs.plugins.custom.android.room)
+//    alias(libs.plugins.custom.android.hilt)
 }
 
 android {
@@ -52,7 +53,9 @@ android {
 //}
 
 dependencies {
-    implementation(libs.androidx.core.ktx)
+    implementation(projects.core.designsystem)
+
+//    implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
 //    implementation(platform(libs.androidx.compose.bom))
@@ -67,13 +70,11 @@ dependencies {
 //    implementation(libs.androidx.room.ktx)
 //    ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.work.runtime)
-    implementation(libs.androidx.media3.exoplayer)
-    implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.paging.runtime.ktx)
     implementation(libs.androidx.paging.compose)
 
-    ksp(libs.hilt.compiler)
-    implementation(libs.hilt.android)
+//    ksp(libs.hilt.compiler)
+//    implementation(libs.hilt.android)
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.coil.compose)
     implementation(libs.coil.network)
@@ -81,9 +82,9 @@ dependencies {
     implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp3.logging.interceptor)
 
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+//    testImplementation(libs.junit)
+//    androidTestImplementation(libs.androidx.junit)
+//    androidTestImplementation(libs.androidx.espresso.core)
 //    androidTestImplementation(platform(libs.androidx.compose.bom))
 //    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
 //    debugImplementation(libs.androidx.compose.ui.tooling)

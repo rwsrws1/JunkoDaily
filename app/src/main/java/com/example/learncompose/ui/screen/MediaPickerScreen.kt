@@ -14,13 +14,12 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.example.learncompose.ui.components.CustomComposeVideoPlayer
+import com.example.learncompose.core.designsystem.components.CustomComposeVideoPlayer
 import kotlinx.coroutines.delay
 import java.util.Locale
 
