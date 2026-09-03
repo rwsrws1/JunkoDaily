@@ -23,14 +23,18 @@ import com.example.learncompose.feature.experiment.data.room.UserScreen
 import com.example.learncompose.feature.experiment.features.home.navigation.HomeNavKey
 import com.example.learncompose.feature.experiment.features.home.page.feed.FeedScreen
 import com.example.learncompose.feature.experiment.features.home.page.travel.TravelScreen
+import com.example.learncompose.feature.experiment.screen.ComponentsScreen
+import com.example.learncompose.feature.experiment.screen.MediaPickerScreen
 import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    onNavigateToLoading: () -> Unit = {}
+    onNavigateToLoading: () -> Unit = {},
+    onNavigatorToDrawingBoard: () -> Unit = {},
+    onNavigatorToScratchCard: () -> Unit = {}
 ) {
-    val topTabs = listOf(HomeNavKey.Travel, HomeNavKey.Chart, HomeNavKey.MainIcon)
+    val topTabs = listOf(HomeNavKey.Travel, HomeNavKey.Chart, HomeNavKey.MainIcon, HomeNavKey.Component)
     var selectedDestination by rememberSaveable { mutableIntStateOf(topTabs.indexOf(HomeNavKey.Travel)) }
     val pageState = rememberPagerState(initialPage = selectedDestination, pageCount = {topTabs.size})
     val scop = rememberCoroutineScope()
@@ -55,6 +59,7 @@ fun HomeScreen(
                                     is HomeNavKey.Travel -> "旅行"
                                     is HomeNavKey.Chart -> "统计"
                                     is HomeNavKey.MainIcon -> "列表"
+                                    is HomeNavKey.Component -> "组件"
                                 },
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -70,8 +75,9 @@ fun HomeScreen(
         ) { page ->
             when (page) {
                 0 -> TravelScreen(onNavigateToLoading)
-                1 -> UserScreen()
+                1 -> MediaPickerScreen()
                 2 -> FeedScreen()
+                3 -> ComponentsScreen(onNavigatorToDrawingBoard, onNavigatorToScratchCard)
             }
         }
     }

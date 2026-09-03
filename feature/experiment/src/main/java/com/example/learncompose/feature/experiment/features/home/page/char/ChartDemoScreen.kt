@@ -36,20 +36,21 @@ val FloatAnimatableSaver = Saver<Animatable<Float, AnimationVector1D>, Float>(
  */
 @Composable
 fun ChartDemoScreen() {
-    val sampleData = rememberSaveable {
+    val sampleData = remember {
         listOf(25f, 50f, 15f, 80f, 40f, 65f)
     }
-    val chartColors = rememberSaveable {
+    val chartColors = remember {
         listOf(
-            Color(0xFF5C6BC0), Color(0xFF26A69A), Color(0xFFEF5350),
-            Color(0xFFFFCA28), Color(0xFFAB47BC), Color(0xFF29B6F6)
+            0xFF5C6BC0, 0xFF26A69A, 0xFFEF5350,
+            0xFFFFCA28, 0xFFAB47BC, 0xFF29B6F6
         )
+    }.map {
+        Color(it)
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(40.dp)
     ) {

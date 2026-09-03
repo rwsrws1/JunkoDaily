@@ -5,9 +5,8 @@ plugins {
 }
 
 android {
-    namespace = "com.example.learncompose.feature.home"
+    namespace = "com.example.learncompose.feature.habit"
 }
 
 dependencies {
-
 }

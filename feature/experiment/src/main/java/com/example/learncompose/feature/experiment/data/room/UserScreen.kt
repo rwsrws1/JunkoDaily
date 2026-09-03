@@ -3,6 +3,8 @@ package com.example.learncompose.feature.experiment.data.room
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -27,8 +29,9 @@ fun UserScreen() {
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .height(400.dp)
             .padding(16.dp)
+            .verticalScroll(rememberScrollState())
     ) {
         OutlinedTextField(
             value = nameInput,
@@ -59,7 +62,7 @@ fun UserScreen() {
         Spacer(modifier = Modifier.height(16.dp))
 
         // 用户列表
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(userList, key = { it.id }) { user ->
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Row(

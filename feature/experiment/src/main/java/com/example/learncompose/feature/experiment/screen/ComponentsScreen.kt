@@ -94,9 +94,11 @@ import com.example.learncompose.core.designsystem.LearnComposeTheme
 import com.example.learncompose.feature.experiment.data.broadcast.PowerStatusScreen
 import com.example.learncompose.feature.experiment.data.contract.FeatureScreen
 import com.example.learncompose.feature.experiment.data.network.NetworkStatusScreen
+import com.example.learncompose.feature.experiment.data.room.UserScreen
 import com.example.learncompose.feature.experiment.data.service.TrackerScreen
 import com.example.learncompose.feature.experiment.data.worker.DownloadContent
 import com.example.learncompose.feature.experiment.data.worker.DownloadScreen
+import com.example.learncompose.feature.experiment.features.home.page.char.ChartDemoScreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -111,7 +113,7 @@ val sliderStateSaver = Saver<SliderState, Float>(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ComponentsScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
+fun ComponentsScreen(onNavigatorToDrawingBoard: () -> Unit = {}, onNavigatorToScratchCard: () -> Unit = {}) {
     val scope = rememberCoroutineScope()
     val state = rememberPullToRefreshState()
     var isRefreshing by rememberSaveable() { mutableStateOf(false) }
@@ -156,8 +158,9 @@ fun ComponentsScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
                 }
             }
 
-            var isShowDialog by rememberSaveable { mutableStateOf(false) }
-
+            UserScreen()
+            StackRecentScreen()
+            CardToPageTransitionDemo()
 
             val textMeasurer = rememberTextMeasurer()
             val textWidth = remember {
@@ -180,10 +183,6 @@ fun ComponentsScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
             )
             val brush = Brush.linearGradient(colors = listOf(Color.Red.copy(alpha = 0.6f), Color.Green.copy(alpha = 0.6f), Color.Red.copy(alpha = 0.6f)), start = Offset(x = value - 200f, y = 0f), end = Offset(x = value, y = 100f))
 
-            StackRecentScreen()
-
-            CardToPageTransitionDemo()
-
             Text(text = "这是一段特效文字", style = TextStyle(
                 brush = brush,
                 fontWeight = FontWeight.Bold,
@@ -192,6 +191,7 @@ fun ComponentsScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
                 letterSpacing = 10.sp
             ))
 
+            var isShowDialog by rememberSaveable { mutableStateOf(false) }
             Button(
                 onClick = {
                     isShowDialog = true
@@ -331,6 +331,15 @@ fun ComponentsScreen(onNavigatorToDrawingBoard: () -> Unit = {}) {
                 },
                 label = {
                     Text("DrawingBoard")
+                }
+            )
+
+            AssistChip(
+                onClick = {
+                    onNavigatorToScratchCard()
+                },
+                label = {
+                    Text("ScratchCard")
                 }
             )
 

@@ -1,6 +1,6 @@
-package com.example.learncompose.feature.experiment.features.main
+package com.example.learncompose.main
 
-import com.example.learncompose.feature.experiment.features.main.navigation.MainNavKey
+import com.example.learncompose.main.navigation.MainNavKey
 
 class MainContract {
     data class State(val data: String = "")

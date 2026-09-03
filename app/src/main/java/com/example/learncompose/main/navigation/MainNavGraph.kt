@@ -1,4 +1,4 @@
-package com.example.learncompose.feature.experiment.features.main.navigation
+package com.example.learncompose.main.navigation
 
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -19,6 +19,10 @@ import com.example.learncompose.feature.experiment.features.home.HomeScreen
 import com.example.learncompose.feature.experiment.screen.ComponentsScreen
 import com.example.learncompose.feature.experiment.screen.DrawingBoardScreen
 import com.example.learncompose.feature.experiment.screen.MediaPickerScreen
+import com.example.learncompose.feature.experiment.screen.ScratchCardScreen
+import com.example.learncompose.feature.habit.HabitScreen
+import com.example.learncompose.feature.note.NoteScreen
+import com.example.learncompose.feature.spend.SpendScreen
 import kotlin.collections.listOf
 
 @Composable
@@ -42,23 +46,26 @@ fun MainNavGraph(
         }
     ) { key ->
         when (key) {
-            is MainNavKey.Home -> NavEntry(key) {
+            is MainNavKey.Experiment -> NavEntry(key) {
                 HomeScreen(
-                    onNavigateToLoading = onNavigateToLoading
+                    onNavigateToLoading = onNavigateToLoading,
+                    onNavigatorToDrawingBoard = { rememberNavBackStack.add(MainNavKey.DrawingBoard) },
+                    onNavigatorToScratchCard = { rememberNavBackStack.add(MainNavKey.ScratchCard) }
                 )
             }
-            is MainNavKey.Components -> NavEntry(
+            is MainNavKey.Note -> NavEntry(
                 key = key,
                 metadata = NavDisplay.transitionSpec {
                     slideInHorizontally(animationSpec = tween(500)) { it } togetherWith ExitTransition.None
                 }
             ) {
-                ComponentsScreen(
-                    onNavigatorToDrawingBoard = { rememberNavBackStack.add(MainNavKey.DrawingBoard) }
-                )
+                NoteScreen()
             }
-            is MainNavKey.Profile -> NavEntry(key) {
-                MediaPickerScreen()
+            is MainNavKey.Habit -> NavEntry(key) {
+                HabitScreen()
+            }
+            is MainNavKey.Spend -> NavEntry(key) {
+                SpendScreen()
             }
             is MainNavKey.DrawingBoard -> NavEntry(
                 key = key,
@@ -69,6 +76,9 @@ fun MainNavGraph(
                 }
             ) {
                 DrawingBoardScreen()
+            }
+            is MainNavKey.ScratchCard -> NavEntry(key) {
+                ScratchCardScreen()
             }
             else -> NavEntry(key) {}
         }

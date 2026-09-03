@@ -1,4 +1,4 @@
-package com.example.learncompose.feature.experiment.features.main
+package com.example.learncompose.main
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -74,8 +74,8 @@ import androidx.navigationevent.compose.rememberNavigationEventDispatcherOwner
 import com.example.learncompose.feature.experiment.R
 import com.example.learncompose.core.designsystem.LearnComposeTheme
 import com.example.learncompose.core.designsystem.components.SearchComponent
-import com.example.learncompose.feature.experiment.features.main.navigation.MainNavGraph
-import com.example.learncompose.feature.experiment.features.main.navigation.MainNavKey
+import com.example.learncompose.main.navigation.MainNavGraph
+import com.example.learncompose.main.navigation.MainNavKey
 import com.example.learncompose.feature.experiment.screen.AvatarSelector
 import kotlinx.coroutines.launch
 
@@ -97,7 +97,7 @@ fun MainScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CombineScreen(currentKey: MainNavKey = MainNavKey.Home, onNavigateToLoading: () -> Unit = {}) {
+fun CombineScreen(currentKey: MainNavKey = MainNavKey.Experiment, onNavigateToLoading: () -> Unit = {}) {
     val intentHandler = localMainHandler.current
     val snackBarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -114,7 +114,7 @@ fun CombineScreen(currentKey: MainNavKey = MainNavKey.Home, onNavigateToLoading:
     val searchResults: List<String> = listOf("111", "222", "333")
     val focusRequester = remember { FocusRequester() }
 
-    val mainNaviKeys = listOf(MainNavKey.Home, MainNavKey.Components, MainNavKey.Profile)
+    val mainNaviKeys = listOf(MainNavKey.Experiment, MainNavKey.Note, MainNavKey.Habit, MainNavKey.Spend)
     val stacks = mainNaviKeys.associateWith { key ->
         rememberNavBackStack(key)
     }
@@ -275,28 +275,36 @@ fun CombineScreen(currentKey: MainNavKey = MainNavKey.Home, onNavigateToLoading:
                         var textContent: String = ""
 
                         when (key) {
-                            is MainNavKey.Home -> {
-                                textContent = "首页"
+                            is MainNavKey.Experiment -> {
+                                textContent = "实验页"
                                 painterResource = if (currentKey == key ) {
                                     painterResource(R.drawable.home_24px_filled)
                                 } else {
                                     painterResource(R.drawable.home_24px)
                                 }
                             }
-                            is MainNavKey.Components -> {
-                                textContent = "组件"
+                            is MainNavKey.Note -> {
+                                textContent = "便签"
                                 painterResource = if (currentKey == key ) {
                                     painterResource(R.drawable.widgets_24px_filled)
                                 } else {
                                     painterResource(R.drawable.widgets_24px)
                                 }
                             }
-                            is MainNavKey.Profile -> {
-                                textContent = "我的"
+                            is MainNavKey.Habit -> {
+                                textContent = "习惯"
                                 painterResource = if (currentKey == key ) {
                                     painterResource(R.drawable.person_24px_filled)
                                 } else {
                                     painterResource(R.drawable.person_24px)
+                                }
+                            }
+                            is MainNavKey.Spend -> {
+                                textContent = "开销"
+                                painterResource = if (currentKey == key ) {
+                                    painterResource(R.drawable.filter_alt_24px_filled)
+                                } else {
+                                    painterResource(R.drawable.filter_alt_24px)
                                 }
                             }
                             else -> {}

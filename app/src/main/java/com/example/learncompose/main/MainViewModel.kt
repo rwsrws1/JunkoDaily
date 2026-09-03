@@ -1,9 +1,9 @@
-package com.example.learncompose.feature.experiment.features.main
+package com.example.learncompose.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.learncompose.feature.experiment.data.repo.IAuthRepository
-import com.example.learncompose.feature.experiment.features.main.navigation.MainNavKey
+import com.example.learncompose.main.navigation.MainNavKey
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +15,7 @@ class MainViewModel @Inject constructor(
     private val repository: IAuthRepository,
 ) : ViewModel() {
 
-    private val _currentKey = MutableStateFlow<MainNavKey>(MainNavKey.Home)
+    private val _currentKey = MutableStateFlow<MainNavKey>(MainNavKey.Experiment)
     val currentKey = _currentKey.asStateFlow()
 
     fun handleIntent(intent: MainContract.Intent) {

@@ -19,8 +19,8 @@ import com.example.learncompose.app.AppViewModel
 import com.example.learncompose.feature.experiment.data.repo.AuthState
 import com.example.learncompose.feature.experiment.features.login.LoginScreen
 import com.example.learncompose.feature.experiment.features.login.LoginViewModel
-import com.example.learncompose.feature.experiment.features.main.MainScreen
-import com.example.learncompose.feature.experiment.features.main.MainViewModel
+import com.example.learncompose.main.MainScreen
+import com.example.learncompose.main.MainViewModel
 import com.example.learncompose.feature.experiment.features.welcome.WelcomeScreen
 import com.example.learncompose.feature.experiment.features.welcome.WelcomeViewModel
 import com.example.learncompose.app.MainIconScreen

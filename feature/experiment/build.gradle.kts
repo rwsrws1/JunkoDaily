@@ -15,8 +15,6 @@ dependencies {
     implementation(projects.core.datastore)
     implementation(projects.core.designsystem)
     implementation(projects.core.network)
-    implementation(projects.feature.auth)
-    implementation(projects.feature.home)
     implementation(projects.feature.introduction)
 
     implementation(libs.androidx.lifecycle.runtime.ktx)

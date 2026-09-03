@@ -52,10 +52,13 @@ dependencies {
     implementation(projects.core.datastore)
     implementation(projects.core.designsystem)
     implementation(projects.core.network)
+    implementation(projects.feature.introduction)
     implementation(projects.feature.auth)
     implementation(projects.feature.experiment)
-    implementation(projects.feature.home)
-    implementation(projects.feature.introduction)
+    implementation(projects.feature.note)
+    implementation(projects.feature.habit)
+    implementation(projects.feature.spend)
+
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.splashscreen)
