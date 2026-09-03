@@ -1,4 +1,4 @@
-package com.example.learncompose.main.navigation
+package com.example.learncompose.feature.experiment.main.navigation
 
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -16,17 +16,12 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.example.learncompose.feature.experiment.features.home.HomeScreen
-import com.example.learncompose.feature.experiment.screen.ComponentsScreen
 import com.example.learncompose.feature.experiment.screen.DrawingBoardScreen
-import com.example.learncompose.feature.experiment.screen.MediaPickerScreen
 import com.example.learncompose.feature.experiment.screen.ScratchCardScreen
-import com.example.learncompose.feature.habit.HabitScreen
-import com.example.learncompose.feature.note.NoteScreen
-import com.example.learncompose.feature.spend.SpendScreen
 import kotlin.collections.listOf
 
 @Composable
-fun MainNavGraph(
+fun ExperimentNavGraph(
     rememberNavBackStack: NavBackStack<NavKey>,
     onNavigateToLoading: () -> Unit = {}
 ) {
@@ -46,28 +41,20 @@ fun MainNavGraph(
         }
     ) { key ->
         when (key) {
-            is MainNavKey.Experiment -> NavEntry(key) {
+            is ExperimentNavKey.Experiment -> NavEntry(key) {
                 HomeScreen(
                     onNavigateToLoading = onNavigateToLoading,
-                    onNavigatorToDrawingBoard = { rememberNavBackStack.add(MainNavKey.DrawingBoard) },
-                    onNavigatorToScratchCard = { rememberNavBackStack.add(MainNavKey.ScratchCard) }
+                    onNavigatorToDrawingBoard = { rememberNavBackStack.add(ExperimentNavKey.DrawingBoard) },
+                    onNavigatorToScratchCard = { rememberNavBackStack.add(ExperimentNavKey.ScratchCard) }
                 )
             }
-            is MainNavKey.Note -> NavEntry(
-                key = key,
-                metadata = NavDisplay.transitionSpec {
-                    slideInHorizontally(animationSpec = tween(500)) { it } togetherWith ExitTransition.None
-                }
-            ) {
-                NoteScreen()
+            is ExperimentNavKey.Note -> NavEntry(key) {
             }
-            is MainNavKey.Habit -> NavEntry(key) {
-                HabitScreen()
+            is ExperimentNavKey.Habit -> NavEntry(key) {
             }
-            is MainNavKey.Spend -> NavEntry(key) {
-                SpendScreen()
+            is ExperimentNavKey.Spend -> NavEntry(key) {
             }
-            is MainNavKey.DrawingBoard -> NavEntry(
+            is ExperimentNavKey.DrawingBoard -> NavEntry(
                 key = key,
                 metadata = NavDisplay.transitionSpec {
                     slideInHorizontally(animationSpec = tween(500)) { it } togetherWith ExitTransition.None
@@ -77,7 +64,7 @@ fun MainNavGraph(
             ) {
                 DrawingBoardScreen()
             }
-            is MainNavKey.ScratchCard -> NavEntry(key) {
+            is ExperimentNavKey.ScratchCard -> NavEntry(key) {
                 ScratchCardScreen()
             }
             else -> NavEntry(key) {}

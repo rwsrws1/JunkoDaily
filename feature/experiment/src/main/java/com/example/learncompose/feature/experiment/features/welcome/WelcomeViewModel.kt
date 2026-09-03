@@ -42,7 +42,7 @@ class WelcomeViewModel @Inject constructor(
             is WelcomeContract.Intent.ClickEnter -> {
                 viewModelScope.launch {
                     dataStore.agreeTerms()
-                    repository.login("", "")
+                    repository.login("rws991123@gmail.com", "123456")
                 }
             }
             is WelcomeContract.Intent.PlusItem -> {

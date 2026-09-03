@@ -16,6 +16,9 @@ dependencies {
     implementation(projects.core.designsystem)
     implementation(projects.core.network)
     implementation(projects.feature.introduction)
+    implementation(projects.feature.note)
+    implementation(projects.feature.routine)
+    implementation(projects.feature.spend)
 
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

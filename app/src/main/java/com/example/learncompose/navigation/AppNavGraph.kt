@@ -19,8 +19,8 @@ import com.example.learncompose.app.AppViewModel
 import com.example.learncompose.feature.experiment.data.repo.AuthState
 import com.example.learncompose.feature.experiment.features.login.LoginScreen
 import com.example.learncompose.feature.experiment.features.login.LoginViewModel
-import com.example.learncompose.main.MainScreen
-import com.example.learncompose.main.MainViewModel
+import com.example.learncompose.feature.experiment.main.ExperimentScreen
+import com.example.learncompose.feature.experiment.main.ExperimentModel
 import com.example.learncompose.feature.experiment.features.welcome.WelcomeScreen
 import com.example.learncompose.feature.experiment.features.welcome.WelcomeViewModel
 import com.example.learncompose.app.MainIconScreen
@@ -75,8 +75,8 @@ fun AppNavGraph(startDestination: AppNavKey = AppNavKey.Welcome) {
                     scaleIn(animationSpec = tween(500)) togetherWith fadeOut(tween(500))
                 }
             ) {
-                val viewModel = hiltViewModel<MainViewModel>()
-                MainScreen(
+                val viewModel = hiltViewModel<ExperimentModel>()
+                ExperimentScreen(
                     viewModel = viewModel,
                     onNavigateToLoading = {
                         rememberNavBackStack.add(AppNavKey.Loading)

@@ -47,6 +47,7 @@ android {
 //}
 
 dependencies {
+    implementation(projects.core.navigation)
     implementation(projects.core.data)
     implementation(projects.core.database)
     implementation(projects.core.datastore)
@@ -56,7 +57,7 @@ dependencies {
     implementation(projects.feature.auth)
     implementation(projects.feature.experiment)
     implementation(projects.feature.note)
-    implementation(projects.feature.habit)
+    implementation(projects.feature.routine)
     implementation(projects.feature.spend)
 
 

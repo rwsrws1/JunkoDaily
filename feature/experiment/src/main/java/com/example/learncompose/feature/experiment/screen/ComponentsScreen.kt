@@ -157,7 +157,7 @@ fun ComponentsScreen(onNavigatorToDrawingBoard: () -> Unit = {}, onNavigatorToSc
                     }
                 }
             }
-
+            AvatarSelector(modifier = Modifier.size(36.dp))
             UserScreen()
             StackRecentScreen()
             CardToPageTransitionDemo()

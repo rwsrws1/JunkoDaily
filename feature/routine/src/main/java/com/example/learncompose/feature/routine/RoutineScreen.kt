@@ -1,4 +1,4 @@
-package com.example.learncompose.feature.habit
+package com.example.learncompose.feature.routine
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
-fun HabitScreen(modifier: Modifier = Modifier) {
+fun RoutineScreen(modifier: Modifier = Modifier) {
     Box(modifier = modifier
         .fillMaxSize()
         .background(Color.Red.copy(alpha = 0.5f)))
@@ -18,5 +18,5 @@ fun HabitScreen(modifier: Modifier = Modifier) {
 @Preview
 @Composable
 private fun Preview() {
-    HabitScreen()
+    RoutineScreen()
 }

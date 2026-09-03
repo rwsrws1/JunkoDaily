@@ -14,12 +14,15 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
@@ -55,11 +58,11 @@ fun CombineContent(modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(Modifier.weight(1f))
-            Image(
+            Icon(
                 modifier = Modifier.size(imageSize.dp),
-                painter = AppIcons.main,
-                contentDescription = "loading...",
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                imageVector = ImageVector.vectorResource(AppIcons.main),
+                contentDescription = "",
+                tint = MaterialTheme.colorScheme.primary
             )
             Spacer(Modifier.weight(1f))
         }
