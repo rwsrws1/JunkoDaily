@@ -45,20 +45,18 @@ class LearnApplication : Application(), SingletonImageLoader.Factory {
 
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
-                println("App 进入前台")
-                // App 进入前台
+//                println("App 进入前台")
             }
 
             override fun onStop(owner: LifecycleOwner) {
-                // App 进入后台
-                println("App 进入后台")
+//                println("App 进入后台")
             }
         })
     }
 
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
-        println("onTrimMemory level = $level")
+//        println("onTrimMemory level = $level")
         if (level >= TRIM_MEMORY_BACKGROUND) {
             // 当系统内存紧张时，立即清空 Coil 的内存缓存，释放几十 MB 空间保命
             SingletonImageLoader.get(this).memoryCache?.clear()
@@ -67,7 +65,7 @@ class LearnApplication : Application(), SingletonImageLoader.Factory {
 
     override fun onLowMemory() {
         super.onLowMemory()
-        println("onLowMemory")
+//        println("onLowMemory")
         SingletonImageLoader.get(this).memoryCache?.clear()
     }
 

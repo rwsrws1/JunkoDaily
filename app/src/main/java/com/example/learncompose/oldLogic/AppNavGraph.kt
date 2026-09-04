@@ -15,7 +15,6 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.example.learncompose.app.AppViewModel
 import com.example.learncompose.feature.experiment.data.repo.AuthState
 import com.example.learncompose.feature.experiment.features.login.LoginScreen
 import com.example.learncompose.feature.experiment.features.login.LoginViewModel
@@ -24,6 +23,7 @@ import com.example.learncompose.feature.experiment.main.ExperimentModel
 import com.example.learncompose.feature.experiment.features.welcome.WelcomeScreen
 import com.example.learncompose.feature.experiment.features.welcome.WelcomeViewModel
 import com.example.learncompose.app.MainIconScreen
+import com.example.learncompose.oldLogic.AppViewModel
 
 val LocalAppNavigator = staticCompositionLocalOf<(AppNavKey) -> Unit> {
     {}

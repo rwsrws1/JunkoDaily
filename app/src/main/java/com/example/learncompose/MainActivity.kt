@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.learncompose.app.AppScreen
-import com.example.learncompose.core.designsystem.LearnComposeTheme
+import com.example.learncompose.core.designsystem.theme.AppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -16,7 +16,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            LearnComposeTheme {
+            AppTheme {
                 AppScreen(splashScreen = splashScreen)
             }
         }

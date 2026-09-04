@@ -51,9 +51,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
 import com.example.learncompose.feature.experiment.R
-import com.example.learncompose.core.designsystem.LearnComposeTheme
 import com.example.learncompose.core.designsystem.components.Loading
 import com.example.learncompose.core.designsystem.components.ButtonPrimary
+import com.example.learncompose.core.designsystem.theme.AppTheme
 import com.example.learncompose.feature.experiment.data.repo.AuthState
 
 val LocalLoginIntentHandler = staticCompositionLocalOf<(LoginContract.Intent) -> Unit> {
@@ -223,7 +223,7 @@ fun CombineContent(state: LoginContract.State = LoginContract.State()) {
 @PreviewScreenSizes
 @Composable
 private fun Preview() {
-    LearnComposeTheme {
+    AppTheme {
         CombineContent(LoginContract.State(authState = AuthState.LoggedOut))
     }
 }

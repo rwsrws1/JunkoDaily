@@ -16,6 +16,7 @@
 
 package com.example.learncompose.core.navigation
 
+import android.annotation.SuppressLint
 import androidx.navigation3.runtime.NavKey
 
 /**
@@ -41,13 +42,16 @@ class Navigator(val state: NavigationState) {
     /**
      * Go back to the previous navigation key.
      */
+    @SuppressLint("VisibleForTests")
     fun goBack() {
+        println("currentKey: ${state.currentKey}")
         when (state.currentKey) {
             state.startKey -> error("You cannot go back from the start route")
             state.currentTopLevelKey -> {
                 // We're at the base of the current sub stack, go back to the previous top level
                 // stack.
-                state.topLevelStack.removeLastOrNull()
+//                state.topLevelStack.removeLastOrNull()
+                error("You cannot go back from the topLevel route")
             }
             else -> state.currentSubStack.removeLastOrNull()
         }
@@ -56,6 +60,7 @@ class Navigator(val state: NavigationState) {
     /**
      * Go to a non top level key.
      */
+    @SuppressLint("VisibleForTests")
     private fun goToKey(key: NavKey) {
         state.currentSubStack.apply {
             // Remove it if it's already in the stack so it's added at the end.
@@ -69,13 +74,14 @@ class Navigator(val state: NavigationState) {
      */
     private fun goToTopLevel(key: NavKey) {
         state.topLevelStack.apply {
-            if (key == state.startKey) {
-                // This is the start key. Clear the stack so it's added as the only key.
-                clear()
-            } else {
-                // Remove it if it's already in the stack so it's added at the end.
-                remove(key)
-            }
+//            if (key == state.startKey) {
+//                // This is the start key. Clear the stack so it's added as the only key.
+//                clear()
+//            } else {
+//                // Remove it if it's already in the stack so it's added at the end.
+//                remove(key)
+//            }
+            clear()
             add(key)
         }
     }
@@ -83,6 +89,7 @@ class Navigator(val state: NavigationState) {
     /**
      * Clearing all but the root key in the current sub stack.
      */
+    @SuppressLint("VisibleForTests")
     private fun clearSubStack() {
         state.currentSubStack.run {
             if (size > 1) subList(1, size).clear()

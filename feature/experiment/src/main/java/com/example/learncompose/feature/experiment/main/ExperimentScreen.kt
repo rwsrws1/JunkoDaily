@@ -73,8 +73,8 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigationevent.compose.LocalNavigationEventDispatcherOwner
 import androidx.navigationevent.compose.rememberNavigationEventDispatcherOwner
 import com.example.learncompose.feature.experiment.R
-import com.example.learncompose.core.designsystem.LearnComposeTheme
 import com.example.learncompose.core.designsystem.components.SearchComponent
+import com.example.learncompose.core.designsystem.theme.AppTheme
 import com.example.learncompose.feature.experiment.main.navigation.ExperimentNavGraph
 import com.example.learncompose.feature.experiment.main.navigation.ExperimentNavKey
 import com.example.learncompose.feature.experiment.screen.AvatarSelector
@@ -415,7 +415,7 @@ fun CombineScreen(currentKey: ExperimentNavKey = ExperimentNavKey.Experiment, on
 @Preview(showBackground = true)
 @Composable
 private fun Preview() {
-    LearnComposeTheme {
+    AppTheme {
         val dispatcherOwner = rememberNavigationEventDispatcherOwner(parent = null)
         CompositionLocalProvider(LocalNavigationEventDispatcherOwner provides dispatcherOwner) {
             CombineScreen()

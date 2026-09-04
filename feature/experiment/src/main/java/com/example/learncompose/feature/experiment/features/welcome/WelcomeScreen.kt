@@ -58,9 +58,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.core.layout.WindowSizeClass
 import com.example.learncompose.feature.experiment.R
-import com.example.learncompose.core.designsystem.LearnComposeTheme
 import com.example.learncompose.core.designsystem.components.ButtonPrimary
 import com.example.learncompose.core.designsystem.icons.AppIcons
+import com.example.learncompose.core.designsystem.theme.AppTheme
 import kotlinx.coroutines.launch
 
 val LocalWelcomeIntentHandler = staticCompositionLocalOf<(WelcomeContract.Intent) -> Unit> {
@@ -272,7 +272,7 @@ fun BottomContent(modifier: Modifier = Modifier, state: WelcomeContract.State) {
 @PreviewScreenSizes
 @Composable
 private fun Preview() {
-    LearnComposeTheme {
+    AppTheme {
         CombineContent()
     }
 }

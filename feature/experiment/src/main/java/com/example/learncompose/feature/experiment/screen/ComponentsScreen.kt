@@ -90,7 +90,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.learncompose.feature.experiment.R
-import com.example.learncompose.core.designsystem.LearnComposeTheme
+import com.example.learncompose.core.designsystem.theme.AppTheme
 import com.example.learncompose.feature.experiment.data.broadcast.PowerStatusScreen
 import com.example.learncompose.feature.experiment.data.contract.FeatureScreen
 import com.example.learncompose.feature.experiment.data.network.NetworkStatusScreen
@@ -524,7 +524,7 @@ fun ComponentsScreen(onNavigatorToDrawingBoard: () -> Unit = {}, onNavigatorToSc
 @Preview(showBackground = true)
 @Composable
 private fun Preview() {
-    LearnComposeTheme {
+    AppTheme {
         ComponentsScreen()
     }
 }

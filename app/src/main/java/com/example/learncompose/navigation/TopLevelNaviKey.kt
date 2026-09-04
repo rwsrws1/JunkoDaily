@@ -9,3 +9,5 @@ data object NoteKey : NavKey
 data object RoutineKey : NavKey
 @Serializable
 data object SpendKey : NavKey
+@Serializable
+data object NoteDetailKey : NavKey

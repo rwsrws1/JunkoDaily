@@ -12,7 +12,7 @@ import androidx.compose.ui.tooling.preview.Preview
 fun RoutineScreen(modifier: Modifier = Modifier) {
     Box(modifier = modifier
         .fillMaxSize()
-        .background(Color.Red.copy(alpha = 0.5f)))
+        .background(Color.Green.copy(alpha = 0.5f)))
 }
 
 @Preview
