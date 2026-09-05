@@ -42,7 +42,6 @@ class Navigator(val state: NavigationState) {
     /**
      * Go back to the previous navigation key.
      */
-    @SuppressLint("VisibleForTests")
     fun goBack() {
         println("currentKey: ${state.currentKey}")
         when (state.currentKey) {

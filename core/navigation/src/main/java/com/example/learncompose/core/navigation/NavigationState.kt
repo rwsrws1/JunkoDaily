@@ -68,12 +68,12 @@ class NavigationState(
     val topLevelKeys
         get() = subStacks.keys
 
-    @get:VisibleForTesting
+//    @get:VisibleForTesting
     val currentSubStack: NavBackStack<NavKey>
         get() = subStacks[currentTopLevelKey]
             ?: error("Sub stack for $currentTopLevelKey does not exist")
 
-    @get:VisibleForTesting
+//    @get:VisibleForTesting
     val currentKey: NavKey by derivedStateOf { currentSubStack.last() }
 }
 

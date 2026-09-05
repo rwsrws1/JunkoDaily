@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.learncompose.feature.experiment.data.local.UserDataStore
 import com.example.learncompose.feature.experiment.data.repo.AuthState
 import com.example.learncompose.feature.experiment.data.repo.IAuthRepository
-import com.example.learncompose.navigation.AppNavKey
+import com.example.learncompose.navigation.OldAppNavKey
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -18,7 +18,7 @@ class AppViewModel @Inject constructor(
     val dataStore: UserDataStore,
     val authRepository: IAuthRepository
 ) : ViewModel() {
-    var startDestination by mutableStateOf<AppNavKey?>(null)
+    var startDestination by mutableStateOf<OldAppNavKey?>(null)
         private set
     var authState by mutableStateOf<AuthState>(AuthState.Loading)
         private set
@@ -27,9 +27,9 @@ class AppViewModel @Inject constructor(
         viewModelScope.launch {
             val isAgree = dataStore.getIsAgreeTerms()
             startDestination = if (isAgree) {
-                AppNavKey.Main
+                OldAppNavKey.Main
             } else {
-                AppNavKey.Welcome
+                OldAppNavKey.Welcome
             }
         }
 

@@ -5,6 +5,7 @@ import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.example.learncompose.core.navigation.Navigator
+import com.example.learncompose.feature.experiment.main.ExperimentScreen
 import com.example.learncompose.feature.note.NoteDetailScreen
 import com.example.learncompose.feature.note.NoteScreen
 import com.example.learncompose.feature.routine.RoutineScreen
@@ -20,6 +21,9 @@ fun EntryProviderScope<NavKey>.noteEntry(navigator: Navigator) {
         NoteScreen(
             onClick = {
                 navigator.navigate(NoteDetailKey)
+            },
+            toExperiment = {
+                navigator.navigate(ExperimentKey)
             }
         )
     }
@@ -48,6 +52,14 @@ fun EntryProviderScope<NavKey>.noteDetailEntry(navigator: Navigator) {
             onBack = {
                 navigator.goBack()
             }
+        )
+    }
+}
+
+fun EntryProviderScope<NavKey>.experimentEntry(navigator: Navigator) {
+    entry<ExperimentKey>(
+    ) {
+        ExperimentScreen(
         )
     }
 }

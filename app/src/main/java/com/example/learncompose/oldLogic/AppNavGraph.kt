@@ -25,35 +25,35 @@ import com.example.learncompose.feature.experiment.features.welcome.WelcomeViewM
 import com.example.learncompose.app.MainIconScreen
 import com.example.learncompose.oldLogic.AppViewModel
 
-val LocalAppNavigator = staticCompositionLocalOf<(AppNavKey) -> Unit> {
+val LocalAppNavigator = staticCompositionLocalOf<(OldAppNavKey) -> Unit> {
     {}
 }
 
 @Composable
-fun AppNavGraph(startDestination: AppNavKey = AppNavKey.Welcome) {
+fun AppNavGraph(startDestination: OldAppNavKey = OldAppNavKey.Welcome) {
     val rememberNavBackStack = rememberNavBackStack(startDestination)
 
     val viewModel = hiltViewModel<AppViewModel>()
     // 全局登录状态拦截
-    if (rememberNavBackStack.last() != AppNavKey.Welcome && viewModel.authState == AuthState.LoggedOut) {
+    if (rememberNavBackStack.last() != OldAppNavKey.Welcome && viewModel.authState == AuthState.LoggedOut) {
         rememberNavBackStack.clear()
-        rememberNavBackStack.add(AppNavKey.Login(""))
+        rememberNavBackStack.add(OldAppNavKey.Login(""))
     }
 
     val entryProvider: (NavKey) -> NavEntry<NavKey> = { key: NavKey ->
         when (key) {
-            is AppNavKey.Welcome -> NavEntry(key) {
+            is OldAppNavKey.Welcome -> NavEntry(key) {
                 val viewModel = hiltViewModel<WelcomeViewModel>()
                 WelcomeScreen(
                     viewModel = viewModel,
                     onNavigateToMain = { id ->
                         rememberNavBackStack.clear()
-                        rememberNavBackStack.add(AppNavKey.Main)
+                        rememberNavBackStack.add(OldAppNavKey.Main)
                     }
                 )
             }
 
-            is AppNavKey.Login -> NavEntry(
+            is OldAppNavKey.Login -> NavEntry(
                 key = key,
                 metadata = NavDisplay.transitionSpec {
                     fadeIn(tween(500)) togetherWith fadeOut(animationSpec = tween(500))
@@ -64,12 +64,12 @@ fun AppNavGraph(startDestination: AppNavKey = AppNavKey.Welcome) {
                     viewModel = viewModel,
                     onNavigateToMain = {
                         rememberNavBackStack.clear()
-                        rememberNavBackStack.add(AppNavKey.Main)
+                        rememberNavBackStack.add(OldAppNavKey.Main)
                     }
                 )
             }
 
-            is AppNavKey.Main -> NavEntry(
+            is OldAppNavKey.Main -> NavEntry(
                 key = key,
                 metadata = NavDisplay.transitionSpec {
                     scaleIn(animationSpec = tween(500)) togetherWith fadeOut(tween(500))
@@ -79,12 +79,12 @@ fun AppNavGraph(startDestination: AppNavKey = AppNavKey.Welcome) {
                 ExperimentScreen(
                     viewModel = viewModel,
                     onNavigateToLoading = {
-                        rememberNavBackStack.add(AppNavKey.Loading)
+                        rememberNavBackStack.add(OldAppNavKey.Loading)
                     }
                 )
             }
 
-            is AppNavKey.Loading -> NavEntry(key) {
+            is OldAppNavKey.Loading -> NavEntry(key) {
                 MainIconScreen()
             }
 
