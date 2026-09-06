@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
@@ -58,7 +59,7 @@ fun CombineContent(modifier: Modifier = Modifier) {
             Spacer(Modifier.weight(1f))
             Icon(
                 modifier = Modifier.size(imageSize.dp),
-                imageVector = ImageVector.vectorResource(AppIcons.main),
+                painter = painterResource(AppIcons.main),
                 contentDescription = "",
                 tint = MaterialTheme.colorScheme.primary
             )

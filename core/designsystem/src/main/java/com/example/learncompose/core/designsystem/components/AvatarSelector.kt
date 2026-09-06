@@ -5,25 +5,33 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import com.example.learncompose.feature.experiment.R
+import com.example.learncompose.core.designsystem.R
 import java.io.File
 import java.io.FileOutputStream
 
 @Composable
 fun AvatarSelector(
-    modifier: Modifier = Modifier // 👈 允许外部传入 Modifier 控制大小和位置
+    modifier: Modifier = Modifier,
+    isPhotoPickerOpen: Boolean = false,
+    onPhotoPickerClose: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val avatarFile = remember { File(context.filesDir, "current_user_avatar.jpg") }
@@ -38,6 +46,7 @@ fun AvatarSelector(
                 avatarTimestamp = avatarFile.lastModified() // 更新时间戳
             }
         }
+        onPhotoPickerClose()
     }
 
     // 💡 核心修复：根据时间戳动态构建 Coil 的 ImageRequest
@@ -51,22 +60,36 @@ fun AvatarSelector(
                 .diskCacheKey("${avatarFile.absolutePath}?t=$avatarTimestamp")
                 .build()
         } else {
-            R.drawable.face_24px // 默认矢量图
+            null
         }
     }
+    if (avatarTimestamp > 0L && avatarFile.exists()) {
+        // 已经有自定义头像了，用 Coil 异步加载文件
+        AsyncImage(
+            model = imageModel,
+            contentDescription = "User Avatar",
+            modifier = modifier.graphicsLayer(
+                {
+                    scaleX = 1.2f
+                    scaleY = 1.2f
+                }
+            ).clip(CircleShape),
+            contentScale = ContentScale.Crop,
+        )
+    } else {
+        // 还没有自定义头像，直接用原生的 Image 显示默认矢量图（不会被乱上色）
+        Icon(
+            painter = painterResource(id = R.drawable.face_24px),
+            contentDescription = "Default Avatar",
+            modifier = modifier.clip(CircleShape),
+        )
+    }
 
-    AsyncImage(
-        model = imageModel,
-        contentDescription = "User Avatar",
-        modifier = modifier // 👈 使用外部传入的 modifier
-            .clip(CircleShape)
-            .clickable {
-                photoPickerLauncher.launch(
-                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                )
-            },
-        contentScale = ContentScale.Crop
-    )
+    if (isPhotoPickerOpen) {
+        photoPickerLauncher.launch(
+            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+        )
+    }
 }
 
 /**

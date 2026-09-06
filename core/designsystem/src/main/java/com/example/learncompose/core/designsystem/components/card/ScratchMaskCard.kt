@@ -5,6 +5,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -33,6 +34,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.dp
 import com.example.learncompose.core.designsystem.components.FloatAnimatableSaver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -84,7 +86,7 @@ fun ScratchMaskCard(
                 indication = null
             ) {
                 if (!scratchProgress.isRunning) handleScratch()
-            },
+            }.border(2.dp, color = MaterialTheme.colorScheme.onSurface, shape = MaterialTheme.shapes.medium),
         colors = CardDefaults.cardColors(
             containerColor = if (bottomShowingBack) backFaceColor else frontFaceColor
         )

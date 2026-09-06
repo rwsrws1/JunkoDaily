@@ -180,7 +180,7 @@ fun MediumContent(modifier: Modifier = Modifier) {
     ) {
         Icon(
             modifier = Modifier.size(100.dp),
-            imageVector = ImageVector.vectorResource(AppIcons.main),
+            painter = painterResource(AppIcons.main),
             contentDescription = "",
             tint = MaterialTheme.colorScheme.primary
         )
