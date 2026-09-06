@@ -35,6 +35,31 @@ fun generateDistinctColorLongs(
     }
 }
 
+fun generateDistinctColors(
+    count: Int,
+    saturation: Float = 0.75f,
+    lightness: Float = 0.55f
+): List<Color> {
+    if (count <= 0) return listOf()
+
+    // 计算色相步进（360度均分）
+    val step = 360f / count
+
+    return List(count) { index ->
+        val hue = index * step
+        // 使用 Compose 的 HSL 构造颜色
+        val composeColor = Color.hsl(
+            hue = hue,
+            saturation = saturation,
+            lightness = lightness
+        )
+        // 转为标准的 32位 ARGB Long 值 (0xAARRGGBB)
+        // 注：composeColor.value 内部是 ULong（编码了颜色空间），
+        // 如果要用于 Compose Color(value = ...) 或标准 Hex，转换为 ARGB Long 最为通用安全
+        composeColor
+    }
+}
+
 /**
  * 将 Compose Color 转为标准 0xAARRGGBB 格式的 Long
  */
