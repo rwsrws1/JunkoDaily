@@ -31,6 +31,7 @@ import com.example.learncompose.core.navigation.Navigator
 import com.example.learncompose.core.navigation.rememberNavigationState
 import com.example.learncompose.core.navigation.toEntries
 import com.example.learncompose.navigation.NoteKey
+import com.example.learncompose.navigation.RoutineKey
 import com.example.learncompose.navigation.TOP_LEVEL_NAV_ITEMS
 import com.example.learncompose.navigation.experimentEntry
 import com.example.learncompose.navigation.noteDetailEntry
@@ -41,7 +42,7 @@ import com.example.learncompose.navigation.spendEntry
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun MainScreen(modifier: Modifier = Modifier) {
-    val navigationState = rememberNavigationState(NoteKey, TOP_LEVEL_NAV_ITEMS.keys)
+    val navigationState = rememberNavigationState(RoutineKey, TOP_LEVEL_NAV_ITEMS.keys)
     val navigator = remember { Navigator(navigationState) }
     var shouldShowNavBar by remember { mutableStateOf(true) }
 
