@@ -16,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.learncompose.core.designsystem.theme.AppTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -26,6 +27,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -45,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -64,6 +67,9 @@ data class GridItem(
     val text: String = "",
     val color: Long = 0xFF9FEFFF,
 )
+
+val GridItem.composeColor: Color
+    get() = Color(this.color)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -129,8 +135,9 @@ fun RoutineScreen(modifier: Modifier = Modifier) {
                     Text(text = "颜色")
                     Spacer(Modifier.height(10.dp))
                     LazyRow(
+                        state = rememberLazyListState(),
                         modifier = Modifier.fillMaxWidth(),
-                        contentPadding = PaddingValues(horizontal = 10.dp)
+                        contentPadding = PaddingValues(horizontal = 10.dp),
                     ) {
                         items(count= colorList.size, key = { it }) { index ->
                             Box(
@@ -140,7 +147,7 @@ fun RoutineScreen(modifier: Modifier = Modifier) {
                                     .clip(CircleShape)
                                     .background(Color(colorList[index]))
                                     .border(width = if (selectColor == colorList[index]) 2.dp else 0.dp,
-                                        color = MaterialTheme.colorScheme.scrim,
+                                        color = MaterialTheme.colorScheme.onSurface,
                                         shape = CircleShape)
                                     .clickable(
                                         onClick = {
@@ -193,7 +200,9 @@ fun RoutineScreen(modifier: Modifier = Modifier) {
                 CompositionLocalProvider(
                     LocalCardScopeProvider provides rememberCoroutineScope()
                 ) {
-                    CardGrid(gridItemList)
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CardGrid(gridItemList)
+                    }
                 }
             }
 
@@ -204,6 +213,7 @@ fun RoutineScreen(modifier: Modifier = Modifier) {
 
 @Composable
 fun CardGrid(gridItemList: List<GridItem>) {
+    val background = MaterialTheme.colorScheme.surface
     LazyVerticalGrid(
         modifier = Modifier.fillMaxWidth(),
         columns = GridCells.Adaptive(60.dp),
@@ -214,35 +224,23 @@ fun CardGrid(gridItemList: List<GridItem>) {
     ) {
         items(items = gridItemList, key = { item -> item.id }) { item ->
             ScratchMaskCard(
-                frontFaceContent = {
-                    Column(Modifier.fillMaxSize(0.95f)) {
-                        Spacer(Modifier.weight(1f))
-                        Text(
-                            item.text,
-                            Modifier.align(Alignment.CenterHorizontally),
-                            overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(Modifier.weight(1f))
-                    }
-                },
-                backFaceContent = {
-                    Column(Modifier.fillMaxSize(0.95f)) {
-                        Spacer(Modifier.weight(1f))
-                        Text(
-                            item.text,
-                            Modifier
-                                .fillMaxWidth(0.95f)
-                                .align(Alignment.CenterHorizontally),
-                            overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(Modifier.weight(1f))
-                    }
-                },
-                frontFaceColor = Color(item.color).copy(alpha = 0.5f),
-                backFaceColor = Color(item.color)
-            )
+                frontFaceColor = remember(item.color) {
+                    item.composeColor.copy(alpha = 0.2f).compositeOver(background) },
+                backFaceColor = item.composeColor
+            ) {
+                Column(Modifier.fillMaxSize(0.95f)) {
+                    Spacer(Modifier.weight(1f))
+                    Text(
+                        item.text,
+                        Modifier
+                            .fillMaxWidth(0.95f)
+                            .align(Alignment.CenterHorizontally),
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(Modifier.weight(1f))
+                }
+            }
         }
     }
 }

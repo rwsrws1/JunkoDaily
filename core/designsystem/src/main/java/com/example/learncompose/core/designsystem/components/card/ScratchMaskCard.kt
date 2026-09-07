@@ -1,10 +1,8 @@
 package com.example.learncompose.core.designsystem.components.card
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -21,19 +19,22 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.toRect
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.withSaveLayer
 import androidx.compose.ui.unit.dp
 import com.example.learncompose.core.designsystem.components.FloatAnimatableSaver
 import kotlinx.coroutines.CoroutineScope
@@ -48,35 +49,37 @@ fun ScratchMaskCard(
     aspectRatio: Float = 2f / 3f,
     frontFaceColor: Color = MaterialTheme.colorScheme.primaryContainer,
     backFaceColor: Color = MaterialTheme.colorScheme.tertiaryContainer,
-    frontFaceContent: @Composable ColumnScope.() -> Unit = {},
-    backFaceContent: @Composable ColumnScope.() -> Unit = {}
+    content: @Composable ColumnScope.() -> Unit = {}
 ) {
-    var isShowingBack by rememberSaveable { mutableStateOf(false) }
-    // 标记擦除过渡中的目标状态
-    var isErasing by rememberSaveable { mutableStateOf(false) }
     val scope = LocalCardScopeProvider.current
 
+    var isFrontColor by rememberSaveable { mutableStateOf(true) }
+    var isAnimating by rememberSaveable { mutableStateOf(false) }
     val scratchProgress = rememberSaveable(saver = FloatAnimatableSaver) { Animatable(0f) }
+    val layerPaint = remember { Paint() }
+
+    // 动画运行期间冻结“起点颜色(currentColor)”和“终点颜色(nextColor)”
+    val currentColor = if (isFrontColor) frontFaceColor else backFaceColor
+    val nextColor = if (isFrontColor) backFaceColor else frontFaceColor
 
     val handleScratch = {
         scope?.launch {
-            isErasing = true
+            if (isAnimating) return@launch
+            isAnimating = true
             scratchProgress.snapTo(0f)
-            // 1. 执行刮除动画
+
+            // 1. 执行擦除动画
             scratchProgress.animateTo(
                 targetValue = 1f,
                 animationSpec = tween(durationMillis = 2000, easing = LinearEasing)
             )
-            // 2. 状态切换完成
-            isShowingBack = !isShowingBack
+
+            // 2. 状态切换：先翻转颜色标志，再标记动画结束
+            isFrontColor = !isFrontColor
             scratchProgress.snapTo(0f)
-            isErasing = false
+            isAnimating = false
         }
     }
-
-    // 确定当前底层（新）和顶层（旧/正在被刮掉的）各是什么
-    val topShowingBack = if (isErasing) isShowingBack else isShowingBack
-    val bottomShowingBack = if (isErasing) !isShowingBack else isShowingBack
 
     Card(
         modifier = Modifier
@@ -85,73 +88,74 @@ fun ScratchMaskCard(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ) {
-                if (!scratchProgress.isRunning) handleScratch()
-            }.border(2.dp, color = MaterialTheme.colorScheme.onSurface, shape = MaterialTheme.shapes.medium),
-        colors = CardDefaults.cardColors(
-            containerColor = if (bottomShowingBack) backFaceColor else frontFaceColor
-        )
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            // 底层：露出显示的内容
-            Column(modifier = Modifier.fillMaxSize()) {
-                if (bottomShowingBack) backFaceContent() else frontFaceContent()
+                if (!isAnimating) handleScratch()
             }
-
-            // 顶层：被刮除的图层（仅在擦除进行中叠加渲染与裁剪）
-            if (isErasing) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            // 开启 Offscreen 合成图层，使内部的 DstOut 仅扣除本图层内容
-                            compositingStrategy = CompositingStrategy.Offscreen
-                        }
-                ) {
-                    // 顶层原本的内容与底色
-                    Card(
-                        modifier = Modifier.fillMaxSize(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (topShowingBack) backFaceColor else frontFaceColor
-                        )
-                    ) {
-                        Column(modifier = Modifier.fillMaxSize()) {
-                            if (topShowingBack) backFaceContent() else frontFaceContent()
-                        }
-                    }
-
-                    // 擦除笔刷：必须使用不透明色彩（Alpha > 0），通过 DstOut 挖空当前图层
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        val w = size.width
-                        val h = size.height
-                        val rows = 10
-                        val gap = h / rows
-
-                        val scratchPath = Path().apply {
-                            moveTo(-w * 0.1f, 0f)
-                            for (i in 0..rows) {
-                                val y = i * gap
-                                val x = if (i % 2 == 0) w * 1.15f else -w * 0.15f
-                                lineTo(x, y)
-                            }
-                        }
-
-                        val pm = PathMeasure()
-                        pm.setPath(scratchPath, false)
-                        val eraseSegment = Path()
-                        pm.getSegment(0f, pm.length * scratchProgress.value, eraseSegment, true)
-
-                        drawPath(
-                            path = eraseSegment,
-                            color = Color.Black, // 必须是不透明颜色，才能起到擦除 Alpha 的效果
-                            style = Stroke(
-                                width = gap * 2.0f,
-                                cap = StrokeCap.Round,
-                                join = StrokeJoin.Round
-                            ),
-                            blendMode = BlendMode.DstOut
-                        )
+            .border(2.dp, color = MaterialTheme.colorScheme.onSurface, shape = MaterialTheme.shapes.medium),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    // 仅在动画期间开启离屏合成，避免全时段额外的绘制性能开销
+                    if (isAnimating) {
+                        compositingStrategy = CompositingStrategy.Offscreen
                     }
                 }
+                .drawWithContent {
+                    if (isAnimating) {
+                        // 1. 绘制底层（新颜色）
+                        drawRect(nextColor)
+
+                        drawContext.canvas.withSaveLayer(bounds = size.toRect(), paint = layerPaint) {
+
+                            drawRect(currentColor)
+
+                            // 3. 计算蛇形刮除路径
+                            val w = size.width
+                            val h = size.height
+                            val rows = 10
+                            val gap = h / rows
+
+                            val scratchPath = Path().apply {
+                                moveTo(-w * 0.1f, 0f)
+                                for (i in 0..rows) {
+                                    val y = i * gap
+                                    val x = if (i % 2 == 0) w * 1.15f else -w * 0.15f
+                                    lineTo(x, y)
+                                }
+                            }
+
+                            val pm = PathMeasure()
+                            pm.setPath(scratchPath, false)
+                            val eraseSegment = Path()
+                            pm.getSegment(0f, pm.length * scratchProgress.value, eraseSegment, true)
+
+                            // 4. 使用 DstOut 挖空当前图层（擦除顶层旧颜色）
+                            drawPath(
+                                path = eraseSegment,
+                                color = Color.Black,
+                                style = Stroke(
+                                    width = gap * 2.0f,
+                                    cap = StrokeCap.Round,
+                                    join = StrokeJoin.Round
+                                ),
+                                blendMode = BlendMode.DstOut
+                            )
+                        }
+
+
+                        // 5. 绘制卡片内部文本/UI内容
+                        drawContent()
+                    } else {
+                        // 未播放动画时，静态绘制当前颜色及卡片内容
+                        drawRect(currentColor)
+                        drawContent()
+                    }
+                }
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                content()
             }
         }
     }
