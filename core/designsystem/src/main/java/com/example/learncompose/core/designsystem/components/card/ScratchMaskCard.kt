@@ -52,7 +52,6 @@ fun ScratchMaskCard(
     content: @Composable ColumnScope.() -> Unit = {}
 ) {
     val scope = LocalCardScopeProvider.current
-
     var isFrontColor by rememberSaveable { mutableStateOf(true) }
     var isAnimating by rememberSaveable { mutableStateOf(false) }
     val scratchProgress = rememberSaveable(saver = FloatAnimatableSaver) { Animatable(0f) }

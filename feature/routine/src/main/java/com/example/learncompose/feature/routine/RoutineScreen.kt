@@ -16,7 +16,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.learncompose.core.designsystem.theme.AppTheme
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -38,6 +37,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -53,34 +53,58 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.learncompose.core.designsystem.components.CommonTopBar
 import com.example.learncompose.core.designsystem.components.card.LocalCardScopeProvider
 import com.example.learncompose.core.designsystem.components.card.ScratchMaskCard
 import com.example.learncompose.core.designsystem.generateDistinctColorLongs
-import com.example.learncompose.core.designsystem.generateDistinctColors
+import com.example.learncompose.core.model.RoutineCard
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
-import java.util.UUID
 
-data class GridItem(
-    val id: String = UUID.randomUUID().toString(),
-    val text: String = "",
-    val color: Long = 0xFF9FEFFF,
-)
-
-val GridItem.composeColor: Color
+val RoutineCard.composeColor: Color
     get() = Color(this.color)
+
+val LocalHandler = compositionLocalOf<(RoutineContract.Intent.ViewModelIntent) -> Unit> {
+    {}
+}
+
+@Composable
+fun RoutineViewModelScreen(modifier: Modifier = Modifier, viewModel: RoutineViewModel) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    CompositionLocalProvider(
+        LocalHandler provides viewModel::handleIntent
+    ) {
+        RoutineScreen(modifier, uiState)
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RoutineScreen(modifier: Modifier = Modifier) {
-    val gridItemList = remember { mutableStateListOf<GridItem>() }
+fun RoutineScreen(modifier: Modifier = Modifier, uiState: RoutineContract.UiState = RoutineContract.UiState()) {
+    val cardList = uiState.cardList
+    val handler = LocalHandler.current
+    val intentHandler: (RoutineContract.Intent) -> Unit = { intent ->
+        when (intent) {
+            is RoutineContract.Intent.ShowMessage -> {
+            }
+            is RoutineContract.Intent.ViewModelIntent -> {
+                handler(intent)
+            }
+        }
+    }
     val scope = rememberCoroutineScope()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
-    var textState by remember { mutableStateOf("") }
-    val colorList = generateDistinctColorLongs(30)
+    val colorList = remember { generateDistinctColorLongs(30) }
+    val rowListState = rememberLazyListState()
     var selectColor: Long by remember { mutableLongStateOf(colorList[0]) }
+//    val cardList = remember { mutableStateListOf<RoutineCard>().also { gridItemList ->
+//        colorList.forEach {
+//            gridItemList.add(RoutineCard(color = it))
+//        }
+//    } }
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -88,6 +112,7 @@ fun RoutineScreen(modifier: Modifier = Modifier) {
     ) {
 
         if (showBottomSheet) {
+            var textState by remember { mutableStateOf("") }
             ModalBottomSheet(
                 onDismissRequest = {
                     showBottomSheet = false
@@ -135,7 +160,7 @@ fun RoutineScreen(modifier: Modifier = Modifier) {
                     Text(text = "颜色")
                     Spacer(Modifier.height(10.dp))
                     LazyRow(
-                        state = rememberLazyListState(),
+                        state = rowListState,
                         modifier = Modifier.fillMaxWidth(),
                         contentPadding = PaddingValues(horizontal = 10.dp),
                     ) {
@@ -146,9 +171,11 @@ fun RoutineScreen(modifier: Modifier = Modifier) {
                                     .size(50.dp)
                                     .clip(CircleShape)
                                     .background(Color(colorList[index]))
-                                    .border(width = if (selectColor == colorList[index]) 2.dp else 0.dp,
+                                    .border(
+                                        width = if (selectColor == colorList[index]) 2.dp else 0.dp,
                                         color = MaterialTheme.colorScheme.onSurface,
-                                        shape = CircleShape)
+                                        shape = CircleShape
+                                    )
                                     .clickable(
                                         onClick = {
                                             selectColor = colorList[index]
@@ -162,7 +189,11 @@ fun RoutineScreen(modifier: Modifier = Modifier) {
                     Button(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = {
-                            gridItemList.add(GridItem(text = textState, color = selectColor))
+                            intentHandler(
+                                RoutineContract.Intent.InsertRoutineCard(
+                                    RoutineCard(text = textState, color = selectColor)
+                                )
+                            )
                             scope.launch { sheetState.hide() }.invokeOnCompletion {
                                 if (!sheetState.isVisible) {
                                     showBottomSheet = false
@@ -185,7 +216,7 @@ fun RoutineScreen(modifier: Modifier = Modifier) {
                         showBottomSheet = true
                     }
                 ) {
-                    Icon(painterResource(R.drawable.add_24px), contentDescription = "增加")
+                    Icon(painterResource(R.drawable.add_24px), contentDescription = "")
                 }
             }
         ) { paddingValues ->
@@ -196,12 +227,11 @@ fun RoutineScreen(modifier: Modifier = Modifier) {
                     .consumeWindowInsets(paddingValues)
             ) {
                 CommonTopBar()
-
                 CompositionLocalProvider(
                     LocalCardScopeProvider provides rememberCoroutineScope()
                 ) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CardGrid(gridItemList)
+                        CardGrid(cardList)
                     }
                 }
             }
@@ -212,7 +242,7 @@ fun RoutineScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun CardGrid(gridItemList: List<GridItem>) {
+fun CardGrid(gridItemList: List<RoutineCard>) {
     val background = MaterialTheme.colorScheme.surface
     LazyVerticalGrid(
         modifier = Modifier.fillMaxWidth(),
@@ -225,7 +255,7 @@ fun CardGrid(gridItemList: List<GridItem>) {
         items(items = gridItemList, key = { item -> item.id }) { item ->
             ScratchMaskCard(
                 frontFaceColor = remember(item.color) {
-                    item.composeColor.copy(alpha = 0.2f).compositeOver(background) },
+                    item.composeColor.copy(alpha = 0.1f).compositeOver(background) },
                 backFaceColor = item.composeColor
             ) {
                 Column(Modifier.fillMaxSize(0.95f)) {

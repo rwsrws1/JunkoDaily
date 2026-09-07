@@ -49,7 +49,7 @@ fun StaggeredCardGrid(onClick: () -> Unit = {}, toExperiment: () -> Unit = {}) {
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item(span = { GridItemSpan(maxLineSpan) }, key = "button_Button_1") {
-            Button(onClick = toExperiment) {
+            Button(onClick = toExperiment, enabled = false) {
                 Text("go to experiment")
             }
         }
