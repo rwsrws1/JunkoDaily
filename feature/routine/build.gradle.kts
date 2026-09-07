@@ -13,6 +13,7 @@ dependencies {
     implementation(projects.core.navigation)
     implementation(projects.core.data)
     implementation(projects.core.model)
+    implementation(projects.core.common)
 
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)

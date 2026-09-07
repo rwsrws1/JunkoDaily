@@ -20,7 +20,12 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import com.example.learncompose.core.common.SoundManager
+import com.example.learncompose.core.common.rememberSoundManager
 
 @Composable
 fun NoteScreen(modifier: Modifier = Modifier, onClick: () -> Unit = {}, toExperiment: () -> Unit = {}) {
@@ -40,6 +45,7 @@ fun NoteScreen(modifier: Modifier = Modifier, onClick: () -> Unit = {}, toExperi
 
 @Composable
 fun StaggeredCardGrid(onClick: () -> Unit = {}, toExperiment: () -> Unit = {}) {
+    val soundManager = rememberSoundManager()
     LazyVerticalGrid(
         modifier = Modifier.fillMaxWidth(),
         columns = GridCells.Adaptive(70.dp),
@@ -48,6 +54,7 @@ fun StaggeredCardGrid(onClick: () -> Unit = {}, toExperiment: () -> Unit = {}) {
         verticalArrangement = Arrangement.spacedBy(10.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
+
         item(span = { GridItemSpan(maxLineSpan) }, key = "button_Button_1") {
             Button(onClick = toExperiment, enabled = false) {
                 Text("go to experiment")
@@ -56,6 +63,13 @@ fun StaggeredCardGrid(onClick: () -> Unit = {}, toExperiment: () -> Unit = {}) {
         item(span = { GridItemSpan(maxLineSpan) }, key = "button_Button_2") {
             Button(onClick = onClick) {
                 Text("go to next page")
+            }
+        }
+        item(span = { GridItemSpan(maxLineSpan) }, key = "button_Button_3") {
+            Button(onClick = {
+                soundManager.playClickSound()
+            }) {
+                Text("sound test")
             }
         }
     }

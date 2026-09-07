@@ -49,6 +49,8 @@ fun ScratchMaskCard(
     aspectRatio: Float = 2f / 3f,
     frontFaceColor: Color = MaterialTheme.colorScheme.primaryContainer,
     backFaceColor: Color = MaterialTheme.colorScheme.tertiaryContainer,
+    onFrontFaceClick: () -> Unit = {},
+    onBackFaceClick: () -> Unit = {},
     content: @Composable ColumnScope.() -> Unit = {}
 ) {
     val scope = LocalCardScopeProvider.current
@@ -64,13 +66,14 @@ fun ScratchMaskCard(
     val handleScratch = {
         scope?.launch {
             if (isAnimating) return@launch
+            if (isFrontColor) onFrontFaceClick() else onBackFaceClick()
             isAnimating = true
             scratchProgress.snapTo(0f)
 
             // 1. 执行擦除动画
             scratchProgress.animateTo(
                 targetValue = 1f,
-                animationSpec = tween(durationMillis = 2000, easing = LinearEasing)
+                animationSpec = tween(durationMillis = if (isFrontColor) 2000 else 1000, easing = LinearEasing)
             )
 
             // 2. 状态切换：先翻转颜色标志，再标记动画结束

@@ -37,7 +37,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -54,7 +53,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.learncompose.core.common.rememberSoundManager
 import com.example.learncompose.core.designsystem.components.CommonTopBar
 import com.example.learncompose.core.designsystem.components.card.LocalCardScopeProvider
 import com.example.learncompose.core.designsystem.components.card.ScratchMaskCard
@@ -99,11 +98,6 @@ fun RoutineScreen(modifier: Modifier = Modifier, uiState: RoutineContract.UiStat
     val colorList = remember { generateDistinctColorLongs(30) }
     val rowListState = rememberLazyListState()
     var selectColor: Long by remember { mutableLongStateOf(colorList[0]) }
-//    val cardList = remember { mutableStateListOf<RoutineCard>().also { gridItemList ->
-//        colorList.forEach {
-//            gridItemList.add(RoutineCard(color = it))
-//        }
-//    } }
 
     Box(
         modifier = modifier
@@ -243,6 +237,7 @@ fun RoutineScreen(modifier: Modifier = Modifier, uiState: RoutineContract.UiStat
 
 @Composable
 fun CardGrid(gridItemList: List<RoutineCard>) {
+    val soundManager = rememberSoundManager()
     val background = MaterialTheme.colorScheme.surface
     LazyVerticalGrid(
         modifier = Modifier.fillMaxWidth(),
@@ -256,7 +251,13 @@ fun CardGrid(gridItemList: List<RoutineCard>) {
             ScratchMaskCard(
                 frontFaceColor = remember(item.color) {
                     item.composeColor.copy(alpha = 0.1f).compositeOver(background) },
-                backFaceColor = item.composeColor
+                backFaceColor = item.composeColor,
+                onFrontFaceClick = {
+                    soundManager.playWriteSound()
+                },
+                onBackFaceClick = {
+                    soundManager.playEraserSound()
+                }
             ) {
                 Column(Modifier.fillMaxSize(0.95f)) {
                     Spacer(Modifier.weight(1f))

@@ -5,11 +5,10 @@ plugins {
 }
 
 android {
-    namespace = "com.example.learncompose.core.designsystem"
+    namespace = "com.example.learncompose.core.common"
 }
 
 dependencies {
-    implementation(projects.core.common)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
     implementation(libs.coil.compose)
