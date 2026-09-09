@@ -4,10 +4,11 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.learncompose.core.database.entity.RoutineCardEntity
+import com.example.learncompose.core.database.entity.RoutineDailyLogEntity
 
 // 2. 在 Database 类或 Entity 上注册
 @Database(
-    entities = [RoutineCardEntity::class],
+    entities = [RoutineCardEntity::class, RoutineDailyLogEntity::class],
     version = 1,
     exportSchema = true
 )

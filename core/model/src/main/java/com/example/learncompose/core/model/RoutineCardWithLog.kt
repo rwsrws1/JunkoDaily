@@ -2,10 +2,12 @@ package com.example.learncompose.core.model
 
 import java.time.Instant
 import java.time.LocalDate
-import java.util.UUID
 
-data class RoutineCard(
-    val id: Long = 0,
+data class RoutineCardWithLog(
+    val cardId: Long,
     val cardText: String,
     val cardColor: Long,
+    val recordDate: LocalDate?,
+    val isCompleted: Boolean,
+    val completedAt: Instant?,
 )

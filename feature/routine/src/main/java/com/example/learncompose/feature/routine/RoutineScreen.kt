@@ -49,6 +49,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.layout.ContentScale
@@ -64,11 +66,15 @@ import com.example.learncompose.core.designsystem.components.card.LocalCardScope
 import com.example.learncompose.core.designsystem.components.card.ScratchMaskCard
 import com.example.learncompose.core.designsystem.generateDistinctColorLongs
 import com.example.learncompose.core.model.RoutineCard
+import com.example.learncompose.core.model.RoutineCardWithLog
+import com.example.learncompose.core.model.RoutineDailyLog
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import kotlin.time.Duration.Companion.milliseconds
 
-val RoutineCard.composeColor: Color
-    get() = Color(this.color)
+val RoutineCardWithLog.composeColor: Color
+    get() = Color(this.cardColor)
 
 val LocalHandler = compositionLocalOf<(RoutineContract.Intent) -> Unit> {
     {}
@@ -92,7 +98,7 @@ fun RoutineViewModelScreen(
 @Composable
 fun RoutineScreen(
     modifier: Modifier = Modifier,
-    uiState: RoutineContract.UiState = RoutineContract.UiState(),
+    uiState: List<RoutineContract.UiState> = listOf(RoutineContract.UiState()),
     onChartClick: () -> Unit = {}
 ) {
     val handler = LocalHandler.current
@@ -102,11 +108,12 @@ fun RoutineScreen(
     val colorList = remember { generateDistinctColorLongs(30) }
     val rowListState = rememberLazyListState()
     var selectColor: Long by remember { mutableLongStateOf(colorList[0]) }
+    val focusRequester = remember { FocusRequester() }
 
-    val initialPage = 15
+    val initialPage = 29
     val pagerState = rememberPagerState(
         initialPage = initialPage,
-        pageCount = { 29 }
+        pageCount = { 30 }
     )
 
     Box(
@@ -139,7 +146,8 @@ fun RoutineScreen(
                             .height(50.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .background(MaterialTheme.colorScheme.secondaryContainer)
-                            .padding(horizontal = 12.dp),
+                            .padding(horizontal = 12.dp)
+                            .focusRequester(focusRequester),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         decorationBox = { innerTextField ->
@@ -158,7 +166,7 @@ fun RoutineScreen(
                                 }
                                 innerTextField() // 渲染实际的输入文本和光标
                             }
-                        }
+                        },
                     )
                     Spacer(Modifier.height(20.dp))
                     Text(text = "颜色")
@@ -194,8 +202,8 @@ fun RoutineScreen(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = {
                             handler(
-                                RoutineContract.Intent.InsertRoutineCard(
-                                    RoutineCard(text = textState, color = selectColor)
+                                RoutineContract.Intent.InsertCard(
+                                    RoutineCard(cardText = textState, cardColor = selectColor)
                                 )
                             )
                             scope.launch { sheetState.hide() }.invokeOnCompletion {
@@ -208,6 +216,11 @@ fun RoutineScreen(
                         Text("确定")
                     }
                     Spacer(Modifier.height(20.dp))
+
+
+                    SideEffect {
+//                        focusRequester.requestFocus()
+                    }
                 }
             }
         }
@@ -240,13 +253,8 @@ fun RoutineScreen(
                     beyondViewportPageCount = 0
                 ) { page ->
 
-                    val currentDataOffset = (page - initialPage).toLong()
                     val today = LocalDate.now()
-                    val currentData = if (currentDataOffset > 0) {
-                        today.plusDays(currentDataOffset)
-                    } else {
-                        today.minusDays(-currentDataOffset)
-                    }
+                    val currentData = today.minusDays((initialPage - page).toLong())
 
                     Column(
                         modifier = Modifier
@@ -257,7 +265,7 @@ fun RoutineScreen(
                         Text("${currentData}", Modifier.align(Alignment.CenterHorizontally))
 
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            CardGrid(uiState, currentData)
+                            CardGrid(uiState[initialPage - page], currentData)
                         }
                     }
                 }
@@ -269,7 +277,7 @@ fun RoutineScreen(
 
 @Composable
 fun CardGrid(uiState: RoutineContract.UiState, currentData: LocalDate) {
-    val cardList = uiState.cardList
+    val cardList = uiState.routineCardWithLogList
     val handler = LocalHandler.current
     val soundManager = rememberSoundManager()
     val background = MaterialTheme.colorScheme.surface
@@ -281,25 +289,36 @@ fun CardGrid(uiState: RoutineContract.UiState, currentData: LocalDate) {
         verticalArrangement = Arrangement.spacedBy(20.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        items(items = cardList, key = { item -> item.id }) { item ->
+        items(items = cardList, key = { item -> item.cardId }) { item ->
             ScratchMaskCard(
-                frontFaceColor = remember(item.color) {
+                frontFaceColor = remember(item.cardColor) {
                     item.composeColor.copy(alpha = 0.1f).compositeOver(background)
                 },
                 backFaceColor = item.composeColor,
                 onFrontFaceClick = {
                     handler(
-                        RoutineContract.Intent.UpdateRoutineCard(
-                            item.copy(
+                        RoutineContract.Intent.UpsertDailyLog(
+                            RoutineDailyLog(
+                                cardId = item.cardId,
+                                recordDate = currentData,
                                 isCompleted = true,
-                                recordDate = currentData
+                                completedAt = item.completedAt
                             )
                         )
                     )
                     soundManager.playWriteSound()
                 },
                 onBackFaceClick = {
-                    handler(RoutineContract.Intent.UpdateRoutineCard(item.copy(isCompleted = false)))
+                    handler(
+                        RoutineContract.Intent.UpsertDailyLog(
+                            RoutineDailyLog(
+                                cardId = item.cardId,
+                                recordDate = currentData,
+                                isCompleted = false,
+                                completedAt = item.completedAt
+                            )
+                        )
+                    )
                     soundManager.playEraserSound()
                 },
                 isFrontColor = !item.isCompleted
@@ -307,7 +326,7 @@ fun CardGrid(uiState: RoutineContract.UiState, currentData: LocalDate) {
                 Column(Modifier.fillMaxSize(0.95f)) {
                     Spacer(Modifier.weight(1f))
                     Text(
-                        item.text,
+                        item.cardText,
                         Modifier
                             .fillMaxWidth(0.95f)
                             .align(Alignment.CenterHorizontally),
