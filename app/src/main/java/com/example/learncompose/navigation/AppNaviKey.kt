@@ -13,3 +13,5 @@ data object SpendKey : NavKey
 data object NoteDetailKey : NavKey
 @Serializable
 data object ExperimentKey : NavKey
+@Serializable
+data object RoutineChartKey : NavKey

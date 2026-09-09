@@ -25,7 +25,7 @@ class RoutineViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
     )
 
-    fun handleIntent(intent: RoutineContract.Intent.ViewModelIntent) {
+    fun handleIntent(intent: RoutineContract.Intent) {
         when (intent) {
             is RoutineContract.Intent.InsertRoutineCard -> {
                 viewModelScope.launch {

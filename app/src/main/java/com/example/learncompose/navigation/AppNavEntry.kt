@@ -1,14 +1,22 @@
 package com.example.learncompose.navigation
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.ui.NavDisplay
 import com.example.learncompose.core.navigation.Navigator
 import com.example.learncompose.feature.experiment.main.ExperimentScreen
 import com.example.learncompose.feature.note.NoteDetailScreen
 import com.example.learncompose.feature.note.NoteScreen
+import com.example.learncompose.feature.routine.RoutineChartScreen
 import com.example.learncompose.feature.routine.RoutineScreen
 import com.example.learncompose.feature.routine.RoutineViewModelScreen
 import com.example.learncompose.feature.spend.SpendScreen
@@ -17,7 +25,9 @@ import com.example.learncompose.feature.spend.SpendScreen
 fun EntryProviderScope<NavKey>.noteEntry(navigator: Navigator) {
     entry<NoteKey>(
         metadata = ListDetailSceneStrategy.listPane {
-            RoutineViewModelScreen(viewModel = hiltViewModel())
+            RoutineViewModelScreen(viewModel = hiltViewModel(), onChartClick = {
+                navigator.navigate(RoutineChartKey)
+            })
         }
     ) {
         NoteScreen(
@@ -33,7 +43,9 @@ fun EntryProviderScope<NavKey>.noteEntry(navigator: Navigator) {
 
 fun EntryProviderScope<NavKey>.routineEntry(navigator: Navigator) {
     entry<RoutineKey> {
-        RoutineViewModelScreen(viewModel = hiltViewModel())
+        RoutineViewModelScreen(viewModel = hiltViewModel(), onChartClick = {
+            navigator.navigate(RoutineChartKey)
+        })
     }
 }
 
@@ -61,6 +73,22 @@ fun EntryProviderScope<NavKey>.experimentEntry(navigator: Navigator) {
     entry<ExperimentKey>(
     ) {
         ExperimentScreen(
+        )
+    }
+}
+
+fun EntryProviderScope<NavKey>.routineChartEntry(navigator: Navigator) {
+    entry<RoutineChartKey>(
+//        metadata = NavDisplay.transitionSpec {
+//            slideInHorizontally(animationSpec = tween(500)) { it } togetherWith ExitTransition.None
+//        } + NavDisplay.popTransitionSpec {
+//            EnterTransition.None togetherWith slideOutHorizontally(animationSpec = tween(500)) { it }
+//        }
+    ) {
+        RoutineChartScreen(
+            onNavigationClick = {
+                navigator.goBack()
+            }
         )
     }
 }

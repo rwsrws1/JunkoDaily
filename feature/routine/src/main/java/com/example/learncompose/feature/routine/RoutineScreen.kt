@@ -54,44 +54,36 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.learncompose.core.common.rememberSoundManager
-import com.example.learncompose.core.designsystem.components.CommonTopBar
+import com.example.learncompose.core.designsystem.components.TopBarPrimary
 import com.example.learncompose.core.designsystem.components.card.LocalCardScopeProvider
 import com.example.learncompose.core.designsystem.components.card.ScratchMaskCard
 import com.example.learncompose.core.designsystem.generateDistinctColorLongs
 import com.example.learncompose.core.model.RoutineCard
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 val RoutineCard.composeColor: Color
     get() = Color(this.color)
 
-val LocalHandler = compositionLocalOf<(RoutineContract.Intent.ViewModelIntent) -> Unit> {
+val LocalHandler = compositionLocalOf<(RoutineContract.Intent) -> Unit> {
     {}
 }
 
 @Composable
-fun RoutineViewModelScreen(modifier: Modifier = Modifier, viewModel: RoutineViewModel) {
+fun RoutineViewModelScreen(modifier: Modifier = Modifier, viewModel: RoutineViewModel, onChartClick: () -> Unit = {}) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     CompositionLocalProvider(
         LocalHandler provides viewModel::handleIntent
     ) {
-        RoutineScreen(modifier, uiState)
+        RoutineScreen(modifier, uiState, onChartClick)
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RoutineScreen(modifier: Modifier = Modifier, uiState: RoutineContract.UiState = RoutineContract.UiState()) {
+fun RoutineScreen(modifier: Modifier = Modifier, uiState: RoutineContract.UiState = RoutineContract.UiState(), onChartClick: () -> Unit = {}) {
     val cardList = uiState.cardList
     val handler = LocalHandler.current
-    val intentHandler: (RoutineContract.Intent) -> Unit = { intent ->
-        when (intent) {
-            is RoutineContract.Intent.ShowMessage -> {
-            }
-            is RoutineContract.Intent.ViewModelIntent -> {
-                handler(intent)
-            }
-        }
-    }
     val scope = rememberCoroutineScope()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
@@ -183,7 +175,7 @@ fun RoutineScreen(modifier: Modifier = Modifier, uiState: RoutineContract.UiStat
                     Button(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = {
-                            intentHandler(
+                            handler(
                                 RoutineContract.Intent.InsertRoutineCard(
                                     RoutineCard(text = textState, color = selectColor)
                                 )
@@ -204,6 +196,9 @@ fun RoutineScreen(modifier: Modifier = Modifier, uiState: RoutineContract.UiStat
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
+            topBar = {
+                TopBarPrimary(onActionsClick = onChartClick)
+            },
             floatingActionButton = {
                 FloatingActionButton(
                     onClick = {
@@ -220,7 +215,7 @@ fun RoutineScreen(modifier: Modifier = Modifier, uiState: RoutineContract.UiStat
                     .padding(paddingValues)
                     .consumeWindowInsets(paddingValues)
             ) {
-                CommonTopBar()
+                Text("${uiState.currentRecordDate}", Modifier.align(Alignment.CenterHorizontally))
                 CompositionLocalProvider(
                     LocalCardScopeProvider provides rememberCoroutineScope()
                 ) {
@@ -237,6 +232,7 @@ fun RoutineScreen(modifier: Modifier = Modifier, uiState: RoutineContract.UiStat
 
 @Composable
 fun CardGrid(gridItemList: List<RoutineCard>) {
+    val handler = LocalHandler.current
     val soundManager = rememberSoundManager()
     val background = MaterialTheme.colorScheme.surface
     LazyVerticalGrid(
@@ -253,9 +249,14 @@ fun CardGrid(gridItemList: List<RoutineCard>) {
                     item.composeColor.copy(alpha = 0.1f).compositeOver(background) },
                 backFaceColor = item.composeColor,
                 onFrontFaceClick = {
+                    handler(RoutineContract.Intent.UpdateRoutineCard(item.copy(
+                        isCompleted = true,
+                        recordDate = LocalDate.now()
+                    )))
                     soundManager.playWriteSound()
                 },
                 onBackFaceClick = {
+                    handler(RoutineContract.Intent.UpdateRoutineCard(item.copy(isCompleted = false)))
                     soundManager.playEraserSound()
                 }
             ) {

@@ -23,10 +23,10 @@ class OfflineRoutineRepo @Inject constructor(
     }
 
     override suspend fun deleteRoutineCard(userId: String, routineCard: RoutineCard) {
-        userDataDao.insertRoutineCard(routineCard.asEntity(userId))
+        userDataDao.deleteRoutineCard(routineCard.asEntity(userId))
     }
 
     override suspend fun updateRoutineCard(userId: String, routineCard: RoutineCard) {
-        userDataDao.deleteRoutineCard(routineCard.asEntity(userId))
+        userDataDao.updateRoutineCard(routineCard.asEntity(userId))
     }
 }

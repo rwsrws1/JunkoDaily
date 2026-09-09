@@ -11,6 +11,7 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffo
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,15 +38,18 @@ import com.example.learncompose.navigation.TOP_LEVEL_NAV_ITEMS
 import com.example.learncompose.navigation.experimentEntry
 import com.example.learncompose.navigation.noteDetailEntry
 import com.example.learncompose.navigation.noteEntry
+import com.example.learncompose.navigation.routineChartEntry
 import com.example.learncompose.navigation.routineEntry
 import com.example.learncompose.navigation.spendEntry
+import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun MainScreen(modifier: Modifier = Modifier) {
     val navigationState = rememberNavigationState(RoutineKey, TOP_LEVEL_NAV_ITEMS.keys)
     val navigator = remember { Navigator(navigationState) }
-    var shouldShowNavBar by remember { mutableStateOf(true) }
+    val isInTopLevel = navigationState.currentKey in navigationState.topLevelKeys
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
@@ -69,12 +73,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
                 )
             }
         },
-        layoutType = if (shouldShowNavBar) {
-            NavigationSuiteScaffoldDefaults
-                .calculateFromAdaptiveInfo(currentWindowAdaptiveInfo())
-        } else {
-            NavigationSuiteType.None
-        }
+        layoutType = NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(currentWindowAdaptiveInfo())
     ) {
         val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
         val entryProvider = entryProvider {
@@ -83,6 +82,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
             spendEntry(navigator)
             noteDetailEntry(navigator)
             experimentEntry(navigator)
+            routineChartEntry(navigator)
         }
         val entries = navigationState.toEntries(entryProvider)
         println("Current entries size: ${entries.size}")
@@ -95,9 +95,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
             ),
             onBack = { navigator.goBack() },
         )
-        shouldShowNavBar = navigationState.currentKey in navigationState.topLevelKeys
     }
-
 }
 
 @PreviewScreenSizes
