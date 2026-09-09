@@ -6,6 +6,6 @@ import java.util.UUID
 
 data class RoutineCard(
     val id: Long = 0,
-    val cardText: String,
-    val cardColor: Long,
+    val cardText: String = "",
+    val cardColor: Long = 0XFFFFFFFF,
 )

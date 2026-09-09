@@ -5,6 +5,7 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,6 +52,7 @@ fun ScratchMaskCard(
     backFaceColor: Color = MaterialTheme.colorScheme.tertiaryContainer,
     onFrontFaceClick: () -> Unit = {},
     onBackFaceClick: () -> Unit = {},
+    onLongClick: () -> Unit = {},
     isFrontColor: Boolean = true,
     content: @Composable ColumnScope.() -> Unit = {}
 ) {
@@ -87,12 +89,12 @@ fun ScratchMaskCard(
     Card(
         modifier = Modifier
             .aspectRatio(aspectRatio)
-            .clickable(
+            .combinedClickable(
                 interactionSource = remember { MutableInteractionSource() },
-                indication = null
-            ) {
-                if (!isAnimating) handleScratch()
-            }
+                indication = null,
+                onClick = { if (!isAnimating) handleScratch() },
+                onLongClick = onLongClick
+            )
             .border(2.dp, color = MaterialTheme.colorScheme.onSurface, shape = MaterialTheme.shapes.medium),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {

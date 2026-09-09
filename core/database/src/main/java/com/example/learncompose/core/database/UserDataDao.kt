@@ -9,6 +9,7 @@ import androidx.room.Update
 import com.example.learncompose.core.database.entity.RoutineCardEntity
 import com.example.learncompose.core.database.entity.RoutineDailyLogEntity
 import com.example.learncompose.core.model.RoutineCardWithLog
+import com.example.learncompose.core.model.RoutineDailyLog
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
@@ -59,6 +60,9 @@ interface UserDataDao {
             ON c.id = l.cardId AND l.recordDate = :date
     """)
     fun getCardsWithLogsByDate(date: LocalDate): Flow<List<RoutineCardWithLog>>
+
+    @Query("SELECT * FROM routine_daily_log WHERE cardId = :cardId")
+    fun getCardsAllDailyLog(cardId: Long): Flow<List<RoutineDailyLogEntity>>
 
     /**
      * 【查】获取某张卡牌在特定日期的记录

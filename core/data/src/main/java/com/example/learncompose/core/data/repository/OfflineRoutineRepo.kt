@@ -25,7 +25,7 @@ class OfflineRoutineRepo @Inject constructor(
         return userDataDao.insertCard(card.asRoutineCardEntity())
     }
 
-    override suspend fun getAllCards(): Flow<List<RoutineCard>> {
+    override fun getAllCards(): Flow<List<RoutineCard>> {
         return userDataDao.getAllCards().map { list -> list.map { it.asRoutineCard() } }
     }
 
@@ -43,6 +43,10 @@ class OfflineRoutineRepo @Inject constructor(
 
     override fun getCardsWithLogsByDate(date: LocalDate): Flow<List<RoutineCardWithLog>> {
         return userDataDao.getCardsWithLogsByDate(date)
+    }
+
+    override fun getCardsAllDailyLog(cardId: Long): Flow<List<RoutineDailyLog>> {
+        return userDataDao.getCardsAllDailyLog(cardId).map { list -> list.map { it.asRoutineDailyLog() } }
     }
 
     override suspend fun getDailyLog(

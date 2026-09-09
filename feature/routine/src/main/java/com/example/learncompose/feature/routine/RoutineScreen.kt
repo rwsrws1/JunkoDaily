@@ -35,6 +35,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -76,6 +77,9 @@ import kotlin.time.Duration.Companion.milliseconds
 val RoutineCardWithLog.composeColor: Color
     get() = Color(this.cardColor)
 
+val RoutineCard.composeColor: Color
+    get() = Color(this.cardColor)
+
 val LocalHandler = compositionLocalOf<(RoutineContract.Intent) -> Unit> {
     {}
 }
@@ -109,6 +113,8 @@ fun RoutineScreen(
     val rowListState = rememberLazyListState()
     var selectColor: Long by remember { mutableLongStateOf(colorList[0]) }
     val focusRequester = remember { FocusRequester() }
+    var isShowDialog by remember { mutableStateOf(false) }
+    var deleteCardId by remember { mutableLongStateOf(0) }
 
     val initialPage = 29
     val pagerState = rememberPagerState(
@@ -121,6 +127,42 @@ fun RoutineScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+
+        if (isShowDialog) {
+            AlertDialog(
+                onDismissRequest = {
+                    isShowDialog = false
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            handler(RoutineContract.Intent.DeleteCardById(deleteCardId))
+                            isShowDialog = false
+                        }
+                    ) {
+                        Text("确定")
+                    }
+                },
+                dismissButton = {
+                    Button(
+                        onClick = {
+                            isShowDialog = false
+                        }
+                    ) {
+                        Text("取消")
+                    }
+                },
+                icon = {
+                    Icon(painter = painterResource(R.drawable.mop_24px), null)
+                },
+                title = {
+                    Text("删除卡牌")
+                },
+                text = {
+                    Text("这将删除这个习惯的所有记录，确定吗？")
+                }
+            )
+        }
 
         if (showBottomSheet) {
             var textState by remember { mutableStateOf("") }
@@ -265,22 +307,28 @@ fun RoutineScreen(
                         Text("${currentData}", Modifier.align(Alignment.CenterHorizontally))
 
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            CardGrid(uiState[initialPage - page], currentData)
+                            CardGrid(uiState[initialPage - page], currentData, onLongClick = { id ->
+                                deleteCardId = id
+                                isShowDialog = true
+                            })
                         }
                     }
                 }
             }
         }
-
     }
 }
 
 @Composable
-fun CardGrid(uiState: RoutineContract.UiState, currentData: LocalDate) {
+fun CardGrid(
+    uiState: RoutineContract.UiState,
+    currentData: LocalDate,
+    onLongClick: (Long) -> Unit = {}
+) {
     val cardList = uiState.routineCardWithLogList
     val handler = LocalHandler.current
     val soundManager = rememberSoundManager()
-    val background = MaterialTheme.colorScheme.surface
+    val background = MaterialTheme.colorScheme.background
     LazyVerticalGrid(
         modifier = Modifier.fillMaxWidth(),
         columns = GridCells.Adaptive(60.dp),
@@ -292,7 +340,7 @@ fun CardGrid(uiState: RoutineContract.UiState, currentData: LocalDate) {
         items(items = cardList, key = { item -> item.cardId }) { item ->
             ScratchMaskCard(
                 frontFaceColor = remember(item.cardColor) {
-                    item.composeColor.copy(alpha = 0.1f).compositeOver(background)
+                    item.composeColor.copy(alpha = 0.05f).compositeOver(background)
                 },
                 backFaceColor = item.composeColor,
                 onFrontFaceClick = {
@@ -321,7 +369,10 @@ fun CardGrid(uiState: RoutineContract.UiState, currentData: LocalDate) {
                     )
                     soundManager.playEraserSound()
                 },
-                isFrontColor = !item.isCompleted
+                isFrontColor = !item.isCompleted,
+                onLongClick = {
+                    onLongClick(item.cardId)
+                }
             ) {
                 Column(Modifier.fillMaxSize(0.95f)) {
                     Spacer(Modifier.weight(1f))

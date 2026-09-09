@@ -4,8 +4,8 @@ import java.time.Instant
 import java.time.LocalDate
 
 data class RoutineDailyLog(
-    val cardId: Long,
-    val recordDate: LocalDate?,
-    val isCompleted: Boolean,
-    val completedAt: Instant?,
+    val cardId: Long = 0,
+    val recordDate: LocalDate? = LocalDate.now(),
+    val isCompleted: Boolean = false,
+    val completedAt: Instant? = Instant.now(),
 )

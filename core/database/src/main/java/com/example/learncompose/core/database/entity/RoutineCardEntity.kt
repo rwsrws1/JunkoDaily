@@ -20,7 +20,6 @@ fun RoutineCardEntity.asRoutineCard() = RoutineCard(
 )
 
 fun RoutineCard.asRoutineCardEntity() = RoutineCardEntity(
-    id = id,
     cardText = cardText,
     cardColor = cardColor
 )
