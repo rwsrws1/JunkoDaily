@@ -51,10 +51,11 @@ fun ScratchMaskCard(
     backFaceColor: Color = MaterialTheme.colorScheme.tertiaryContainer,
     onFrontFaceClick: () -> Unit = {},
     onBackFaceClick: () -> Unit = {},
+    isFrontColor: Boolean = true,
     content: @Composable ColumnScope.() -> Unit = {}
 ) {
     val scope = LocalCardScopeProvider.current
-    var isFrontColor by rememberSaveable { mutableStateOf(true) }
+    var isFrontColor by rememberSaveable { mutableStateOf(isFrontColor) }
     var isAnimating by rememberSaveable { mutableStateOf(false) }
     val scratchProgress = rememberSaveable(saver = FloatAnimatableSaver) { Animatable(0f) }
     val layerPaint = remember { Paint() }

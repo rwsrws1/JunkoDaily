@@ -7,8 +7,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 
-class SoundManager(context: Context) {
+interface SoundManager {
+    fun playClickSound()
+    fun playWriteSound()
+    fun playEraserSound()
+    fun release()
+}
+
+class RealSoundManager(context: Context) : SoundManager {
     private val soundPool: SoundPool
     private val clickSound: Int
     private val writeSound: Int
@@ -31,30 +39,44 @@ class SoundManager(context: Context) {
         eraserSound = soundPool.load(context, R.raw.eraser_sound, 1)
     }
 
-    fun playClickSound() {
+    override fun playClickSound() {
         // 参数：soundID, leftVolume, rightVolume, priority, loop, rate
         soundPool.play(clickSound, 1.0f, 1.0f, 1, 0, 1.0f)
     }
 
-    fun playWriteSound() {
+    override fun playWriteSound() {
         // 参数：soundID, leftVolume, rightVolume, priority, loop, rate
         soundPool.play(writeSound, 1.0f, 1.0f, 1, 0, 1.0f)
     }
 
-    fun playEraserSound() {
+    override fun playEraserSound() {
         // 参数：soundID, leftVolume, rightVolume, priority, loop, rate
         soundPool.play(eraserSound, 1.0f, 1.0f, 1, 0, 1.0f)
     }
 
-    fun release() {
+    override fun release() {
         soundPool.release()
     }
+}
+
+class NoOpSoundManager : SoundManager {
+    override fun playClickSound() {}
+    override fun playWriteSound() {}
+    override fun playEraserSound() {}
+    override fun release() {}
 }
 
 @Composable
 fun rememberSoundManager(): SoundManager {
     val context = LocalContext.current.applicationContext
-    val soundManager = remember { SoundManager(context) }
+    val isPreview = LocalInspectionMode.current
+    val soundManager = remember {
+        if (isPreview) {
+            NoOpSoundManager()
+        } else {
+            RealSoundManager(context)
+        }
+    }
 
     // 当 Composable 销毁时清理资源
     DisposableEffect(Unit) {

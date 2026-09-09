@@ -16,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.learncompose.core.designsystem.theme.AppTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -27,6 +28,9 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PageSize
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -47,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -70,7 +75,11 @@ val LocalHandler = compositionLocalOf<(RoutineContract.Intent) -> Unit> {
 }
 
 @Composable
-fun RoutineViewModelScreen(modifier: Modifier = Modifier, viewModel: RoutineViewModel, onChartClick: () -> Unit = {}) {
+fun RoutineViewModelScreen(
+    modifier: Modifier = Modifier,
+    viewModel: RoutineViewModel,
+    onChartClick: () -> Unit = {}
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     CompositionLocalProvider(
         LocalHandler provides viewModel::handleIntent
@@ -81,8 +90,11 @@ fun RoutineViewModelScreen(modifier: Modifier = Modifier, viewModel: RoutineView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RoutineScreen(modifier: Modifier = Modifier, uiState: RoutineContract.UiState = RoutineContract.UiState(), onChartClick: () -> Unit = {}) {
-    val cardList = uiState.cardList
+fun RoutineScreen(
+    modifier: Modifier = Modifier,
+    uiState: RoutineContract.UiState = RoutineContract.UiState(),
+    onChartClick: () -> Unit = {}
+) {
     val handler = LocalHandler.current
     val scope = rememberCoroutineScope()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
@@ -90,6 +102,12 @@ fun RoutineScreen(modifier: Modifier = Modifier, uiState: RoutineContract.UiStat
     val colorList = remember { generateDistinctColorLongs(30) }
     val rowListState = rememberLazyListState()
     var selectColor: Long by remember { mutableLongStateOf(colorList[0]) }
+
+    val initialPage = 15
+    val pagerState = rememberPagerState(
+        initialPage = initialPage,
+        pageCount = { 29 }
+    )
 
     Box(
         modifier = modifier
@@ -150,7 +168,7 @@ fun RoutineScreen(modifier: Modifier = Modifier, uiState: RoutineContract.UiStat
                         modifier = Modifier.fillMaxWidth(),
                         contentPadding = PaddingValues(horizontal = 10.dp),
                     ) {
-                        items(count= colorList.size, key = { it }) { index ->
+                        items(count = colorList.size, key = { it }) { index ->
                             Box(
                                 Modifier
                                     .padding(horizontal = 5.dp)
@@ -209,29 +227,49 @@ fun RoutineScreen(modifier: Modifier = Modifier, uiState: RoutineContract.UiStat
                 }
             }
         ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .consumeWindowInsets(paddingValues)
+            CompositionLocalProvider(
+                LocalCardScopeProvider provides rememberCoroutineScope()
             ) {
-                Text("${uiState.currentRecordDate}", Modifier.align(Alignment.CenterHorizontally))
-                CompositionLocalProvider(
-                    LocalCardScopeProvider provides rememberCoroutineScope()
-                ) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CardGrid(cardList)
+                HorizontalPager(
+                    key = { it },
+                    state = pagerState,
+                    modifier = Modifier.fillMaxWidth(),
+                    pageSize = PageSize.Fill,
+                    pageSpacing = 0.dp,
+                    contentPadding = PaddingValues(horizontal = 0.dp),
+                    beyondViewportPageCount = 0
+                ) { page ->
+
+                    val currentDataOffset = (page - initialPage).toLong()
+                    val today = LocalDate.now()
+                    val currentData = if (currentDataOffset > 0) {
+                        today.plusDays(currentDataOffset)
+                    } else {
+                        today.minusDays(-currentDataOffset)
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues)
+                            .consumeWindowInsets(paddingValues)
+                    ) {
+                        Text("${currentData}", Modifier.align(Alignment.CenterHorizontally))
+
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CardGrid(uiState, currentData)
+                        }
                     }
                 }
             }
-
         }
 
     }
 }
 
 @Composable
-fun CardGrid(gridItemList: List<RoutineCard>) {
+fun CardGrid(uiState: RoutineContract.UiState, currentData: LocalDate) {
+    val cardList = uiState.cardList
     val handler = LocalHandler.current
     val soundManager = rememberSoundManager()
     val background = MaterialTheme.colorScheme.surface
@@ -243,22 +281,28 @@ fun CardGrid(gridItemList: List<RoutineCard>) {
         verticalArrangement = Arrangement.spacedBy(20.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        items(items = gridItemList, key = { item -> item.id }) { item ->
+        items(items = cardList, key = { item -> item.id }) { item ->
             ScratchMaskCard(
                 frontFaceColor = remember(item.color) {
-                    item.composeColor.copy(alpha = 0.1f).compositeOver(background) },
+                    item.composeColor.copy(alpha = 0.1f).compositeOver(background)
+                },
                 backFaceColor = item.composeColor,
                 onFrontFaceClick = {
-                    handler(RoutineContract.Intent.UpdateRoutineCard(item.copy(
-                        isCompleted = true,
-                        recordDate = LocalDate.now()
-                    )))
+                    handler(
+                        RoutineContract.Intent.UpdateRoutineCard(
+                            item.copy(
+                                isCompleted = true,
+                                recordDate = currentData
+                            )
+                        )
+                    )
                     soundManager.playWriteSound()
                 },
                 onBackFaceClick = {
                     handler(RoutineContract.Intent.UpdateRoutineCard(item.copy(isCompleted = false)))
                     soundManager.playEraserSound()
-                }
+                },
+                isFrontColor = !item.isCompleted
             ) {
                 Column(Modifier.fillMaxSize(0.95f)) {
                     Spacer(Modifier.weight(1f))
