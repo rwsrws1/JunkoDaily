@@ -57,7 +57,7 @@ dependencies {
     implementation(projects.feature.introduction)
     implementation(projects.feature.auth)
     implementation(projects.feature.experiment)
-    implementation(projects.feature.note)
+    implementation(projects.feature.chart)
     implementation(projects.feature.routine)
     implementation(projects.feature.spend)
 

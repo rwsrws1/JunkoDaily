@@ -4,14 +4,12 @@ import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object NoteKey : NavKey
+data object ChartKey : NavKey
 @Serializable
 data object RoutineKey : NavKey
 @Serializable
 data object SpendKey : NavKey
 @Serializable
-data object NoteDetailKey : NavKey
+data object SpendDetailKey : NavKey
 @Serializable
 data object ExperimentKey : NavKey
-@Serializable
-data object RoutineChartKey : NavKey

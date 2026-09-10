@@ -2,7 +2,7 @@ package com.example.learncompose.feature.routine.chart
 
 import com.example.learncompose.core.model.RoutineCardsAndLogs
 
-class RoutineChartContract {
+class ChartContract {
     data class UiState(
         val cardsAndLogs: List<RoutineCardsAndLogs> = listOf(RoutineCardsAndLogs())
     )

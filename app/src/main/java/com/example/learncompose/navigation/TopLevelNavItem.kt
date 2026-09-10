@@ -11,29 +11,29 @@ data class TopLevelNavItem(
     @StringRes val titleTextId: Int,
 )
 
-val NOTE = TopLevelNavItem(
-    selectIconId = AppIcons.noteFilled,
-    unSelectIconId = AppIcons.note,
-    iconTextId = R.string.app_name,
-    titleTextId = R.string.app_name,
-)
-
 val ROUTINE = TopLevelNavItem(
     selectIconId = AppIcons.routineFilled,
     unSelectIconId = AppIcons.routine,
-    iconTextId = R.string.app_name,
-    titleTextId = R.string.app_name,
+    iconTextId = R.string.routine,
+    titleTextId = R.string.routine,
+)
+
+val CHART = TopLevelNavItem(
+    selectIconId = AppIcons.chartFilled,
+    unSelectIconId = AppIcons.chart,
+    iconTextId = R.string.chart,
+    titleTextId = R.string.chart,
 )
 
 val SPEND = TopLevelNavItem(
     selectIconId = AppIcons.spendFilled,
     unSelectIconId = AppIcons.spend,
-    iconTextId = R.string.app_name,
-    titleTextId = R.string.app_name,
+    iconTextId = R.string.spend,
+    titleTextId = R.string.spend,
 )
 
 val TOP_LEVEL_NAV_ITEMS = mapOf (
-    NoteKey to NOTE,
     RoutineKey to ROUTINE,
+    ChartKey to CHART,
     SpendKey to SPEND
 )

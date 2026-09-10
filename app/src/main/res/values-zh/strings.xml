@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">学习Compose</string>
-    <string name="note">便签</string>
     <string name="routine">日常</string>
-    <string name="spend">开销</string>
+    <string name="chart">统计</string>
+    <string name="spend">我的</string>
 </resources>

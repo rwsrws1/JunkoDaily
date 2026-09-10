@@ -5,12 +5,14 @@ plugins {
 }
 
 android {
-    namespace = "com.example.learncompose.feature.note"
+    namespace = "com.example.learncompose.feature.chart"
 }
 
 dependencies {
     implementation(projects.core.designsystem)
     implementation(projects.core.navigation)
+    implementation(projects.core.data)
+    implementation(projects.core.model)
     implementation(projects.core.common)
 
     implementation(libs.androidx.navigation3.runtime)

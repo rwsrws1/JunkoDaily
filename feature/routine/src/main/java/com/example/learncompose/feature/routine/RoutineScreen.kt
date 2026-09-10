@@ -37,11 +37,18 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -72,12 +79,12 @@ import com.example.learncompose.core.model.RoutineDailyLog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.ZoneId
+import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
+import androidx.compose.ui.platform.LocalLocale
 
 val RoutineCardWithLog.composeColor: Color
-    get() = Color(this.cardColor)
-
-val RoutineCard.composeColor: Color
     get() = Color(this.cardColor)
 
 val LocalHandler = compositionLocalOf<(RoutineContract.Intent) -> Unit> {
@@ -115,18 +122,56 @@ fun RoutineScreen(
     val focusRequester = remember { FocusRequester() }
     var isShowDialog by remember { mutableStateOf(false) }
     var deleteCardId by remember { mutableLongStateOf(0) }
-
     val initialPage = 29
     val pagerState = rememberPagerState(
         initialPage = initialPage,
         pageCount = { 30 }
     )
 
+//    var isShowDatePicker by remember { mutableStateOf(false) }
+//    val todayUtcMillis = LocalDate.now()
+//        .atStartOfDay(ZoneId.of("UTC"))
+//        .toInstant()
+//        .toEpochMilli()
+//    val datePickerState = rememberDatePickerState(
+//        selectableDates = object : SelectableDates {
+//            // 限制日历上的具体某一天是否可选
+//            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
+//                return utcTimeMillis >= todayUtcMillis
+//            }
+//
+//            // （可选）限制年份下拉菜单中的可选项
+//            override fun isSelectableYear(year: Int): Boolean {
+//                return year >= LocalDate.now().year
+//            }
+//        }
+//    )
+
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+
+//        if (isShowDatePicker) {
+//            DatePickerDialog(
+//                onDismissRequest = { isShowDatePicker = false },
+//                confirmButton = {
+//                    TextButton(onClick = {
+//                        isShowDatePicker = false
+//                    }) {
+//                        Text("OK")
+//                    }
+//                },
+//                dismissButton = {
+//                    TextButton(onClick = { isShowDatePicker = false }) {
+//                        Text("Cancel")
+//                    }
+//                }
+//            ) {
+//                DatePicker(state = datePickerState)
+//            }
+//        }
 
         if (isShowDialog) {
             AlertDialog(
@@ -270,7 +315,7 @@ fun RoutineScreen(
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             topBar = {
-                TopBarPrimary(onActionsClick = onChartClick)
+                TopBarPrimary()
             },
             floatingActionButton = {
                 FloatingActionButton(
@@ -304,8 +349,8 @@ fun RoutineScreen(
                             .padding(paddingValues)
                             .consumeWindowInsets(paddingValues)
                     ) {
-                        Text("${currentData}", Modifier.align(Alignment.CenterHorizontally))
-
+                        Text("$currentData  ${currentData.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, LocalLocale.current.platformLocale)}", Modifier.align(Alignment.CenterHorizontally))
+                        Spacer(Modifier.height(10.dp))
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             CardGrid(uiState[initialPage - page], currentData, onLongClick = { id ->
                                 deleteCardId = id
@@ -333,7 +378,7 @@ fun CardGrid(
         modifier = Modifier.fillMaxWidth(),
         columns = GridCells.Adaptive(60.dp),
         state = rememberLazyGridState(),
-        contentPadding = PaddingValues(horizontal = 20.dp),
+        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {

@@ -7,25 +7,38 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.example.learncompose.core.navigation.Navigator
 import com.example.learncompose.feature.experiment.main.ExperimentScreen
-import com.example.learncompose.feature.note.NoteDetailScreen
-import com.example.learncompose.feature.note.NoteScreen
-import com.example.learncompose.feature.routine.chart.RoutineChartScreen
 import com.example.learncompose.feature.routine.RoutineViewModelScreen
-import com.example.learncompose.feature.routine.chart.RoutineChartViewModelScreen
+import com.example.learncompose.feature.chart.ChartViewModelScreen
+import com.example.learncompose.feature.spend.SpendDetailScreen
 import com.example.learncompose.feature.spend.SpendScreen
 
+fun EntryProviderScope<NavKey>.chartEntry(navigator: Navigator) {
+    entry<ChartKey>(
+    ) {
+        ChartViewModelScreen(viewModel = hiltViewModel())
+    }
+}
+
+fun EntryProviderScope<NavKey>.routineEntry(navigator: Navigator) {
+    entry<RoutineKey> {
+        RoutineViewModelScreen(viewModel = hiltViewModel())
+    }
+}
+
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
-fun EntryProviderScope<NavKey>.noteEntry(navigator: Navigator) {
-    entry<NoteKey>(
+fun EntryProviderScope<NavKey>.spendEntry(navigator: Navigator) {
+    entry<SpendKey>(
         metadata = ListDetailSceneStrategy.listPane {
-            RoutineViewModelScreen(viewModel = hiltViewModel(), onChartClick = {
-                navigator.navigate(RoutineChartKey)
-            })
+            SpendDetailScreen(
+                onBack = {
+                    navigator.goBack()
+                }
+            )
         }
     ) {
-        NoteScreen(
+        SpendScreen(
             onClick = {
-                navigator.navigate(NoteDetailKey)
+                navigator.navigate(SpendDetailKey)
             },
             toExperiment = {
                 navigator.navigate(ExperimentKey)
@@ -34,27 +47,12 @@ fun EntryProviderScope<NavKey>.noteEntry(navigator: Navigator) {
     }
 }
 
-fun EntryProviderScope<NavKey>.routineEntry(navigator: Navigator) {
-    entry<RoutineKey> {
-        RoutineViewModelScreen(viewModel = hiltViewModel(), onChartClick = {
-            navigator.navigate(RoutineChartKey)
-        })
-    }
-}
-
-fun EntryProviderScope<NavKey>.spendEntry(navigator: Navigator) {
-    entry<SpendKey> {
-        SpendScreen(
-        )
-    }
-}
-
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
-fun EntryProviderScope<NavKey>.noteDetailEntry(navigator: Navigator) {
-    entry<NoteDetailKey>(
+fun EntryProviderScope<NavKey>.spendDetailEntry(navigator: Navigator) {
+    entry<SpendDetailKey>(
         metadata = ListDetailSceneStrategy.detailPane()
     ) {
-        NoteDetailScreen(
+        SpendDetailScreen(
             onBack = {
                 navigator.goBack()
             }
@@ -66,23 +64,6 @@ fun EntryProviderScope<NavKey>.experimentEntry(navigator: Navigator) {
     entry<ExperimentKey>(
     ) {
         ExperimentScreen(
-        )
-    }
-}
-
-fun EntryProviderScope<NavKey>.routineChartEntry(navigator: Navigator) {
-    entry<RoutineChartKey>(
-//        metadata = NavDisplay.transitionSpec {
-//            slideInHorizontally(animationSpec = tween(500)) { it } togetherWith ExitTransition.None
-//        } + NavDisplay.popTransitionSpec {
-//            EnterTransition.None togetherWith slideOutHorizontally(animationSpec = tween(500)) { it }
-//        }
-    ) {
-        RoutineChartViewModelScreen(
-            viewModel = hiltViewModel(),
-            onNavigationClick = {
-                navigator.goBack()
-            }
         )
     }
 }

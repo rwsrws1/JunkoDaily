@@ -73,7 +73,7 @@ fun TopBarPrimary(title: String = "Chunzi",onNavigationClick: (() -> Unit)? = nu
                 IconButton(
                     onClick = onActionsClick
                 ) {
-                    Icon(painter = painterResource(R.drawable.bar_chart_4_bars_24px), null)
+                    Icon(painter = painterResource(R.drawable.placehodler_filled), null)
                 }
 
                 // 2. 用 Box 作为锚点，确保菜单永远对齐这个按钮的右上角
