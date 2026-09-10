@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
  */
 fun generateDistinctColorLongs(
     count: Int,
-    saturation: Float = 0.75f,
+    saturation: Float = 0.5f,
     lightness: Float = 0.5f
 ): List<Long> {
     if (count <= 0) return emptyList()

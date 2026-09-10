@@ -16,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.learncompose.core.designsystem.theme.AppTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,6 +48,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SelectableDates
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -95,13 +97,12 @@ val LocalHandler = compositionLocalOf<(RoutineContract.Intent) -> Unit> {
 fun RoutineViewModelScreen(
     modifier: Modifier = Modifier,
     viewModel: RoutineViewModel,
-    onChartClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     CompositionLocalProvider(
         LocalHandler provides viewModel::handleIntent
     ) {
-        RoutineScreen(modifier, uiState, onChartClick)
+        RoutineScreen(modifier, uiState)
     }
 }
 
@@ -110,68 +111,29 @@ fun RoutineViewModelScreen(
 fun RoutineScreen(
     modifier: Modifier = Modifier,
     uiState: List<RoutineContract.UiState> = listOf(RoutineContract.UiState()),
-    onChartClick: () -> Unit = {}
 ) {
     val handler = LocalHandler.current
     val scope = rememberCoroutineScope()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true) {
+        it != SheetValue.PartiallyExpanded
+    }
     val colorList = remember { generateDistinctColorLongs(30) }
     val rowListState = rememberLazyListState()
     var selectColor: Long by remember { mutableLongStateOf(colorList[0]) }
-    val focusRequester = remember { FocusRequester() }
     var isShowDialog by remember { mutableStateOf(false) }
     var deleteCardId by remember { mutableLongStateOf(0) }
     val initialPage = 29
     val pagerState = rememberPagerState(
         initialPage = initialPage,
-        pageCount = { 30 }
+        pageCount = { initialPage + 1 }
     )
-
-//    var isShowDatePicker by remember { mutableStateOf(false) }
-//    val todayUtcMillis = LocalDate.now()
-//        .atStartOfDay(ZoneId.of("UTC"))
-//        .toInstant()
-//        .toEpochMilli()
-//    val datePickerState = rememberDatePickerState(
-//        selectableDates = object : SelectableDates {
-//            // 限制日历上的具体某一天是否可选
-//            override fun isSelectableDate(utcTimeMillis: Long): Boolean {
-//                return utcTimeMillis >= todayUtcMillis
-//            }
-//
-//            // （可选）限制年份下拉菜单中的可选项
-//            override fun isSelectableYear(year: Int): Boolean {
-//                return year >= LocalDate.now().year
-//            }
-//        }
-//    )
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-
-//        if (isShowDatePicker) {
-//            DatePickerDialog(
-//                onDismissRequest = { isShowDatePicker = false },
-//                confirmButton = {
-//                    TextButton(onClick = {
-//                        isShowDatePicker = false
-//                    }) {
-//                        Text("OK")
-//                    }
-//                },
-//                dismissButton = {
-//                    TextButton(onClick = { isShowDatePicker = false }) {
-//                        Text("Cancel")
-//                    }
-//                }
-//            ) {
-//                DatePicker(state = datePickerState)
-//            }
-//        }
 
         if (isShowDialog) {
             AlertDialog(
@@ -215,7 +177,8 @@ fun RoutineScreen(
                 onDismissRequest = {
                     showBottomSheet = false
                 },
-                sheetState = sheetState
+                sheetState = sheetState,
+                contentWindowInsets = { WindowInsets() }
             ) {
                 Column(
                     modifier = Modifier
@@ -233,8 +196,7 @@ fun RoutineScreen(
                             .height(50.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .background(MaterialTheme.colorScheme.secondaryContainer)
-                            .padding(horizontal = 12.dp)
-                            .focusRequester(focusRequester),
+                            .padding(horizontal = 12.dp),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         decorationBox = { innerTextField ->
@@ -255,7 +217,7 @@ fun RoutineScreen(
                             }
                         },
                     )
-                    Spacer(Modifier.height(20.dp))
+                    Spacer(Modifier.height(10.dp))
                     Text(text = "颜色")
                     Spacer(Modifier.height(10.dp))
                     LazyRow(
@@ -303,11 +265,6 @@ fun RoutineScreen(
                         Text("确定")
                     }
                     Spacer(Modifier.height(20.dp))
-
-
-                    SideEffect {
-//                        focusRequester.requestFocus()
-                    }
                 }
             }
         }
@@ -328,7 +285,7 @@ fun RoutineScreen(
             }
         ) { paddingValues ->
             CompositionLocalProvider(
-                LocalCardScopeProvider provides rememberCoroutineScope()
+                LocalCardScopeProvider provides scope
             ) {
                 HorizontalPager(
                     key = { it },
