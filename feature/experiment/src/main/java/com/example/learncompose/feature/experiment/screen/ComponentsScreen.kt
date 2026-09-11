@@ -91,6 +91,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.learncompose.feature.experiment.R
 import com.example.learncompose.core.designsystem.theme.AppTheme
+import com.example.learncompose.feature.experiment.AvatarSelector
 import com.example.learncompose.feature.experiment.data.broadcast.PowerStatusScreen
 import com.example.learncompose.feature.experiment.data.contract.FeatureScreen
 import com.example.learncompose.feature.experiment.data.network.NetworkStatusScreen
@@ -98,7 +99,6 @@ import com.example.learncompose.feature.experiment.data.room.UserScreen
 import com.example.learncompose.feature.experiment.data.service.TrackerScreen
 import com.example.learncompose.feature.experiment.data.worker.DownloadContent
 import com.example.learncompose.feature.experiment.data.worker.DownloadScreen
-import com.example.learncompose.feature.experiment.features.home.page.char.ChartDemoScreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate

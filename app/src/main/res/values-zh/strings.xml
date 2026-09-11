@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">学习Compose</string>
+    <string name="app_name">我的日常</string>
     <string name="routine">日常</string>
     <string name="chart">统计</string>
     <string name="spend">我的</string>

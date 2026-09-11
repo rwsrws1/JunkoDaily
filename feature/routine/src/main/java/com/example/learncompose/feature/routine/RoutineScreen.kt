@@ -47,11 +47,15 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -62,7 +66,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
@@ -71,7 +77,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.learncompose.core.common.rememberSoundManager
-import com.example.learncompose.core.designsystem.components.TopBarPrimary
 import com.example.learncompose.core.designsystem.components.card.LocalCardScopeProvider
 import com.example.learncompose.core.designsystem.components.card.ScratchMaskCard
 import com.example.learncompose.core.designsystem.generateDistinctColorLongs
@@ -85,6 +90,8 @@ import java.time.ZoneId
 import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
 import androidx.compose.ui.platform.LocalLocale
+import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
 
 val RoutineCardWithLog.composeColor: Color
     get() = Color(this.cardColor)
@@ -92,6 +99,8 @@ val RoutineCardWithLog.composeColor: Color
 val LocalHandler = compositionLocalOf<(RoutineContract.Intent) -> Unit> {
     {}
 }
+
+private val MONTH_DAY_FORMATTER = DateTimeFormatter.ofPattern("MM-dd")
 
 @Composable
 fun RoutineViewModelScreen(
@@ -118,7 +127,7 @@ fun RoutineScreen(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true) {
         it != SheetValue.PartiallyExpanded
     }
-    val colorList = remember { generateDistinctColorLongs(30) }
+    val colorList = remember { generateDistinctColorLongs(36) }
     val rowListState = rememberLazyListState()
     var selectColor: Long by remember { mutableLongStateOf(colorList[0]) }
     var isShowDialog by remember { mutableStateOf(false) }
@@ -128,6 +137,20 @@ fun RoutineScreen(
         initialPage = initialPage,
         pageCount = { initialPage + 1 }
     )
+
+    val today = remember { LocalDate.now() }
+    val currentDate by remember {
+        derivedStateOf {
+            today.minusDays((initialPage - pagerState.currentPage).toLong())
+        }
+    }
+    val currentLocale = LocalLocale.current.platformLocale
+    val monthDayStr by remember {
+        derivedStateOf { currentDate.format(MONTH_DAY_FORMATTER) }
+    }
+    val dayOfWeekStr by remember {
+        derivedStateOf { currentDate.dayOfWeek.getDisplayName(TextStyle.FULL, currentLocale) }
+    }
 
     Box(
         modifier = modifier
@@ -272,12 +295,26 @@ fun RoutineScreen(
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             topBar = {
-                TopBarPrimary()
+                TopAppBar(
+                    title = {
+                        Column() {
+                            Text(monthDayStr, style = MaterialTheme.typography.titleMedium)
+                            Text(dayOfWeekStr, style = MaterialTheme.typography.titleMedium)
+                        }
+                    }
+                )
             },
             floatingActionButton = {
                 FloatingActionButton(
                     onClick = {
                         showBottomSheet = true
+//                        repeat(36) { time ->
+//                            handler(
+//                                RoutineContract.Intent.InsertCard(
+//                                    RoutineCard(cardText = "测试卡片颜色", cardColor = colorList[time])
+//                                )
+//                            )
+//                        }
                     }
                 ) {
                     Icon(painterResource(R.drawable.add_24px), contentDescription = "")
@@ -296,18 +333,13 @@ fun RoutineScreen(
                     contentPadding = PaddingValues(horizontal = 0.dp),
                     beyondViewportPageCount = 0
                 ) { page ->
-
-                    val today = LocalDate.now()
-                    val currentData = today.minusDays((initialPage - page).toLong())
-
+                    val currentData = remember(page) { today.minusDays((initialPage - page).toLong()) }
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(paddingValues)
                             .consumeWindowInsets(paddingValues)
                     ) {
-                        Text("$currentData  ${currentData.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, LocalLocale.current.platformLocale)}", Modifier.align(Alignment.CenterHorizontally))
-                        Spacer(Modifier.height(10.dp))
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             CardGrid(uiState[initialPage - page], currentData, onLongClick = { id ->
                                 deleteCardId = id

@@ -73,11 +73,11 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigationevent.compose.LocalNavigationEventDispatcherOwner
 import androidx.navigationevent.compose.rememberNavigationEventDispatcherOwner
 import com.example.learncompose.feature.experiment.R
-import com.example.learncompose.core.designsystem.components.SearchComponent
+import com.example.learncompose.feature.experiment.SearchComponent
 import com.example.learncompose.core.designsystem.theme.AppTheme
 import com.example.learncompose.feature.experiment.main.navigation.ExperimentNavGraph
 import com.example.learncompose.feature.experiment.main.navigation.ExperimentNavKey
-import com.example.learncompose.feature.experiment.screen.AvatarSelector
+import com.example.learncompose.feature.experiment.AvatarSelector
 import kotlinx.coroutines.launch
 
 val localExperimentHandler = staticCompositionLocalOf<(ExperimentContract.Intent) -> Unit> { {} }

@@ -19,7 +19,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.example.learncompose.core.designsystem.components.getActivity
+import com.example.learncompose.feature.experiment.getActivity
 
 /**
  * 跳转到系统设置页

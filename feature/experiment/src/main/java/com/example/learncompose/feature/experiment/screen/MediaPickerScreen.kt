@@ -19,7 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.example.learncompose.core.designsystem.components.CustomComposeVideoPlayer
+import com.example.learncompose.feature.experiment.CustomComposeVideoPlayer
 import com.example.learncompose.feature.experiment.features.home.page.char.ChartDemoScreen
 import kotlinx.coroutines.delay
 import java.util.Locale

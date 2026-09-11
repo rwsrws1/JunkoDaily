@@ -28,7 +28,7 @@ fun SpendScreen(modifier: Modifier = Modifier, onClick: () -> Unit = {}, toExper
 
     Box(modifier = modifier
         .fillMaxSize()
-        .background(MaterialTheme.colorScheme.background)
+        .background(MaterialTheme.colorScheme.surfaceContainer)
     ) {
         Column(
             modifier = Modifier.fillMaxSize()
@@ -50,9 +50,8 @@ fun StaggeredCardGrid(onClick: () -> Unit = {}, toExperiment: () -> Unit = {}) {
         verticalArrangement = Arrangement.spacedBy(10.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-
         item(span = { GridItemSpan(maxLineSpan) }, key = "button_Button_1") {
-            Button(onClick = toExperiment, enabled = false) {
+            Button(onClick = toExperiment) {
                 Text("go to experiment")
             }
         }
@@ -62,9 +61,7 @@ fun StaggeredCardGrid(onClick: () -> Unit = {}, toExperiment: () -> Unit = {}) {
             }
         }
         item(span = { GridItemSpan(maxLineSpan) }, key = "button_Button_3") {
-            Button(onClick = {
-                soundManager.playClickSound()
-            }) {
+            Button(onClick = { soundManager.playClickSound() }) {
                 Text("sound test")
             }
         }

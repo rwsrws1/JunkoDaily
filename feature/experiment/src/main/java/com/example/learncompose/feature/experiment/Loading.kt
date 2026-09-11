@@ -1,4 +1,4 @@
-package com.example.learncompose.core.designsystem.components
+package com.example.learncompose.feature.experiment
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

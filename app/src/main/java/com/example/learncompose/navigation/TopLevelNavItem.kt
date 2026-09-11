@@ -35,5 +35,5 @@ val SPEND = TopLevelNavItem(
 val TOP_LEVEL_NAV_ITEMS = mapOf (
     RoutineKey to ROUTINE,
     ChartKey to CHART,
-    SpendKey to SPEND
+//    SpendKey to SPEND
 )

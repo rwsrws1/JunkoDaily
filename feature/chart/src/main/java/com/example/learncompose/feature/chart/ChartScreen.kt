@@ -11,8 +11,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -22,20 +25,31 @@ import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.learncompose.core.designsystem.components.TopBarPrimary
 import com.example.learncompose.core.model.RoutineCard
 import com.example.learncompose.core.model.RoutineCardsAndLogs
 import com.example.learncompose.feature.routine.chart.ChartContract
@@ -54,23 +68,39 @@ fun ChartViewModelScreen(modifier: Modifier = Modifier, viewModel: ChartViewMode
     ChartScreen(modifier, uiState)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChartScreen(modifier: Modifier = Modifier, uiState: ChartContract.UiState = ChartContract.UiState()) {
     val cardsAndLogs = uiState.cardsAndLogs
 
-    val today = LocalDate.now()
     val initialPage = 11
     val pagerState = rememberPagerState(
         initialPage = initialPage,
         pageCount = { initialPage + 1 }
     )
 
+    val today = remember { LocalDate.now() }
+    val currentDay by remember {
+        derivedStateOf {
+            today.minusMonths((initialPage - pagerState.currentPage).toLong())
+        }
+    }
+    val yearMonthStr by remember {
+        derivedStateOf {
+            currentDay.format(YEAR_MONTH_FORMATTER)
+        }
+    }
+
     Box(modifier
         .fillMaxSize()
         .background(MaterialTheme.colorScheme.background))
     {
         Column(Modifier.fillMaxSize()) {
-            TopBarPrimary()
+            TopAppBar(
+                title = {
+                    Text(yearMonthStr, style = MaterialTheme.typography.titleMedium)
+                }
+            )
             HorizontalPager(
                 state = pagerState,
                 pageSize = PageSize.Fill,
@@ -81,10 +111,7 @@ fun ChartScreen(modifier: Modifier = Modifier, uiState: ChartContract.UiState = 
                 val currentDay = remember(page, today) {
                     today.minusMonths((initialPage - page).toLong())
                 }
-                val yearMonthStr = currentDay.format(YEAR_MONTH_FORMATTER)
                 Column(Modifier.fillMaxSize()) {
-                    Text("$yearMonthStr", Modifier.align(Alignment.CenterHorizontally), textAlign = TextAlign.Center)
-                    Spacer(Modifier.height(10.dp))
                     ChartPage(cardsAndLogs = cardsAndLogs, currentYear = currentDay.year, currentMonth = currentDay.monthValue)
                 }
             }
@@ -142,66 +169,49 @@ private fun ChartCard(
 ) {
     Card(
         Modifier
-            .aspectRatio(1f / 1f)
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.onSurface,
-                shape = MaterialTheme.shapes.medium
-            ),
+            .aspectRatio(1f / 1.1f)
+//            .border(
+//                width = 1.dp,
+//                color = MaterialTheme.colorScheme.onSurface,
+//                shape = MaterialTheme.shapes.medium
+//            )
+        ,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
         )
     ) {
         Spacer(Modifier.height(10.dp))
         Text(
             cardAndLog.card.cardText,
-            Modifier.align(Alignment.CenterHorizontally)
+            Modifier.align(Alignment.CenterHorizontally),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
-
-
-//        LazyVerticalGrid(
-//            modifier = Modifier.fillMaxSize(),
-//            columns = GridCells.Fixed(7),
-//            contentPadding = PaddingValues(10.dp),
-//            verticalArrangement = Arrangement.spacedBy(3.dp),
-//            horizontalArrangement = Arrangement.spacedBy(3.dp)
-//        ) {
-//            item(key = "box_a") {
-//                Box(
-//                    Modifier
-//                        .aspectRatio(1f / 1f)
-//                        .background(
-//                            Color.Transparent
-//                        )
-//                )
-//            }
-//            item(key = "box_b") {
-//                Box(
-//                    Modifier
-//                        .aspectRatio(1f / 1f)
-//                        .background(
-//                            Color.Transparent
-//                        )
-//                )
-//            }
-//            items(count = daysInMonths, key = { "box$it" }) { day ->
-//                DayBox(
-//                    color = if (completedDays.contains(day)) cardAndLog.card.composeColor
-//                    else MaterialTheme.colorScheme.surfaceContainerHighest,
-//                    number = day + 1
-//                )
-//            }
-//        }
-
+        Spacer(Modifier.height(10.dp))
         CalendarGrid(
             daysInMonths = daysInMonths,
             completedDays = completedDays,
             activeColor = cardAndLog.card.composeColor,
             modifier = Modifier
-                .fillMaxSize()
-                .padding(10.dp)
+                .fillMaxWidth()
+                .weight(1f)
+                .padding(horizontal = 10.dp)
         )
-
+        Spacer(Modifier.height(5.dp))
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Spacer(Modifier.weight(1f))
+            Icon(painterResource(R.drawable.pace_24px), null, Modifier.size(15.dp))
+            Spacer(Modifier.width(3.dp))
+            Text("${completedDays.size * 100 / daysInMonths}%")
+            Spacer(Modifier.weight(0.5f))
+            VerticalDivider(Modifier.height(10.dp))
+            Spacer(Modifier.weight(0.5f))
+            Icon(painterResource(R.drawable.check_circle_24px), null, Modifier.size(15.dp))
+            Spacer(Modifier.width(3.dp))
+            Text("${completedDays.size}")
+            Spacer(Modifier.weight(1f))
+        }
+        Spacer(Modifier.height(5.dp))
     }
 }
 
@@ -239,7 +249,7 @@ private fun CalendarGrid(
                             modifier = Modifier
                                 .weight(1f)
                                 .fillMaxHeight(),
-                            color = if (isCompleted) activeColor else MaterialTheme.colorScheme.surfaceContainerHighest,
+                            color = if (isCompleted) activeColor else MaterialTheme.colorScheme.surfaceContainerLow,
                             number = dayNumber
                         )
                     } else {

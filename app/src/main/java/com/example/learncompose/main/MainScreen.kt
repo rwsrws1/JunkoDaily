@@ -3,10 +3,16 @@ package com.example.learncompose.main
 import androidx.compose.foundation.background
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.NavigationDrawerItemDefaults
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItemColors
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
@@ -20,9 +26,7 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.scene.SinglePaneSceneStrategy
 import androidx.navigation3.ui.NavDisplay
-import androidx.window.core.layout.WindowHeightSizeClass
 import androidx.window.core.layout.WindowSizeClass
-import androidx.window.core.layout.WindowWidthSizeClass
 import com.example.learncompose.core.navigation.Navigator
 import com.example.learncompose.core.navigation.rememberNavigationState
 import com.example.learncompose.core.navigation.toEntries
@@ -53,6 +57,12 @@ fun MainScreen(modifier: Modifier = Modifier) {
         defaultLayoutType
     }
 
+    val defaultItemColors = NavigationSuiteDefaults.itemColors(
+        navigationBarItemColors = NavigationBarItemDefaults.colors(),
+        navigationRailItemColors = NavigationRailItemDefaults.colors(),
+        navigationDrawerItemColors = NavigationDrawerItemDefaults.colors(),
+    )
+
     NavigationSuiteScaffold(
         navigationSuiteItems = {
             TOP_LEVEL_NAV_ITEMS.forEach { (navKey, navItem) ->
@@ -72,10 +82,12 @@ fun MainScreen(modifier: Modifier = Modifier) {
                         )
                     },
                     label = { Text(stringResource(navItem.iconTextId)) },
+                    colors = defaultItemColors
                 )
             }
         },
-        layoutType = customLayoutType
+        layoutType = customLayoutType,
+        navigationSuiteColors = NavigationSuiteDefaults.colors()
     ) {
         val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
         val entryProvider = entryProvider {

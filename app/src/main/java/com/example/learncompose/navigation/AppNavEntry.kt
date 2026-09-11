@@ -1,7 +1,12 @@
 package com.example.learncompose.navigation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
@@ -28,12 +33,8 @@ fun EntryProviderScope<NavKey>.routineEntry(navigator: Navigator) {
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 fun EntryProviderScope<NavKey>.spendEntry(navigator: Navigator) {
     entry<SpendKey>(
-        metadata = ListDetailSceneStrategy.listPane {
-            SpendDetailScreen(
-                onBack = {
-                    navigator.goBack()
-                }
-            )
+        metadata = ListDetailSceneStrategy.listPane() {
+            Box(Modifier.fillMaxSize().background(Color.Black))
         }
     ) {
         SpendScreen(
