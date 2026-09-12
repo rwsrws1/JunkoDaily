@@ -15,10 +15,10 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -37,12 +37,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.withSaveLayer
 import androidx.compose.ui.unit.dp
 import com.example.learncompose.core.designsystem.components.FloatAnimatableSaver
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-
-val LocalCardScopeProvider = compositionLocalOf<CoroutineScope?> {
-    null
-}
 
 @Composable
 fun ScratchMaskCard(
@@ -52,34 +47,34 @@ fun ScratchMaskCard(
     onFrontFaceClick: () -> Unit = {},
     onBackFaceClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
-    isFrontColor: Boolean = true,
+    isFrontFace: Boolean = true,
     content: @Composable ColumnScope.() -> Unit = {}
 ) {
-    val scope = LocalCardScopeProvider.current
-    var isFrontColor by rememberSaveable { mutableStateOf(isFrontColor) }
-    var isAnimating by rememberSaveable { mutableStateOf(false) }
-    val scratchProgress = rememberSaveable(saver = FloatAnimatableSaver) { Animatable(0f) }
+    val scope = rememberCoroutineScope()
+    var isAnimating by remember { mutableStateOf(false)  }
+    val scratchProgress = remember { Animatable(0f) }
     val layerPaint = remember { Paint() }
+    val staticColor = if (isFrontFace) frontFaceColor else backFaceColor
 
     // 动画运行期间冻结“起点颜色(currentColor)”和“终点颜色(nextColor)”
-    val currentColor = if (isFrontColor) frontFaceColor else backFaceColor
-    val nextColor = if (isFrontColor) backFaceColor else frontFaceColor
+    val currentColor = remember(isAnimating) {
+        if (isFrontFace) frontFaceColor else backFaceColor
+    }
+    val nextColor = remember(isAnimating) {
+        if (isFrontFace) backFaceColor else frontFaceColor
+    }
 
     val handleScratch = {
-        scope?.launch {
+        scope.launch {
             if (isAnimating) return@launch
-            if (isFrontColor) onFrontFaceClick() else onBackFaceClick()
+
             isAnimating = true
             scratchProgress.snapTo(0f)
-
-            // 1. 执行擦除动画
+            if (isFrontFace) onFrontFaceClick() else onBackFaceClick()
             scratchProgress.animateTo(
                 targetValue = 1f,
-                animationSpec = tween(durationMillis = if (isFrontColor) 2000 else 1000, easing = LinearEasing)
+                animationSpec = tween(durationMillis = if (isFrontFace) 2000 else 1000, easing = LinearEasing)
             )
-
-            // 2. 状态切换：先翻转颜色标志，再标记动画结束
-            isFrontColor = !isFrontColor
             scratchProgress.snapTo(0f)
             isAnimating = false
         }
@@ -153,7 +148,7 @@ fun ScratchMaskCard(
                         drawContent()
                     } else {
                         // 未播放动画时，静态绘制当前颜色及卡片内容
-                        drawRect(currentColor)
+                        drawRect(staticColor)
                         drawContent()
                     }
                 }

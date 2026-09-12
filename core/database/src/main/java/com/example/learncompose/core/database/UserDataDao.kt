@@ -5,7 +5,9 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
+import com.example.learncompose.core.database.entity.PopulatedRoutineCardEntity
 import com.example.learncompose.core.database.entity.RoutineCardEntity
 import com.example.learncompose.core.database.entity.RoutineDailyLogEntity
 import com.example.learncompose.core.model.RoutineCardWithLog
@@ -75,4 +77,8 @@ interface UserDataDao {
      */
     @Query("DELETE FROM routine_daily_log WHERE cardId = :cardId AND recordDate = :date")
     suspend fun deleteDailyLog(cardId: Long, date: LocalDate)
+
+    @Transaction
+    @Query("SELECT * FROM routine_card")
+    fun getCardsWithLogs(): Flow<List<PopulatedRoutineCardEntity>>
 }

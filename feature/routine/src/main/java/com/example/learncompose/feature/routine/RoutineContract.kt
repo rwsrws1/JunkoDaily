@@ -7,17 +7,15 @@ import java.time.LocalDate
 
 class RoutineContract {
     data class UiState(
-        val routineCardWithLogList: List<RoutineCardWithLog> = listOf(),
-        val currentRecordDate: LocalDate = LocalDate.now(),
-        val isReady: Boolean = false
+        val selectedDate: LocalDate = LocalDate.now(),
+        val cardWithLogsMap: Map<LocalDate, List<RoutineCardWithLog>> = emptyMap(),
+        val isLoading: Boolean = false
     )
 
     sealed interface Intent {
+        data class SelectDate(val date: LocalDate) : Intent
         data class InsertCard(val card: RoutineCard) : Intent
         data class DeleteCardById(val cardId: Long) : Intent
         data class UpsertDailyLog(val log: RoutineDailyLog) : Intent
-    }
-    sealed interface SideEffect {
-        data class LoginAsVisitor(val id: String = "") : SideEffect
     }
 }

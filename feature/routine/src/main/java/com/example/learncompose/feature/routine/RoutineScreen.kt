@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.dp
 import com.example.learncompose.core.designsystem.theme.AppTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -38,24 +37,15 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDefaults
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScaffoldDefaults
-import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -63,13 +53,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion
 import androidx.compose.ui.graphics.compositeOver
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -77,18 +62,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.learncompose.core.common.rememberSoundManager
-import com.example.learncompose.core.designsystem.components.card.LocalCardScopeProvider
 import com.example.learncompose.core.designsystem.components.card.ScratchMaskCard
 import com.example.learncompose.core.designsystem.generateDistinctColorLongs
 import com.example.learncompose.core.model.RoutineCard
 import com.example.learncompose.core.model.RoutineCardWithLog
 import com.example.learncompose.core.model.RoutineDailyLog
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.ZoneId
-import java.util.Locale
-import kotlin.time.Duration.Companion.milliseconds
 import androidx.compose.ui.platform.LocalLocale
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
@@ -119,8 +99,9 @@ fun RoutineViewModelScreen(
 @Composable
 fun RoutineScreen(
     modifier: Modifier = Modifier,
-    uiState: List<RoutineContract.UiState> = listOf(RoutineContract.UiState()),
+    uiState: RoutineContract.UiState = RoutineContract.UiState(),
 ) {
+    println("RoutineScreen")
     val handler = LocalHandler.current
     val scope = rememberCoroutineScope()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
@@ -135,7 +116,7 @@ fun RoutineScreen(
     val initialPage = 29
     val pagerState = rememberPagerState(
         initialPage = initialPage,
-        pageCount = { initialPage + 1 }
+        pageCount = { 30 }
     )
 
     val today = remember { LocalDate.now() }
@@ -145,11 +126,11 @@ fun RoutineScreen(
         }
     }
     val currentLocale = LocalLocale.current.platformLocale
-    val monthDayStr by remember {
-        derivedStateOf { currentDate.format(MONTH_DAY_FORMATTER) }
-    }
-    val dayOfWeekStr by remember {
-        derivedStateOf { currentDate.dayOfWeek.getDisplayName(TextStyle.FULL, currentLocale) }
+    val monthDayStr = currentDate.format(MONTH_DAY_FORMATTER)
+    val dayOfWeekStr = currentDate.dayOfWeek.getDisplayName(TextStyle.FULL, currentLocale)
+
+    LaunchedEffect(currentDate) {
+        handler(RoutineContract.Intent.SelectDate(currentDate))
     }
 
     Box(
@@ -301,6 +282,21 @@ fun RoutineScreen(
                             Text(monthDayStr, style = MaterialTheme.typography.titleMedium)
                             Text(dayOfWeekStr, style = MaterialTheme.typography.titleMedium)
                         }
+                    },
+                    actions = {
+                        TextButton(
+                            onClick = {
+                                repeat(36) { time ->
+                                    handler(
+                                        RoutineContract.Intent.InsertCard(
+                                            RoutineCard(cardText = "测试卡片颜色", cardColor = colorList[time])
+                                        )
+                                    )
+                                }
+                            }
+                        ) {
+                            Text("test", color = Color.Transparent)
+                        }
                     }
                 )
             },
@@ -308,44 +304,43 @@ fun RoutineScreen(
                 FloatingActionButton(
                     onClick = {
                         showBottomSheet = true
-//                        repeat(36) { time ->
-//                            handler(
-//                                RoutineContract.Intent.InsertCard(
-//                                    RoutineCard(cardText = "测试卡片颜色", cardColor = colorList[time])
-//                                )
-//                            )
-//                        }
                     }
                 ) {
                     Icon(painterResource(R.drawable.add_24px), contentDescription = "")
                 }
             }
         ) { paddingValues ->
-            CompositionLocalProvider(
-                LocalCardScopeProvider provides scope
-            ) {
-                HorizontalPager(
-                    key = { it },
-                    state = pagerState,
-                    modifier = Modifier.fillMaxWidth(),
-                    pageSize = PageSize.Fill,
-                    pageSpacing = 0.dp,
-                    contentPadding = PaddingValues(horizontal = 0.dp),
-                    beyondViewportPageCount = 0
-                ) { page ->
-                    val currentData = remember(page) { today.minusDays((initialPage - page).toLong()) }
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues)
-                            .consumeWindowInsets(paddingValues)
-                    ) {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            CardGrid(uiState[initialPage - page], currentData, onLongClick = { id ->
-                                deleteCardId = id
-                                isShowDialog = true
-                            })
-                        }
+            HorizontalPager(
+                key = { it },
+                state = pagerState,
+                modifier = Modifier.fillMaxWidth(),
+                pageSize = PageSize.Fill,
+                pageSpacing = 0.dp,
+                contentPadding = PaddingValues(horizontal = 0.dp),
+                beyondViewportPageCount = 1
+            ) { page ->
+
+                // MVI 关键修复点：
+                // 1. 根据当前 Pager 的 page 索引计算当前 Page 具体的日期
+                val pageDate = remember(page) {
+                    today.minusDays((initialPage - page).toLong())
+                }
+
+                // 2. 从 MVI UiState 的 Map 中读取精准属于当前 pageDate 的数据列表
+                // 如果 Map 中尚未包含（如加载中），则降级为空列表 emptyList()
+                val cardWithLogsForThisPage = uiState.cardWithLogsMap[pageDate] ?: emptyList()
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .consumeWindowInsets(paddingValues)
+                ) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CardGrid(cardWithLogsForThisPage, currentDate, onLongClick = { id ->
+                            deleteCardId = id
+                            isShowDialog = true
+                        })
                     }
                 }
             }
@@ -355,11 +350,11 @@ fun RoutineScreen(
 
 @Composable
 fun CardGrid(
-    uiState: RoutineContract.UiState,
-    currentData: LocalDate,
+    cardWithLogs: List<RoutineCardWithLog>,
+    currentDate: LocalDate,
     onLongClick: (Long) -> Unit = {}
 ) {
-    val cardList = uiState.routineCardWithLogList
+    println("CardGrid")
     val handler = LocalHandler.current
     val soundManager = rememberSoundManager()
     val background = MaterialTheme.colorScheme.background
@@ -371,39 +366,41 @@ fun CardGrid(
         verticalArrangement = Arrangement.spacedBy(20.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        items(items = cardList, key = { item -> item.cardId }) { item ->
+        items(items = cardWithLogs, key = { item -> item.cardId }) { item ->
             ScratchMaskCard(
                 frontFaceColor = remember(item.cardColor) {
                     item.composeColor.copy(alpha = 0.05f).compositeOver(background)
                 },
-                backFaceColor = item.composeColor,
+                backFaceColor = remember(item.cardColor) {
+                    item.composeColor
+                },
                 onFrontFaceClick = {
+                    soundManager.playWriteSound()
                     handler(
                         RoutineContract.Intent.UpsertDailyLog(
                             RoutineDailyLog(
                                 cardId = item.cardId,
-                                recordDate = currentData,
+                                recordDate = currentDate,
                                 isCompleted = true,
                                 completedAt = item.completedAt
                             )
                         )
                     )
-                    soundManager.playWriteSound()
                 },
                 onBackFaceClick = {
+                    soundManager.playEraserSound()
                     handler(
                         RoutineContract.Intent.UpsertDailyLog(
                             RoutineDailyLog(
                                 cardId = item.cardId,
-                                recordDate = currentData,
+                                recordDate = currentDate,
                                 isCompleted = false,
                                 completedAt = item.completedAt
                             )
                         )
                     )
-                    soundManager.playEraserSound()
                 },
-                isFrontColor = !item.isCompleted,
+                isFrontFace = !item.isCompleted,
                 onLongClick = {
                     onLongClick(item.cardId)
                 }

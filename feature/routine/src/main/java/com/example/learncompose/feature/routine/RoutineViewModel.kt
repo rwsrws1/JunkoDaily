@@ -3,9 +3,15 @@ package com.example.learncompose.feature.routine
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.learncompose.core.data.api.RoutineRepoApi
+import com.example.learncompose.core.model.RoutineCardWithLog
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -16,45 +22,53 @@ import javax.inject.Inject
 class RoutineViewModel @Inject constructor(
     private val repo: RoutineRepoApi
 ) : ViewModel() {
-    val today: LocalDate = LocalDate.now()
-    val flows = (0 until 30).map { dayOffset ->
-        val targetDate = today.minusDays(dayOffset.toLong())
-        repo.getCardsWithLogsByDate(targetDate)
-            .map { RoutineContract.UiState(it) }
-    }
+    private val _selectedDate = MutableStateFlow(LocalDate.now())
 
-    val uiState = combine(flows) { array ->
-        array.toList()
-    }.stateIn(
-        scope = viewModelScope,
-        initialValue = listOf(RoutineContract.UiState()),
-        started = SharingStarted.WhileSubscribed(5000)
-    )
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val uiState: StateFlow<RoutineContract.UiState> = _selectedDate
+        .flatMapLatest { centerDate ->
+            // 为了保证滑动流畅，同时监听：前一天、当天、后一天 的数据 Flow
+            val prevDate = centerDate.minusDays(1)
+            val nextDate = centerDate.plusDays(1)
 
-//    val uiState  = routineRepoApi.getCardsWithLogsByDate(LocalDate.now()).map {
-//        RoutineContract.UiState(it)
-//    }.stateIn(
-//        scope = viewModelScope,
-//        initialValue = RoutineContract.UiState(),
-//        started = SharingStarted.WhileSubscribed(5000),
-//    )
+            combine(
+                repo.getCardsWithLogsByDate(prevDate),
+                repo.getCardsWithLogsByDate(centerDate),
+                repo.getCardsWithLogsByDate(nextDate)
+            ) { prevLogs, centerLogs, nextLogs ->
+                // 将多天的数据聚合到一个 Map 中
+                mapOf(
+                    prevDate to prevLogs,
+                    centerDate to centerLogs,
+                    nextDate to nextLogs
+                )
+            }.map { mapData ->
+                RoutineContract.UiState(
+                    selectedDate = centerDate,
+                    cardWithLogsMap = mapData,
+                    isLoading = false
+                )
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = RoutineContract.UiState(isLoading = true)
+        )
 
     fun handleIntent(intent: RoutineContract.Intent) {
         when (intent) {
+            is RoutineContract.Intent.SelectDate -> {
+                _selectedDate.value = intent.date
+            }
             is RoutineContract.Intent.InsertCard -> {
-                viewModelScope.launch {
-                    repo.insertCard(intent.card)
-                }
+                viewModelScope.launch { repo.insertCard(intent.card) }
             }
             is RoutineContract.Intent.DeleteCardById -> {
-                viewModelScope.launch {
-                    repo.deleteCardById(intent.cardId)
-                }
+                viewModelScope.launch { repo.deleteCardById(intent.cardId) }
             }
             is RoutineContract.Intent.UpsertDailyLog -> {
-                viewModelScope.launch {
-                    repo.upsertDailyLog(intent.log)
-                }
+                viewModelScope.launch { repo.upsertDailyLog(intent.log) }
             }
         }
     }

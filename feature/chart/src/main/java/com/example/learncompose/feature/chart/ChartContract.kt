@@ -4,6 +4,7 @@ import com.example.learncompose.core.model.RoutineCardsAndLogs
 
 class ChartContract {
     data class UiState(
-        val cardsAndLogs: List<RoutineCardsAndLogs> = listOf(RoutineCardsAndLogs())
+        val cardsAndLogs: List<RoutineCardsAndLogs> = emptyList(),
+        val isLoading: Boolean = false
     )
 }

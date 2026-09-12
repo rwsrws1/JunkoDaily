@@ -6,10 +6,12 @@ import com.example.learncompose.core.database.entity.RoutineCardEntity
 import com.example.learncompose.core.database.entity.RoutineDailyLogEntity
 import com.example.learncompose.core.database.entity.asRoutineCard
 import com.example.learncompose.core.database.entity.asRoutineCardEntity
+import com.example.learncompose.core.database.entity.asRoutineCardsAndLogs
 import com.example.learncompose.core.database.entity.asRoutineDailyLog
 import com.example.learncompose.core.database.entity.asRoutineDailyLogEntity
 import com.example.learncompose.core.model.RoutineCard
 import com.example.learncompose.core.model.RoutineCardWithLog
+import com.example.learncompose.core.model.RoutineCardsAndLogs
 import com.example.learncompose.core.model.RoutineDailyLog
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -60,4 +62,9 @@ class OfflineRoutineRepo @Inject constructor(
         userDataDao.deleteDailyLog(cardId, date)
     }
 
+    override fun getCardsWithLogs(): Flow<List<RoutineCardsAndLogs>> {
+        return userDataDao.getCardsWithLogs().map { list ->
+            list.map { it.asRoutineCardsAndLogs() }
+        }
+    }
 }

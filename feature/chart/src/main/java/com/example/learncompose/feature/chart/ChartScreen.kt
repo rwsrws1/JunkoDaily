@@ -200,7 +200,7 @@ private fun ChartCard(
         Spacer(Modifier.height(5.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Spacer(Modifier.weight(1f))
-            Icon(painterResource(R.drawable.pace_24px), null, Modifier.size(15.dp))
+            Icon(painterResource(R.drawable.clock_loader_40_24px), null, Modifier.size(15.dp))
             Spacer(Modifier.width(3.dp))
             Text("${completedDays.size * 100 / daysInMonths}%")
             Spacer(Modifier.weight(0.5f))
