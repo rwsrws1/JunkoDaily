@@ -22,9 +22,9 @@ class RoutineContract {
         data class DeleteCardById(val cardId: Long) : Intent
         data class UpsertDailyLog(
             val cardId: Long = 0,
-            val recordDate: LocalDate? = LocalDate.now(),
+            val recordDate: LocalDate,
             val isCompleted: Boolean = false,
-            val completedAt: Instant? = Instant.now(),
+            val completedAt: Instant,
         ) : Intent
     }
 }

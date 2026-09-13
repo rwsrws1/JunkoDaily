@@ -1,5 +1,6 @@
 package com.example.learncompose.feature.routine
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,8 +17,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.learncompose.core.designsystem.theme.AppTheme
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -32,6 +33,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -42,8 +44,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Tab
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
@@ -65,15 +69,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.learncompose.core.common.rememberSoundManager
-import com.example.learncompose.core.designsystem.components.card.ScratchMaskCard
 import com.example.learncompose.core.designsystem.generateDistinctColorLongs
-import com.example.learncompose.core.model.RoutineCard
 import com.example.learncompose.core.model.RoutineCardWithLog
-import com.example.learncompose.core.model.RoutineDailyLog
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import androidx.compose.ui.platform.LocalLocale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.window.core.layout.WindowSizeClass
+import com.example.learncompose.feature.routine.components.ScratchMaskCard
+import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 
@@ -119,22 +123,22 @@ fun RoutineScreen(
     var selectColor: Long by rememberSaveable { mutableLongStateOf(COlOR_LIST[0]) }
     var isShowDialog by remember { mutableStateOf(false) }
     var deleteCardId by remember { mutableLongStateOf(0) }
-    val initialPage = 29
-    val pagerState = rememberPagerState(
-        initialPage = initialPage,
-        pageCount = { 30 }
-    )
 
+    val pageSize = remember { 30 }
+    val tabList = List(pageSize) { it }
+    var selectPage by remember { mutableIntStateOf(tabList.lastIndex) }
+    val pagerState = rememberPagerState(initialPage = selectPage, pageCount = { pageSize })
+    val scrollState = rememberScrollState()
     val today = remember { LocalDate.now() }
+
     val currentDate by remember {
         derivedStateOf {
-            today.minusDays((initialPage - pagerState.currentPage).toLong())
+            today.minusDays((tabList.lastIndex - pagerState.currentPage).toLong())
         }
     }
     val currentLocale = LocalLocale.current.platformLocale
     val monthDayStr = currentDate.format(MONTH_DAY_FORMATTER)
     val dayOfWeekStr = currentDate.dayOfWeek.getDisplayName(TextStyle.FULL, currentLocale)
-
     LaunchedEffect(currentDate) {
         handler(RoutineContract.Intent.SelectDate(currentDate))
     }
@@ -318,45 +322,83 @@ fun RoutineScreen(
                 }
             }
         ) { paddingValues ->
-            HorizontalPager(
-                key = { it },
-                state = pagerState,
-                modifier = Modifier.fillMaxWidth(),
-                pageSize = PageSize.Fill,
-                pageSpacing = 0.dp,
-                contentPadding = PaddingValues(horizontal = 0.dp),
-                beyondViewportPageCount = 0
-            ) { page ->
+            Column(
+                Modifier.fillMaxSize()
+                .padding(paddingValues)
+                .consumeWindowInsets(paddingValues)
+            ) {
+                PrimaryScrollableTabRow(
+                    selectedTabIndex = pagerState.currentPage,
+                    scrollState = scrollState,
+//                    edgePadding = 4.dp,
+                    indicator = {},
+                    divider = {},
+                    minTabWidth = 0.dp
+                ) {
+                    tabList.forEachIndexed { index, i ->
+                        val isSelected = pagerState.currentPage == index
+                        val tabDate = today.minusDays((tabList.lastIndex - index).toLong())
 
-                // MVI 关键修复点：
-                // 1. 根据当前 Pager 的 page 索引计算当前 Page 具体的日期
-                val pageDate = remember(page) {
-                    today.minusDays((initialPage - page).toLong())
-                }
-
-                // 2. 从 MVI UiState 的 Map 中读取精准属于当前 pageDate 的数据列表
-                // 如果 Map 中尚未包含（如加载中），则降级为空列表 emptyList()
-                val cardWithLogsForThisPage = uiState.cardWithLogsMap[pageDate] ?: emptyList()
-
-                val onLongClick: (Long) -> Unit  = remember {
-                    { id ->
-                        deleteCardId = id
-                        isShowDialog = true
+                        Tab(
+                            selected = isSelected,
+                            onClick = {
+                                selectPage = index
+                                scope.launch {
+                                    pagerState.animateScrollToPage(selectPage)
+                                }
+                            },
+                            modifier = Modifier
+                                .padding(horizontal = 2.dp)
+                                .height(50.dp)
+                                .aspectRatio(1f / 1f)
+                                .clip(MaterialTheme.shapes.medium)
+                                .background(if (isSelected) MaterialTheme.colorScheme.onSurface
+                                    else MaterialTheme.colorScheme.surfaceContainer),
+                            selectedContentColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                            unselectedContentColor = MaterialTheme.colorScheme.onSurface
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(
+                                    text = "${tabDate.dayOfMonth}",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                    )
+                                )
+                            }
+                        }
                     }
                 }
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                        .consumeWindowInsets(paddingValues)
-                ) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CardGrid(
-                            cardWithLogs = cardWithLogsForThisPage,
-                            currentDate = pageDate,
-                            onLongClick = onLongClick,
-                            adaptiveInfo = adaptiveInfo
-                        )
+                HorizontalPager(
+                    key = { it },
+                    state = pagerState,
+                    modifier = Modifier.fillMaxWidth(),
+                    pageSize = PageSize.Fill,
+                    pageSpacing = 0.dp,
+                    contentPadding = PaddingValues(horizontal = 0.dp),
+                    beyondViewportPageCount = 0
+                ) { page ->
+                    val pageDate = remember(page) {
+                        today.minusDays((tabList.lastIndex - page).toLong())
+                    }
+
+                    val cardWithLogsForThisPage = uiState.cardWithLogsMap[pageDate] ?: emptyList()
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                    ) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CardGrid(
+                                cardWithLogs = cardWithLogsForThisPage,
+                                currentDate = pageDate,
+                                onLongClick = { id ->
+                                    deleteCardId = id
+                                    isShowDialog = true
+                                },
+                                adaptiveInfo = adaptiveInfo
+                            )
+                        }
                     }
                 }
             }
@@ -368,7 +410,7 @@ fun RoutineScreen(
 fun CardGrid(
     cardWithLogs: List<RoutineCardWithLog>,
     currentDate: LocalDate,
-    onLongClick: (Long) -> Unit = {},
+    onLongClick: (Long) -> Unit,
     adaptiveInfo: WindowAdaptiveInfo
 ) {
     val minSize =
@@ -384,6 +426,8 @@ fun CardGrid(
     val soundManager = rememberSoundManager()
     val background = MaterialTheme.colorScheme.background
     val state = rememberLazyGridState()
+    val currentInstant by rememberUpdatedState(Instant.now())
+    val currentDate by rememberUpdatedState(currentDate)
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize),
         state = state,
@@ -392,62 +436,48 @@ fun CardGrid(
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         items(items = cardWithLogs, key = { item -> item.cardId }) { item ->
-            val currentItem by rememberUpdatedState(item)
-            val latestCurrentDate by rememberUpdatedState(currentDate)
-            val onFrontFaceClick = remember {
+            val onFrontFaceClick = remember(item.cardId) {
                 {
                     soundManager.playWriteSound()
                     handler(
                         RoutineContract.Intent.UpsertDailyLog(
-                            cardId = currentItem.cardId,
-                            recordDate = latestCurrentDate,
+                            cardId = item.cardId,
+                            recordDate = currentDate,
                             isCompleted = true,
-                            completedAt = currentItem.completedAt
+                            completedAt = currentInstant
                         )
                     )
                 }
             }
-            val onBackFaceClick = remember {
+            val onBackFaceClick = remember(item.cardId) {
                 {
                     soundManager.playEraserSound()
                     handler(
                         RoutineContract.Intent.UpsertDailyLog(
-                            cardId = currentItem.cardId,
-                            recordDate = latestCurrentDate,
+                            cardId = item.cardId,
+                            recordDate = currentDate,
                             isCompleted = false,
-                            completedAt = currentItem.completedAt
+                            completedAt = currentInstant
                         )
                     )
                 }
             }
             val onLongClick = remember(item.cardId) {
-                {
-                    onLongClick(item.cardId)
-                }
+                { onLongClick(item.cardId) }
             }
-            val cardText = item.cardText
-            val cardId = item.cardId
-            val isCompleted = !item.isCompleted
-            val rawComposeColor = remember(item.cardColor) { item.composeColor }
-
-            // 2. 将 Color 作为 remember 的 Key，而不是卡片 ID
-            val frontFaceColor = remember(rawComposeColor, background) {
-                rawComposeColor.copy(alpha = 0.05f).compositeOver(background)
-            }
-            val backFaceColor = rawComposeColor
             ScratchMaskCard(
-                cardId = cardId,
-                frontFaceColor = frontFaceColor,
-                backFaceColor = backFaceColor,
+                cardId = item.cardId,
+                frontFaceColor = item.composeColor.copy(alpha = 0.05f).compositeOver(background),
+                backFaceColor = item.composeColor,
                 onFrontFaceClick = onFrontFaceClick,
                 onBackFaceClick = onBackFaceClick,
-                isFrontFace = isCompleted,
+                isFrontFace = !item.isCompleted,
                 onLongClick = onLongClick
             ) {
                 Column(Modifier.fillMaxSize(0.95f)) {
                     Spacer(Modifier.weight(1f))
                     Text(
-                        cardText,
+                        item.cardText,
                         Modifier
                             .fillMaxWidth(0.95f)
                             .align(Alignment.CenterHorizontally),
