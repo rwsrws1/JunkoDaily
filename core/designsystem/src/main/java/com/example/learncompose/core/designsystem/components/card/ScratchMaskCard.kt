@@ -15,6 +15,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,29 +42,89 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun ScratchMaskCard(
+    cardId: Long = 0,
     aspectRatio: Float = 2f / 3f,
-    frontFaceColor: Color = MaterialTheme.colorScheme.primaryContainer,
-    backFaceColor: Color = MaterialTheme.colorScheme.tertiaryContainer,
+    frontFaceColor: Color = Color.Unspecified,
+    backFaceColor: Color = Color.Unspecified,
     onFrontFaceClick: () -> Unit = {},
     onBackFaceClick: () -> Unit = {},
     onLongClick: () -> Unit = {},
     isFrontFace: Boolean = true,
-    content: @Composable ColumnScope.() -> Unit = {}
+    content: @Composable () -> Unit = {}
 ) {
+
+
+
+
+// 记住上一轮的值
+    var lastCardId by remember { mutableStateOf(cardId) }
+    var lastAspectRatio by remember { mutableStateOf(aspectRatio) }
+    var lastFrontColor by remember { mutableStateOf(frontFaceColor) }
+    var lastBackColor by remember { mutableStateOf(backFaceColor) }
+    var lastIsFrontFace by remember { mutableStateOf(isFrontFace) }
+    var lastOnFrontClick by remember { mutableStateOf(onFrontFaceClick) }
+    var lastOnBackClick by remember { mutableStateOf(onBackFaceClick) }
+    var lastOnLongClick by remember { mutableStateOf(onLongClick) }
+    var lastContent by remember { mutableStateOf(content) }
+
+    SideEffect {
+        val reasons = mutableListOf<String>()
+
+        if (lastCardId != cardId) reasons.add("cardId: $lastCardId -> $cardId")
+        if (lastAspectRatio != aspectRatio) reasons.add("aspectRatio: $lastAspectRatio -> $aspectRatio")
+        if (lastFrontColor != frontFaceColor) reasons.add("frontFaceColor: $lastFrontColor -> $frontFaceColor")
+        if (lastBackColor != backFaceColor) reasons.add("backFaceColor: $lastBackColor -> $backFaceColor")
+        if (lastIsFrontFace != isFrontFace) reasons.add("isFrontFace: $lastIsFrontFace -> $isFrontFace")
+
+        // 引用比较：判断 Lambda 函数对象是否重新生成了
+        if (lastOnFrontClick !== onFrontFaceClick) reasons.add("onFrontFaceClick (Lambda 引用改变)")
+        if (lastOnBackClick !== onBackFaceClick) reasons.add("onBackFaceClick (Lambda 引用改变)")
+        if (lastOnLongClick !== onLongClick) reasons.add("onLongClick (Lambda 引用改变)")
+        if (lastContent !== content) reasons.add("content (Lambda 引用改变)")
+
+        if (reasons.isNotEmpty()) {
+            println("ScratchMaskCard [$cardId] 重组原因: ${reasons.joinToString(", ")}")
+        } else {
+            println("ScratchMaskCard [$cardId] 发生重组，但所有已知参数值/引用均无明显变化 (可能是无状态更新引起的强制重组)")
+        }
+
+        // 更新上一轮的值
+        lastCardId = cardId
+        lastAspectRatio = aspectRatio
+        lastFrontColor = frontFaceColor
+        lastBackColor = backFaceColor
+        lastIsFrontFace = isFrontFace
+        lastOnFrontClick = onFrontFaceClick
+        lastOnBackClick = onBackFaceClick
+        lastOnLongClick = onLongClick
+        lastContent = content
+    }
+
+
+
+
+
+
+
+
     val scope = rememberCoroutineScope()
     var isAnimating by remember { mutableStateOf(false)  }
     val scratchProgress = remember { Animatable(0f) }
     val layerPaint = remember { Paint() }
     val staticColor = if (isFrontFace) frontFaceColor else backFaceColor
 
+    var freezeFlag by remember { mutableStateOf(true)  }
+    println("cardId:$cardId, isFrontFace:$isFrontFace, isAnimating:$isAnimating")
     // 动画运行期间冻结“起点颜色(currentColor)”和“终点颜色(nextColor)”
-    val currentColor = remember(isAnimating) {
+    val currentColor = remember(freezeFlag) {
         if (isFrontFace) frontFaceColor else backFaceColor
     }
-    val nextColor = remember(isAnimating) {
+    val nextColor = remember(freezeFlag) {
         if (isFrontFace) backFaceColor else frontFaceColor
     }
-
+    val duration = remember(freezeFlag) {
+        if (isFrontFace) 2000 else 1000
+    }
     val handleScratch = {
         scope.launch {
             if (isAnimating) return@launch
@@ -73,10 +134,11 @@ fun ScratchMaskCard(
             if (isFrontFace) onFrontFaceClick() else onBackFaceClick()
             scratchProgress.animateTo(
                 targetValue = 1f,
-                animationSpec = tween(durationMillis = if (isFrontFace) 2000 else 1000, easing = LinearEasing)
+                animationSpec = tween(durationMillis = duration, easing = LinearEasing)
             )
             scratchProgress.snapTo(0f)
             isAnimating = false
+            freezeFlag = !freezeFlag
         }
     }
 
@@ -153,9 +215,7 @@ fun ScratchMaskCard(
                     }
                 }
         ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                content()
-            }
+            content()
         }
     }
 }

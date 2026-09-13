@@ -2,6 +2,10 @@ package com.example.learncompose.core.designsystem
 
 import androidx.compose.ui.graphics.Color
 
+val PresetColorList: List<Long> by lazy {
+    generateDistinctColorLongs(36)
+}
+
 /**
  * 根据指定数量生成区分度最高的颜色 Long 值列表
  *

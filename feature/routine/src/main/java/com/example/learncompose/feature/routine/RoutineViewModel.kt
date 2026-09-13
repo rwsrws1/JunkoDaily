@@ -3,7 +3,9 @@ package com.example.learncompose.feature.routine
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.learncompose.core.data.api.RoutineRepoApi
+import com.example.learncompose.core.model.RoutineCard
 import com.example.learncompose.core.model.RoutineCardWithLog
+import com.example.learncompose.core.model.RoutineDailyLog
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -13,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -61,14 +64,30 @@ class RoutineViewModel @Inject constructor(
             is RoutineContract.Intent.SelectDate -> {
                 _selectedDate.value = intent.date
             }
+
             is RoutineContract.Intent.InsertCard -> {
-                viewModelScope.launch { repo.insertCard(intent.card) }
+                viewModelScope.launch {
+                    repo.insertCard(
+                        RoutineCard(cardText = intent.cardText, cardColor = intent.cardColor)
+                    )
+                }
             }
+
             is RoutineContract.Intent.DeleteCardById -> {
                 viewModelScope.launch { repo.deleteCardById(intent.cardId) }
             }
+
             is RoutineContract.Intent.UpsertDailyLog -> {
-                viewModelScope.launch { repo.upsertDailyLog(intent.log) }
+                viewModelScope.launch {
+                    repo.upsertDailyLog(
+                        RoutineDailyLog(
+                            cardId = intent.cardId,
+                            recordDate = intent.recordDate,
+                            isCompleted = intent.isCompleted,
+                            completedAt = intent.completedAt,
+                        )
+                    )
+                }
             }
         }
     }

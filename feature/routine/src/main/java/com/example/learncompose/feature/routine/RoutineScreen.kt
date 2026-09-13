@@ -16,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.learncompose.core.designsystem.theme.AppTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -45,6 +46,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.adaptive.WindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -70,6 +73,7 @@ import com.example.learncompose.core.model.RoutineDailyLog
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import androidx.compose.ui.platform.LocalLocale
+import androidx.window.core.layout.WindowSizeClass
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 
@@ -81,6 +85,9 @@ val LocalHandler = compositionLocalOf<(RoutineContract.Intent) -> Unit> {
 }
 
 private val MONTH_DAY_FORMATTER = DateTimeFormatter.ofPattern("MM-dd")
+private val COlOR_LIST: List<Long> by lazy {
+    generateDistinctColorLongs(36)
+}
 
 @Composable
 fun RoutineViewModelScreen(
@@ -101,16 +108,15 @@ fun RoutineScreen(
     modifier: Modifier = Modifier,
     uiState: RoutineContract.UiState = RoutineContract.UiState(),
 ) {
-    println("RoutineScreen")
+    val adaptiveInfo = currentWindowAdaptiveInfo()
     val handler = LocalHandler.current
     val scope = rememberCoroutineScope()
     var showBottomSheet by rememberSaveable { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true) {
         it != SheetValue.PartiallyExpanded
     }
-    val colorList = remember { generateDistinctColorLongs(36) }
     val rowListState = rememberLazyListState()
-    var selectColor: Long by remember { mutableLongStateOf(colorList[0]) }
+    var selectColor: Long by rememberSaveable { mutableLongStateOf(COlOR_LIST[0]) }
     var isShowDialog by remember { mutableStateOf(false) }
     var deleteCardId by remember { mutableLongStateOf(0) }
     val initialPage = 29
@@ -229,21 +235,21 @@ fun RoutineScreen(
                         modifier = Modifier.fillMaxWidth(),
                         contentPadding = PaddingValues(horizontal = 10.dp),
                     ) {
-                        items(count = colorList.size, key = { it }) { index ->
+                        items(count = COlOR_LIST.size, key = { it }) { index ->
                             Box(
                                 Modifier
                                     .padding(horizontal = 5.dp)
                                     .size(50.dp)
                                     .clip(CircleShape)
-                                    .background(Color(colorList[index]))
+                                    .background(Color(COlOR_LIST[index]))
                                     .border(
-                                        width = if (selectColor == colorList[index]) 2.dp else 0.dp,
+                                        width = if (selectColor == COlOR_LIST[index]) 2.dp else 0.dp,
                                         color = MaterialTheme.colorScheme.onSurface,
                                         shape = CircleShape
                                     )
                                     .clickable(
                                         onClick = {
-                                            selectColor = colorList[index]
+                                            selectColor = COlOR_LIST[index]
                                         }
                                     )
                             ) {
@@ -256,7 +262,8 @@ fun RoutineScreen(
                         onClick = {
                             handler(
                                 RoutineContract.Intent.InsertCard(
-                                    RoutineCard(cardText = textState, cardColor = selectColor)
+                                    cardText = textState,
+                                    cardColor = selectColor
                                 )
                             )
                             scope.launch { sheetState.hide() }.invokeOnCompletion {
@@ -289,7 +296,8 @@ fun RoutineScreen(
                                 repeat(36) { time ->
                                     handler(
                                         RoutineContract.Intent.InsertCard(
-                                            RoutineCard(cardText = "测试卡片颜色", cardColor = colorList[time])
+                                            cardText = "测试卡片颜色",
+                                            cardColor = COlOR_LIST[time]
                                         )
                                     )
                                 }
@@ -317,7 +325,7 @@ fun RoutineScreen(
                 pageSize = PageSize.Fill,
                 pageSpacing = 0.dp,
                 contentPadding = PaddingValues(horizontal = 0.dp),
-                beyondViewportPageCount = 1
+                beyondViewportPageCount = 0
             ) { page ->
 
                 // MVI 关键修复点：
@@ -330,6 +338,12 @@ fun RoutineScreen(
                 // 如果 Map 中尚未包含（如加载中），则降级为空列表 emptyList()
                 val cardWithLogsForThisPage = uiState.cardWithLogsMap[pageDate] ?: emptyList()
 
+                val onLongClick: (Long) -> Unit  = remember {
+                    { id ->
+                        deleteCardId = id
+                        isShowDialog = true
+                    }
+                }
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -337,10 +351,12 @@ fun RoutineScreen(
                         .consumeWindowInsets(paddingValues)
                 ) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CardGrid(cardWithLogsForThisPage, currentDate, onLongClick = { id ->
-                            deleteCardId = id
-                            isShowDialog = true
-                        })
+                        CardGrid(
+                            cardWithLogs = cardWithLogsForThisPage,
+                            currentDate = pageDate,
+                            onLongClick = onLongClick,
+                            adaptiveInfo = adaptiveInfo
+                        )
                     }
                 }
             }
@@ -352,63 +368,86 @@ fun RoutineScreen(
 fun CardGrid(
     cardWithLogs: List<RoutineCardWithLog>,
     currentDate: LocalDate,
-    onLongClick: (Long) -> Unit = {}
+    onLongClick: (Long) -> Unit = {},
+    adaptiveInfo: WindowAdaptiveInfo
 ) {
-    println("CardGrid")
+    val minSize =
+        if (adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)
+            || (adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
+                    && adaptiveInfo.windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND))
+        ) {
+            100.dp
+        } else {
+            60.dp
+        }
     val handler = LocalHandler.current
     val soundManager = rememberSoundManager()
     val background = MaterialTheme.colorScheme.background
+    val state = rememberLazyGridState()
     LazyVerticalGrid(
-        modifier = Modifier.fillMaxWidth(),
-        columns = GridCells.Adaptive(60.dp),
-        state = rememberLazyGridState(),
+        columns = GridCells.Adaptive(minSize),
+        state = state,
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         items(items = cardWithLogs, key = { item -> item.cardId }) { item ->
-            ScratchMaskCard(
-                frontFaceColor = remember(item.cardColor) {
-                    item.composeColor.copy(alpha = 0.05f).compositeOver(background)
-                },
-                backFaceColor = remember(item.cardColor) {
-                    item.composeColor
-                },
-                onFrontFaceClick = {
+            val currentItem by rememberUpdatedState(item)
+            val latestCurrentDate by rememberUpdatedState(currentDate)
+            val onFrontFaceClick = remember {
+                {
                     soundManager.playWriteSound()
                     handler(
                         RoutineContract.Intent.UpsertDailyLog(
-                            RoutineDailyLog(
-                                cardId = item.cardId,
-                                recordDate = currentDate,
-                                isCompleted = true,
-                                completedAt = item.completedAt
-                            )
+                            cardId = currentItem.cardId,
+                            recordDate = latestCurrentDate,
+                            isCompleted = true,
+                            completedAt = currentItem.completedAt
                         )
                     )
-                },
-                onBackFaceClick = {
+                }
+            }
+            val onBackFaceClick = remember {
+                {
                     soundManager.playEraserSound()
                     handler(
                         RoutineContract.Intent.UpsertDailyLog(
-                            RoutineDailyLog(
-                                cardId = item.cardId,
-                                recordDate = currentDate,
-                                isCompleted = false,
-                                completedAt = item.completedAt
-                            )
+                            cardId = currentItem.cardId,
+                            recordDate = latestCurrentDate,
+                            isCompleted = false,
+                            completedAt = currentItem.completedAt
                         )
                     )
-                },
-                isFrontFace = !item.isCompleted,
-                onLongClick = {
+                }
+            }
+            val onLongClick = remember(item.cardId) {
+                {
                     onLongClick(item.cardId)
                 }
+            }
+            val cardText = item.cardText
+            val cardId = item.cardId
+            val isCompleted = !item.isCompleted
+            val rawComposeColor = remember(item.cardColor) { item.composeColor }
+
+            // 2. 将 Color 作为 remember 的 Key，而不是卡片 ID
+            val frontFaceColor = remember(rawComposeColor, background) {
+                rawComposeColor.copy(alpha = 0.05f).compositeOver(background)
+            }
+            val backFaceColor = rawComposeColor
+            ScratchMaskCard(
+                cardId = cardId,
+                frontFaceColor = frontFaceColor,
+                backFaceColor = backFaceColor,
+                onFrontFaceClick = onFrontFaceClick,
+                onBackFaceClick = onBackFaceClick,
+                isFrontFace = isCompleted,
+                onLongClick = onLongClick
             ) {
                 Column(Modifier.fillMaxSize(0.95f)) {
                     Spacer(Modifier.weight(1f))
                     Text(
-                        item.cardText,
+                        cardText,
                         Modifier
                             .fillMaxWidth(0.95f)
                             .align(Alignment.CenterHorizontally),

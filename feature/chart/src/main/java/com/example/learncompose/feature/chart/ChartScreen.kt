@@ -32,8 +32,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.adaptive.WindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,12 +47,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.window.core.layout.WindowSizeClass
 import com.example.learncompose.core.model.RoutineCard
 import com.example.learncompose.core.model.RoutineCardsAndLogs
 import com.example.learncompose.feature.routine.chart.ChartContract
@@ -71,8 +77,8 @@ fun ChartViewModelScreen(modifier: Modifier = Modifier, viewModel: ChartViewMode
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChartScreen(modifier: Modifier = Modifier, uiState: ChartContract.UiState = ChartContract.UiState()) {
+    val adaptiveInfo = currentWindowAdaptiveInfo()
     val cardsAndLogs = uiState.cardsAndLogs
-
     val initialPage = 11
     val pagerState = rememberPagerState(
         initialPage = initialPage,
@@ -112,7 +118,12 @@ fun ChartScreen(modifier: Modifier = Modifier, uiState: ChartContract.UiState = 
                     today.minusMonths((initialPage - page).toLong())
                 }
                 Column(Modifier.fillMaxSize()) {
-                    ChartPage(cardsAndLogs = cardsAndLogs, currentYear = currentDay.year, currentMonth = currentDay.monthValue)
+                    ChartPage(
+                        cardsAndLogs = cardsAndLogs,
+                        currentYear = currentDay.year,
+                        currentMonth = currentDay.monthValue,
+                        adaptiveInfo = adaptiveInfo
+                    )
                 }
             }
         }
@@ -125,17 +136,48 @@ private fun ChartPage(
     cardsAndLogs: List<RoutineCardsAndLogs>,
     currentYear: Int,
     currentMonth: Int,
+    adaptiveInfo: WindowAdaptiveInfo
 ) {
+
+    val scaleFactor =
+        if (adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)
+            || (adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
+                    && adaptiveInfo.windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND)))
+        {
+            1.2f
+        } else {
+            1.0f
+        }
+
+    val currentDensity = LocalDensity.current
+    // 创建调整过 density 的 LocalDensity 作用域
+    val scaledDensity = remember(currentDensity, scaleFactor) {
+        Density(
+            density = currentDensity.density * scaleFactor,
+            fontScale = currentDensity.fontScale * scaleFactor
+        )
+    }
+
+    val minSize =  if (adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)
+        || (adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
+                && adaptiveInfo.windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND)))
+    {
+        200.dp
+    } else {
+        150.dp
+    }
     val daysInMonths = YearMonth.of(currentYear, currentMonth).lengthOfMonth()
-    LazyVerticalGrid(
-        modifier = modifier.fillMaxSize(),
-        columns = GridCells.Adaptive(150.dp),
-        state = rememberLazyGridState(),
-        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        items(items = cardsAndLogs, key = { it.card.id }) { item ->
+
+    CompositionLocalProvider(LocalDensity provides scaledDensity) {
+        LazyVerticalGrid(
+            modifier = modifier.fillMaxSize(),
+            columns = GridCells.Adaptive(minSize),
+            state = rememberLazyGridState(),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            items(items = cardsAndLogs, key = { it.card.id }) { item ->
 //            val completedDays = cardsAndLogs[index].logs.filter {
 //                it.recordDate?.year == currentYear
 //            }.filter {
@@ -145,17 +187,18 @@ private fun ChartPage(
 //            }.map {
 //                it.recordDate?.dayOfMonth
 //            }
-            val completedDays = remember(item.logs, currentYear, currentMonth) {
-                item.logs.asSequence()
-                    .filter { it.isCompleted && it.recordDate != null }
-                    .filter { it.recordDate!!.year == currentYear && it.recordDate!!.monthValue == currentMonth }
-                    .mapTo(HashSet()) { it.recordDate!!.dayOfMonth }
+                val completedDays = remember(item.logs, currentYear, currentMonth) {
+                    item.logs.asSequence()
+                        .filter { it.isCompleted && it.recordDate != null }
+                        .filter { it.recordDate!!.year == currentYear && it.recordDate!!.monthValue == currentMonth }
+                        .mapTo(HashSet()) { it.recordDate!!.dayOfMonth }
+                }
+                ChartCard(
+                    cardAndLog = item,
+                    daysInMonths = daysInMonths,
+                    completedDays = completedDays,
+                )
             }
-            ChartCard(
-                cardAndLog = item,
-                daysInMonths = daysInMonths,
-                completedDays = completedDays
-            )
         }
     }
 }
