@@ -1,10 +1,16 @@
 package com.example.learncompose.feature.routine
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.DecayAnimationSpec
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.rememberSplineBasedDecay
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -135,7 +141,7 @@ fun RoutineScreen(
     val adaptiveInfo = currentWindowAdaptiveInfo()
     val handler = LocalHandler.current
     val scope = rememberCoroutineScope()
-    var showBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var showBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true) {
         it != SheetValue.PartiallyExpanded
     }
@@ -244,6 +250,11 @@ fun RoutineScreen(
 //            }
 //        }
 //    }
+
+    var fabVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        fabVisible = true
+    }
 
     Box(
         modifier = modifier
@@ -489,13 +500,28 @@ fun RoutineScreen(
                 )
 
             },
+
+
             floatingActionButton = {
-                FloatingActionButton(
-                    onClick = {
-                        showBottomSheet = true
-                    }
+                AnimatedVisibility(
+                    visible = fabVisible,
+                    enter = slideInVertically(
+                        // fullHeight 表示从屏幕最底部外侧开始向上滑动
+                        initialOffsetY = { fullHeight -> fullHeight },
+                        animationSpec = tween(1000)
+                    ) + fadeIn(),
+                    exit = slideOutVertically(
+                        targetOffsetY = { fullHeight -> fullHeight },
+                        animationSpec = tween(1000)
+                    ) + fadeOut()
                 ) {
-                    Icon(painterResource(R.drawable.add_24px), contentDescription = "")
+                    FloatingActionButton(
+                        onClick = {
+                            showBottomSheet = true
+                        }
+                    ) {
+                        Icon(painterResource(R.drawable.add_24px), contentDescription = "")
+                    }
                 }
             }
         ) { paddingValues ->

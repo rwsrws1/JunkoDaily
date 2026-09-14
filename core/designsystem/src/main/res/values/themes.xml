@@ -2,6 +2,6 @@
 <resources>
 
     <style name="Theme.AppTheme" parent="android:Theme.Material.Light.NoActionBar" >
-        <item name="colorControlNormal">#FF006876</item>
+        <item name="colorControlNormal">#006876</item>
     </style>
 </resources>
