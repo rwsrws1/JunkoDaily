@@ -42,7 +42,6 @@ import com.example.learncompose.navigation.spendEntry
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun MainScreen(modifier: Modifier = Modifier) {
-    println("MainScreen 重组")
     val navigationState = rememberNavigationState(RoutineKey, TOP_LEVEL_NAV_ITEMS.keys)
     val navigator = remember { Navigator(navigationState) }
     val isInTopLevel = navigationState.currentKey in navigationState.topLevelKeys
@@ -100,7 +99,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
             experimentEntry(navigator)
         }
         val entries = navigationState.toEntries(entryProvider)
-        println("Current entries size: ${entries.size}")
+        println("Current entries$entries, size: ${entries.size}")
         NavDisplay(
             modifier = Modifier.background(MaterialTheme.colorScheme.background),
             entries = entries,

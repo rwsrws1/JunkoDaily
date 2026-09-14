@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -241,13 +243,13 @@ private fun ChartCard(
                 .padding(horizontal = 10.dp)
         )
         Spacer(Modifier.height(5.dp))
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().height(intrinsicSize = IntrinsicSize.Min), verticalAlignment = Alignment.CenterVertically) {
             Spacer(Modifier.weight(1f))
             Icon(painterResource(R.drawable.clock_loader_40_24px), null, Modifier.size(15.dp))
             Spacer(Modifier.width(3.dp))
             Text("${completedDays.size * 100 / daysInMonths}%")
             Spacer(Modifier.weight(0.5f))
-            VerticalDivider(Modifier.height(10.dp))
+            VerticalDivider(Modifier.fillMaxHeight(0.6f))
             Spacer(Modifier.weight(0.5f))
             Icon(painterResource(R.drawable.check_circle_24px), null, Modifier.size(15.dp))
             Spacer(Modifier.width(3.dp))
