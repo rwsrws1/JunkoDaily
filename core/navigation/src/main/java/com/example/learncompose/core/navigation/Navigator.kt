@@ -49,8 +49,8 @@ class Navigator(val state: NavigationState) {
             state.currentTopLevelKey -> {
                 // We're at the base of the current sub stack, go back to the previous top level
                 // stack.
-//                state.topLevelStack.removeLastOrNull()
-                error("You cannot go back from the topLevel route")
+                state.topLevelStack.removeLastOrNull()
+//                error("You cannot go back from the topLevel route")
             }
             else -> state.currentSubStack.removeLastOrNull()
         }
@@ -80,7 +80,10 @@ class Navigator(val state: NavigationState) {
 //                // Remove it if it's already in the stack so it's added at the end.
 //                remove(key)
 //            }
-            clear()
+
+//            clear()
+
+            remove(key)
             add(key)
         }
     }

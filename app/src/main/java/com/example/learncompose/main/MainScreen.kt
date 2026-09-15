@@ -3,6 +3,7 @@ package com.example.learncompose.main
 import androidx.compose.foundation.background
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationDrawerItemDefaults
@@ -64,32 +65,32 @@ fun MainScreen(modifier: Modifier = Modifier) {
         navigationDrawerItemColors = NavigationDrawerItemDefaults.colors(),
     )
 
-    NavigationSuiteScaffold(
-        navigationSuiteItems = {
-            TOP_LEVEL_NAV_ITEMS.forEach { (navKey, navItem) ->
-                item(
-                    selected = navKey == navigationState.currentTopLevelKey,
-                    onClick = {
-                        navigator.navigate(navKey)
-                    },
-                    icon = {
-                        Icon(
-                            painter = if (navKey == navigationState.currentTopLevelKey) {
-                                painterResource(navItem.selectIconId)
-                            } else {
-                                painterResource(navItem.unSelectIconId)
-                            },
-                            contentDescription = ""
-                        )
-                    },
-                    label = { Text(stringResource(navItem.iconTextId)) },
-                    colors = defaultItemColors
-                )
-            }
-        },
-        layoutType = customLayoutType,
-        navigationSuiteColors = NavigationSuiteDefaults.colors()
-    ) {
+//    NavigationSuiteScaffold(
+//        navigationSuiteItems = {
+//            TOP_LEVEL_NAV_ITEMS.forEach { (navKey, navItem) ->
+//                item(
+//                    selected = navKey == navigationState.currentTopLevelKey,
+//                    onClick = {
+//                        navigator.navigate(navKey)
+//                    },
+//                    icon = {
+//                        Icon(
+//                            painter = if (navKey == navigationState.currentTopLevelKey) {
+//                                painterResource(navItem.selectIconId)
+//                            } else {
+//                                painterResource(navItem.unSelectIconId)
+//                            },
+//                            contentDescription = ""
+//                        )
+//                    },
+//                    label = { Text(stringResource(navItem.iconTextId)) },
+//                    colors = defaultItemColors
+//                )
+//            }
+//        },
+//        layoutType = customLayoutType,
+//        navigationSuiteColors = NavigationSuiteDefaults.colors()
+//    ) {
         val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>()
         val entryProvider = entryProvider {
             chartEntry(navigator)
@@ -109,7 +110,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
             ),
             onBack = { navigator.goBack() },
         )
-    }
+//    }
 }
 
 @PreviewScreenSizes

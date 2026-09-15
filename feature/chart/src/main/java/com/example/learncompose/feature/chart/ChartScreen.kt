@@ -42,7 +42,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -82,6 +84,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
+import com.example.learncompose.core.designsystem.icons.AppIcons
 import com.example.learncompose.core.model.RoutineCard
 import com.example.learncompose.core.model.RoutineCardsAndLogs
 import com.example.learncompose.core.model.RoutineDailyLog
@@ -102,16 +105,21 @@ val FloatAnimatableSaver = Saver<Animatable<Float, AnimationVector1D>, Float>(
 )
 
 @Composable
-fun ChartViewModelScreen(modifier: Modifier = Modifier, viewModel: ChartViewModel) {
+fun ChartViewModelScreen(
+    modifier: Modifier = Modifier,
+    viewModel: ChartViewModel,
+    naviToRoutineScreen: () -> Unit = {}
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    ChartScreen(modifier, uiState)
+    ChartScreen(modifier, uiState, naviToRoutineScreen)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChartScreen(
     modifier: Modifier = Modifier,
-    uiState: ChartContract.UiState = ChartContract.UiState()
+    uiState: ChartContract.UiState = ChartContract.UiState(),
+    naviToRoutineScreen: () -> Unit = {}
 ) {
     var isShowWithYear by rememberSaveable { mutableStateOf(false) }
     val adaptiveInfo = currentWindowAdaptiveInfo()
@@ -181,40 +189,6 @@ fun ChartScreen(
                 )
             },
             floatingActionButton = {
-
-                AnimatedVisibility(
-                    visible = fabVisible,
-                    enter = slideInVertically(
-                        // fullHeight 表示从屏幕最底部外侧开始向上滑动
-                        initialOffsetY = { fullHeight -> fullHeight },
-                        animationSpec = tween(1000)
-                    ) + fadeIn(),
-                    exit = slideOutVertically(
-                        targetOffsetY = { fullHeight -> fullHeight },
-                        animationSpec = tween(1000)
-                    ) + fadeOut()
-                ) {
-                    FloatingActionButton(
-                        onClick = {
-                            isShowWithYear = !isShowWithYear
-                        }
-                    ) {
-                        val selectStyle = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Bold
-                        )
-                        val normalStyle = MaterialTheme.typography.bodySmall.copy(
-                            fontWeight = FontWeight.Normal
-                        )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("月", style = if (isShowWithYear) normalStyle else selectStyle)
-                            Text("/")
-                            Text("年", style = if (isShowWithYear) selectStyle else normalStyle)
-                        }
-                    }
-
-                }
             }
         ) { paddingValues ->
             Column(
@@ -256,6 +230,68 @@ fun ChartScreen(
                 }
             }
 
+        }
+
+        HorizontalFloatingToolbar(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 10.dp),
+            expanded = true,
+            floatingActionButton = {
+                AnimatedVisibility(
+                    visible = fabVisible,
+                    enter = slideInVertically(
+                        // fullHeight 表示从屏幕最底部外侧开始向上滑动
+                        initialOffsetY = { fullHeight -> fullHeight },
+                        animationSpec = tween(1000)
+                    ) + fadeIn(),
+                    exit = slideOutVertically(
+                        targetOffsetY = { fullHeight -> fullHeight },
+                        animationSpec = tween(1000)
+                    ) + fadeOut()
+                ) {
+                    FloatingActionButton(
+                        onClick = {
+                            isShowWithYear = !isShowWithYear
+                        }
+                    ) {
+                        val selectStyle = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold
+                        )
+                        val normalStyle = MaterialTheme.typography.bodySmall.copy(
+                            fontWeight = FontWeight.Normal
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("月", style = if (isShowWithYear) normalStyle else selectStyle)
+                            Text("/")
+                            Text("年", style = if (isShowWithYear) selectStyle else normalStyle)
+                        }
+                    }
+
+                }
+            }
+        )
+        {
+            AnimatedVisibility(
+                visible = fabVisible,
+                enter = slideInVertically(
+                    // fullHeight 表示从屏幕最底部外侧开始向上滑动
+                    initialOffsetY = { fullHeight -> fullHeight },
+                    animationSpec = tween(1000)
+                ) + fadeIn(),
+                exit = slideOutVertically(
+                    targetOffsetY = { fullHeight -> fullHeight },
+                    animationSpec = tween(1000)
+                ) + fadeOut()
+            ) {
+                IconButton(onClick = {
+                    naviToRoutineScreen()
+                }) {
+                    Icon(painterResource(AppIcons.routine), null)
+                }
+            }
         }
     }
 }
@@ -528,9 +564,11 @@ private fun YearChartCard(
                 Spacer(Modifier.width(5.dp))
                 Box(modifier = Modifier.width(IntrinsicSize.Min)) {
                     Text(text = dummyText, maxLines = 1, modifier = Modifier.alpha(0f))
-                    Text(text = "${completedMonthDays.sum().toInt()}",
+                    Text(
+                        text = "${completedMonthDays.sum().toInt()}",
                         maxLines = 1,
-                        textAlign = TextAlign.End)
+                        textAlign = TextAlign.End
+                    )
                 }
                 Spacer(Modifier.width(10.dp))
             }
