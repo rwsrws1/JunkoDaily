@@ -134,3 +134,5 @@ private fun Color.toArgbLong(): Long {
     val b = (blue * 255f + 0.5f).toInt() and 0xFF
     return ((a.toLong() shl 24) or (r.toLong() shl 16) or (g.toLong() shl 8) or b.toLong()) and 0xFFFFFFFFL
 }
+
+fun Long.toComposeColor(): Color = Color(this)

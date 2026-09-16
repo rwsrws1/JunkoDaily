@@ -1,6 +1,7 @@
 package com.example.learncompose.feature.routine.components
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationEndReason
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -24,6 +25,7 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.center
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Path
@@ -47,25 +49,31 @@ import kotlinx.coroutines.launch
 
 @Composable
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
-fun ImageAreaCard(modifier: Modifier = Modifier, currentShape: RoundedPolygon, targetShape: RoundedPolygon
+fun ImageAreaCard(
+    modifier: Modifier = Modifier,
+    targetShape: RoundedPolygon,
+    imageColor: Color,
 ) {
     val morphProgress = remember { Animatable(0f) }
     val rotationProgress = remember { Animatable(0f) }
-
-    val isChangeShape by remember(currentShape, targetShape) { mutableStateOf(currentShape == targetShape) }
+    var currentShape by remember { mutableStateOf(targetShape) }
 
     val morph = remember(currentShape, targetShape) { Morph(currentShape.normalized(), targetShape.normalized()) }
 
     val path = remember { Path() }
     val scaleMatrix = remember { Matrix() }
 
-    LaunchedEffect(isChangeShape) {
+    LaunchedEffect(targetShape) {
         val morphAnimationSpec = spring<Float>(dampingRatio = 0.6f, stiffness = 200f)
         launch {
-            morphProgress.animateTo(
-                targetValue = if (isChangeShape) 1f else 0f,
+            val animationResult = morphProgress.animateTo(
+                targetValue = 1f,
                 animationSpec = morphAnimationSpec
             )
+            if (animationResult.endReason == AnimationEndReason.Finished) {
+                currentShape = targetShape
+                morphProgress.snapTo(0f)
+            }
         }
 //        launch {
 //            val animationResult = rotationProgress.animateTo(
@@ -77,7 +85,6 @@ fun ImageAreaCard(modifier: Modifier = Modifier, currentShape: RoundedPolygon, t
 //        }
     }
 
-    val secondColor = MaterialTheme.colorScheme.tertiary
     var targetSize by remember { mutableStateOf(Size.Zero) }
     val contentFill = 0.9f
 // 主卡片容器
@@ -109,7 +116,7 @@ fun ImageAreaCard(modifier: Modifier = Modifier, currentShape: RoundedPolygon, t
                                     scaleFactor = 1.0f,
                                     scaleMatrix = scaleMatrix,
                                 ),
-                                color = secondColor,
+                                color = imageColor,
                                 style = Fill,
                             )
                         }
@@ -199,5 +206,5 @@ private fun processPath(
 @Preview
 @Composable
 private fun Preview() {
-    ImageAreaCard(modifier = Modifier.size(300.dp), MaterialShapes.Circle, MaterialShapes.Heart)
+    ImageAreaCard(modifier = Modifier.size(300.dp), targetShape = MaterialShapes.Heart, imageColor = MaterialTheme.colorScheme.tertiary)
 }
