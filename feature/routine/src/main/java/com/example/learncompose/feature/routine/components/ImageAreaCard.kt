@@ -41,27 +41,29 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.graphics.shapes.Morph
+import androidx.graphics.shapes.RoundedPolygon
 import com.example.learncompose.feature.routine.R
 import kotlinx.coroutines.launch
 
 @Composable
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
-fun ImageAreaCard(modifier: Modifier = Modifier, changeShape: Boolean = false) {
+fun ImageAreaCard(modifier: Modifier = Modifier, currentShape: RoundedPolygon, targetShape: RoundedPolygon
+) {
     val morphProgress = remember { Animatable(0f) }
     val rotationProgress = remember { Animatable(0f) }
 
-    val shape1 = MaterialShapes.Circle
-    val shape2 = MaterialShapes.Heart
-    val morph = remember { Morph(shape1.normalized(), shape2.normalized()) }
+    val isChangeShape by remember(currentShape, targetShape) { mutableStateOf(currentShape == targetShape) }
+
+    val morph = remember(currentShape, targetShape) { Morph(currentShape.normalized(), targetShape.normalized()) }
 
     val path = remember { Path() }
     val scaleMatrix = remember { Matrix() }
 
-    LaunchedEffect(changeShape) {
+    LaunchedEffect(isChangeShape) {
         val morphAnimationSpec = spring<Float>(dampingRatio = 0.6f, stiffness = 200f)
         launch {
             morphProgress.animateTo(
-                targetValue = if (changeShape) 1f else 0f,
+                targetValue = if (isChangeShape) 1f else 0f,
                 animationSpec = morphAnimationSpec
             )
         }
@@ -193,8 +195,9 @@ private fun processPath(
     return path
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Preview
 @Composable
 private fun Preview() {
-    ImageAreaCard(modifier = Modifier.size(300.dp))
+    ImageAreaCard(modifier = Modifier.size(300.dp), MaterialShapes.Circle, MaterialShapes.Heart)
 }

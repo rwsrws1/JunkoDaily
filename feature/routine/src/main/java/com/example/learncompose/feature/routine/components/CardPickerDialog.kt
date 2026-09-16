@@ -4,6 +4,7 @@ import android.os.Build
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateBounds
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
@@ -20,51 +21,93 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonGroup
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.ButtonGroupDefaults.connectedButtonCheckedShape
+import androidx.compose.material3.ButtonGroupDefaults.connectedMiddleButtonPressShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.material3.ToggleButtonSize
 import androidx.compose.material3.rememberSliderState
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.layout.LookaheadScope
+import androidx.compose.ui.layout.Ruler
+import androidx.compose.ui.layout.RulerScope
+import androidx.compose.ui.layout.VerticalRuler
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import androidx.graphics.shapes.RoundedPolygon
+import com.example.learncompose.core.designsystem.PresetColorList
+import com.example.learncompose.core.designsystem.PresetFiveRandomColor
+import com.example.learncompose.core.designsystem.PresetFiveRandomShape
+import com.example.learncompose.core.designsystem.icons.AppIcons
 import com.example.learncompose.feature.routine.R
 
 @Composable
@@ -72,81 +115,56 @@ fun FullscreenCustomOverlay(
     visible: Boolean,
     onDismiss: () -> Unit
 ) {
-    // 1. 拦截系统返回键
     if (visible) {
         BackHandler {
             onDismiss()
         }
-    }
-
-    // 2. 窗口级模糊处理 (Android 12+)
-//    val context = LocalContext.current
-//    DisposableEffect(visible) {
-//        if (visible && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-//            val window = (context as? android.app.Activity)?.window
-//            window?.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
-//            window?.attributes = window.attributes?.apply {
-//                blurBehindRadius = 60
-//            }
-//        }
-//        onDispose {
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-//                val window = (context as? android.app.Activity)?.window
-//                window?.attributes = window.attributes?.apply {
-//                    blurBehindRadius = 0
-//                }
-//            }
-//        }
-//    }
-
-    // 3. 动画组合：渐变 + 从下方弹起 + 弹性缩放
-    AnimatedVisibility(
-        visible = visible,
-        enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
-                slideInVertically(
-                    initialOffsetY = { it / 3 },
-                    animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow)
-                ) +
-                scaleIn(
-                    initialScale = 0.85f,
-                    animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow)
-                ),
-        exit = fadeOut(animationSpec = spring(stiffness = Spring.StiffnessHigh)) +
-                slideOutVertically(
-                    targetOffsetY = { it / 4 },
-                    animationSpec = spring(stiffness = Spring.StiffnessMedium)
-                ) +
-                scaleOut(
-                    targetScale = 0.9f,
-                    animationSpec = spring(stiffness = Spring.StiffnessMedium)
-                )
-    ) {
-        // 全屏遮罩层
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                // 半透明暗色背景
-                .background(Color.Black.copy(alpha = 0.45f))
-                // 低版本 Android (Android 11 及以下) 回退的 Compose 自带毛玻璃
-                .then(
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-                        Modifier.blur(16.dp)
-                    } else Modifier
-                )
+                .background(MaterialTheme.colorScheme.scrim.copy(0.4f))
                 // 点击背景关闭
                 .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
+                    interactionSource = null,
                     indication = null,
                     onClick = onDismiss
-                ),
-            contentAlignment = Alignment.Center
+                )
         ) {
-            // 弹窗主体
+        }
+    }
+
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMedium), initialAlpha = 0.5f) +
+                slideInVertically(
+                    initialOffsetY = { it / 2 },
+                    animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow)
+                ) +
+                scaleIn(
+                    initialScale = 0.5f,
+                    animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow)
+                ),
+        exit = fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMedium), targetAlpha = 0.5f) +
+                slideOutVertically(
+                    targetOffsetY = { it / 2 },
+                    animationSpec = spring(stiffness = Spring.StiffnessLow)
+                ) +
+                scaleOut(
+                    targetScale = 0f,
+                    animationSpec = spring(stiffness = Spring.StiffnessLow)
+                )
+    ) {
+        Box(Modifier.fillMaxSize().clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null,
+            onClick = {}
+        ),
+            contentAlignment = Alignment.Center,
+        ) {
             Surface(
                 modifier = Modifier
-                    .fillMaxWidth(0.88f) // 左右留出 12% 边距
-                    .fillMaxHeight(0.65f) // 上下留出 35% 边距
-                    // 关键：吃掉卡片区域的点击事件，防止点击卡片内部透传到背景关闭
+                    .fillMaxWidth(0.9f)
+                    .fillMaxHeight(0.65f)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
@@ -157,7 +175,12 @@ fun FullscreenCustomOverlay(
                 shadowElevation = 12.dp
             ) {
                 Column(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = {}
+                        ),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     CardPickerDialog()
@@ -168,42 +191,33 @@ fun FullscreenCustomOverlay(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CardPickerDialog(modifier: Modifier = Modifier) {
     var changeShape by remember { mutableStateOf(false) }
+    val options = listOf("形状", "颜色", "图案")
 
     // 状态管理
-    var selectedShapeIndex by remember { mutableIntStateOf(1) }
-    var selectedColorIndex by remember { mutableIntStateOf(3) }
-    var selectedCategoryIndex by remember { mutableIntStateOf(1) }
+    var lastShapeIndex by remember { mutableIntStateOf(0) }
+    var selectedShapeIndex by remember { mutableIntStateOf(0) }
+    var selectedColorIndex by remember { mutableIntStateOf(0) }
+    var selectedCategoryIndex by remember { mutableIntStateOf(0) }
 
-    val categories = listOf("Weather", "Shapes", "Cinematic")
+    val categories = listOf("颜色", "形状", "Cinematic")
 
-    // 调色板定义
-    val colorList = listOf(
-        Color(0xFFB3739C),
-        Color(0xFFA6855A),
-        Color(0xFFB55D6C),
-        Color(0xFF5A83BA),
-        Color(0xFF5A5E5B)
-    )
+    val colorList = remember { PresetFiveRandomColor }
+    val shapeList = remember { PresetFiveRandomShape }
 
-    // Shape 定义
-    val shapeList: List<Shape> = remember {
-        listOf(
-            CircleShape,
-            RoundedCornerShape(12.dp),
-            RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp, bottomStart = 4.dp, bottomEnd = 4.dp),
-            RoundedCornerShape(CornerSize(30)),
-            RoundedCornerShape(18.dp)
-        )
-    }
 
     val slideState = rememberSliderState(
         value = 0.5f,
         steps = 0, trackRange = 0f..1f
     )
+
+    val unCheckedIcons = listOf(AppIcons.routine, AppIcons.chart, AppIcons.spend)
+    val checkedIcons = listOf(AppIcons.routineFilled, AppIcons.chartFilled, AppIcons.spendFilled)
+    var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
+    val interactionSources = remember { List(shapeList.size) { MutableInteractionSource() } }
 
     Column(
         modifier = Modifier
@@ -215,19 +229,19 @@ fun CardPickerDialog(modifier: Modifier = Modifier) {
         Box {
             TextButton(
                 onClick = {
-                    changeShape = !changeShape
+
                 }
             ) {
                 Text("test")
             }
-            ImageAreaCard(Modifier.fillMaxWidth(0.8f), changeShape)
+            ImageAreaCard(Modifier.fillMaxWidth(0.8f), shapeList[lastShapeIndex], shapeList[selectedShapeIndex])
         }
         // 2. 中间编辑操作卡片
         Card(
-            modifier = Modifier.fillMaxWidth(0.8f),
-            shape = RoundedCornerShape(28.dp),
+            modifier = Modifier.fillMaxWidth(0.9f),
+            shape = MaterialTheme.shapes.extraLarge,
             colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF2C282D) // 深灰暗色调卡片
+                containerColor = MaterialTheme.colorScheme.inverseSurface
             )
         ) {
             Column(
@@ -238,59 +252,107 @@ fun CardPickerDialog(modifier: Modifier = Modifier) {
             ) {
                 // 第一行：Shape 形状选择器
                 Spacer(Modifier.height(10.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    shapeList.forEachIndexed { index, shape ->
-                        val isSelected = selectedShapeIndex == index
-                        val bgColor = if (isSelected) Color(0xFF6B8DB9) else Color(0xFF454045)
-                        val itemColor = if (isSelected) Color.White else Color(0xFF9E9A9E)
 
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(CircleShape)
-                                .background(bgColor)
-                                .clickable { selectedShapeIndex = index },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .clip(shape)
-                                    .background(itemColor)
+                VerticalRuler()
+                val bgColor = Color(0xFF6B8DB9)
+                val itemColor = Color(0xFF9E9A9E)
+
+                Box(Modifier.fillMaxWidth(1f)) {
+                    ButtonGroup(
+                        modifier = Modifier.fillMaxWidth(),
+                        overflowIndicator = { menuState ->
+//                            ButtonGroupDefaults.OverflowIndicator(menuState = menuState)
+                        },
+                        expandedRatio = ButtonGroupDefaults.ExpandedRatio,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        shapeList.forEachIndexed { index, label ->
+                            customItem(
+                                buttonGroupContent = {
+                                    val contentPadding = PaddingValues(horizontal = 10.dp, vertical = 12.dp)
+                                    val layoutDirection = LocalLayoutDirection.current
+
+                                    ToggleButton(
+                                        modifier =
+                                            Modifier.animateWidth(
+                                                interactionSource = interactionSources[index],
+                                                compressionLimit =
+                                                    contentPadding.calculateEndPadding(layoutDirection),
+                                            )
+                                        ,
+                                        checked = selectedShapeIndex == index,
+                                        onCheckedChange = { selectedShapeIndex = index },
+                                        interactionSource = interactionSources[index],
+                                        shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(
+                                            shape = CircleShape,
+                                            pressedShape = connectedMiddleButtonPressShape,
+                                            checkedShape = connectedButtonCheckedShape,
+                                        ),
+                                        colors = ToggleButtonDefaults.colors(
+                                            containerColor = MaterialTheme.colorScheme.scrim.copy(0.2f),
+                                            contentColor = MaterialTheme.colorScheme.primaryContainer,
+                                            checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            checkedContentColor = MaterialTheme.colorScheme.inverseSurface
+                                            ),
+                                        contentPadding = contentPadding,
+                                    ) {
+                                        Box(Modifier.size(25.dp).clip(shapeList[index].toShape())
+                                            .background(itemColor))
+                                    }
+                                },
+                                menuContent = {
+//                                    DropdownMenuItem(
+//                                        leadingIcon = { checkedIcons[index] },
+//                                        text = { Text(label) },
+//                                        onClick = {},
+//                                        interactionSource = interactionSources[index],
+//                                    )
+                                },
                             )
                         }
                     }
                 }
 
                 Spacer(Modifier.height(10.dp))
-                // 第二行：Color 颜色选择器
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+
+
+                Row(modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween) {
                     colorList.forEachIndexed { index, color ->
-                        val isSelected = selectedColorIndex == index
-                        Box(
+                        ToggleButton(
                             modifier = Modifier
-                                .size(48.dp)
                                 .then(
-                                    if (isSelected) {
-                                        Modifier.border(2.dp, Color.White, CircleShape)
+                                    if (selectedColorIndex == index) {
+                                        Modifier.border(2.dp, Color.White, MaterialTheme.shapes.medium)
                                     } else Modifier
                                 )
-                                .padding(4.dp)
+                            ,
+                            checked = selectedColorIndex == index,
+                            onCheckedChange = { selectedColorIndex = index },
+                            buttonSize = ToggleButtonSize.ExtraSmall,
+                            shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(
+                                shape = CircleShape,
+                                pressedShape = connectedMiddleButtonPressShape,
+                                checkedShape = MaterialTheme.shapes.small,
+                            ),
+                            colors = ToggleButtonDefaults.colors(
+                                containerColor = Color(color),
+                                contentColor = MaterialTheme.colorScheme.inverseSurface,
+                                checkedContainerColor = Color(color),
+                                checkedContentColor = MaterialTheme.colorScheme.inverseSurface
+                            ),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 10.dp),
+                        ) {
+                            Box(
+                            modifier = Modifier
+                                .size(16.dp)
                                 .clip(CircleShape)
-                                .background(color)
-                                .clickable { selectedColorIndex = index }
-                        )
+                            )
+                        }
                     }
                 }
-                // 第三行：M3 Slider 调节滑块
+                Spacer(Modifier.height(10.dp))
                 Slider(state = slideState,
                     modifier = Modifier.fillMaxWidth(),
                     enabled = true,
@@ -302,37 +364,105 @@ fun CardPickerDialog(modifier: Modifier = Modifier) {
             }
         }
         Spacer(Modifier.height(5.dp))
-        SingleChoiceSegmentedButtonRow(
-            modifier = Modifier.fillMaxWidth(0.8f)
+
+        Box(Modifier
+            .fillMaxWidth(0.75f)
+            .clip(MaterialTheme.shapes.extraLarge)
+            .background(MaterialTheme.colorScheme.inverseSurface)
+            .padding(horizontal = 10.dp),
+            contentAlignment = Alignment.Center
         ) {
-            categories.forEachIndexed { index, label ->
-                SegmentedButton(
-                    shape = SegmentedButtonDefaults.itemShape(
-                        index = index,
-                        count = categories.size
-                    ),
-                    onClick = { selectedCategoryIndex = index },
-                    selected = selectedCategoryIndex == index,
-                    icon = {
+            Row(Modifier.fillMaxWidth()) {
+                options.forEachIndexed { index, label ->
+                    ToggleButton(
+                        modifier = Modifier.weight(1f).wrapContentHeight(),
+                        checked = selectedCategoryIndex == index,
+                        onCheckedChange = { selectedCategoryIndex = index },
+                        buttonSize = ToggleButtonSize.ExtraSmall,
+                        shapes =
+                            when (index) {
+                                0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                            },
+                        colors = ToggleButtonDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.inverseSurface,
+                            contentColor = MaterialTheme.colorScheme.primaryContainer
+                        ),
+                        contentPadding = PaddingValues(0.dp),
+                    ) {
                         if (selectedCategoryIndex == index) {
                             Icon(
-                                painterResource(R.drawable.mop_24px),
-                                contentDescription = null,
-                                modifier = Modifier.size(SegmentedButtonDefaults.IconSize)
+                                painterResource(checkedIcons[index]),
+                                null,
+                                Modifier.size(ButtonDefaults.iconSizeFor(ToggleButtonSize.ExtraSmall.height)),
                             )
+                            Spacer(Modifier.width(ToggleButtonDefaults.IconSpacing))
                         }
-                    },
-                    colors = SegmentedButtonDefaults.colors(
-                        activeContainerColor = Color.White,
-                        activeContentColor = Color.Black,
-                        inactiveContainerColor = Color(0xFF2C282D),
-                        inactiveContentColor = Color.White
-                    )
-                ) {
-                    Text(text = label)
+                        Text(label)
+                        Spacer(Modifier.width(ToggleButtonDefaults.IconSpacing))
+                    }
                 }
             }
         }
+
+//        ButtonGroup(
+//            overflowIndicator = { menuState ->
+//                ButtonGroupDefaults.OverflowIndicator(menuState = menuState)
+//            },
+//            expandedRatio = ButtonGroupDefaults.ExpandedRatio,
+//            horizontalArrangement = Arrangement.spacedBy(2.dp),
+//            verticalAlignment = Alignment.CenterVertically
+//        ) {
+//            options.forEachIndexed { index, label ->
+//                toggleableItem(
+//                    checked = selectedIndex == index,
+//                    label = label,
+//                    onCheckedChange = { selectedIndex = index },
+//                    icon = {
+//                        if (selectedIndex == index) {
+//                            Icon(
+//                                painterResource(if (selectedIndex == index) checkedIcons[index] else unCheckedIcons[index]),
+//                                contentDescription = "Localized description",
+//                            )
+//                        }
+//                    }
+//                )
+//            }
+//        }
+
+//        SingleChoiceSegmentedButtonRow(
+//            modifier = Modifier.fillMaxWidth(0.8f)
+//        ) {
+//            categories.forEachIndexed { index, label ->
+//                SegmentedButton(
+//                    shape = SegmentedButtonDefaults.itemShape(
+//                        index = index,
+//                        count = categories.size
+//                    ),
+//                    onClick = { selectedCategoryIndex = index },
+//                    selected = selectedCategoryIndex == index,
+//                    icon = {
+//                        if (selectedCategoryIndex == index) {
+//                            Icon(
+//                                painterResource(R.drawable.mop_24px),
+//                                contentDescription = null,
+//                                modifier = Modifier.size(SegmentedButtonDefaults.IconSize)
+//                            )
+//                        }
+//                    },
+//                    colors = SegmentedButtonDefaults.colors(
+//                        activeContainerColor = Color.White,
+//                        activeContentColor = Color.Black,
+//                        inactiveContainerColor = Color(0xFF2C282D),
+//                        inactiveContentColor = Color.White
+//                    )
+//                ) {
+//                    Text(text = label)
+//                }
+//            }
+//        }
+
         Spacer(Modifier.height(10.dp))
     }
 }

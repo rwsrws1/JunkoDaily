@@ -15,6 +15,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -28,11 +29,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.learncompose.core.designsystem.theme.AppTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -42,8 +46,14 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonGroup
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
@@ -57,6 +67,9 @@ import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.material3.ToggleButtonShapes
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -78,6 +91,7 @@ import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -139,7 +153,7 @@ fun RoutineScreen(
     val adaptiveInfo = currentWindowAdaptiveInfo()
     val handler = LocalHandler.current
     val scope = rememberCoroutineScope()
-    var isShowBottomSheet by remember { mutableStateOf(false) }
+    var isShowBottomSheet by remember { mutableStateOf(true) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true) {
         it != SheetValue.PartiallyExpanded
     }
@@ -507,99 +521,68 @@ fun RoutineScreen(
                             .fillMaxSize()
                     ) {
 
+                        val checked = rememberSaveable { mutableStateListOf(false, false, false) }
 
-//                        val options = listOf("routine", "chart", "spend")
-//                        val unCheckedIcons = listOf(AppIcons.routine, AppIcons.chart, AppIcons.spend)
-//                        val checkedIcons = listOf(AppIcons.routineFilled, AppIcons.chartFilled, AppIcons.spendFilled)
-//                        val checked = rememberSaveable { mutableStateListOf(false, false, false) }
-//                        val interactionSources = remember { List(options.size) { MutableInteractionSource() } }
-//                        ButtonGroup(
-//                            overflowIndicator = { menuState ->
-//                                ButtonGroupDefaults.OverflowIndicator(menuState = menuState)
-//                            },
-//                            expandedRatio = 1f,
-//                        ) {
-//                            options.forEachIndexed { index, label ->
-//                                customItem(
-//                                    buttonGroupContent = {
-//                                        val contentPadding = ButtonDefaults.ButtonWithIconContentPadding
-//                                        val layoutDirection = LocalLayoutDirection.current
-//                                        ToggleButton(
-//                                            checked = checked[index],
-//                                            onCheckedChange = { checked[index] = it },
-//                                            shapes =
-//                                                when (index) {
-//                                                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-//                                                    options.lastIndex ->
-//                                                        ButtonGroupDefaults.connectedTrailingButtonShapes()
-//                                                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-//                                                },
-//                                            contentPadding = contentPadding,
-//                                            interactionSource = interactionSources[index],
-//                                            modifier =
-//                                                Modifier.animateWidth(
-//                                                    interactionSource = interactionSources[index],
-//                                                    compressionLimit =
-//                                                        contentPadding.calculateEndPadding(layoutDirection),
-//                                                ),
-//                                        ) {
-//                                            Icon(
-//                                                painterResource(if (checked[index]) checkedIcons[index] else unCheckedIcons[index]),
-//                                                contentDescription = "Localized description",
-//                                            )
-//                                            Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-//                                            Text(
-//                                                text = label,
-//                                                softWrap = false,
-//                                                maxLines = 1,
-//                                                overflow = TextOverflow.Visible,
-//                                            )
-//                                        }
-//                                    },
-//                                    menuContent = {
-//                                        DropdownMenuItem(
-//                                            leadingIcon = { checkedIcons[index] },
-//                                            text = { Text(label) },
-//                                            onClick = {},
-//                                            interactionSource = interactionSources[index],
-//                                        )
-//                                    },
-//                                )
-//                            }
-//                        }
-//
-//
-//
-//                        var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
-//
-//                        FlowRow(
-//                            Modifier.padding(horizontal = 8.dp).fillMaxWidth(),
-//                            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-//                            verticalArrangement = Arrangement.spacedBy(2.dp),
-//                        ) {
-//                            options.forEachIndexed { index, label ->
-//                                ToggleButton(
-//                                    checked = selectedIndex == index,
-//                                    onCheckedChange = { selectedIndex = index },
-//                                    shapes =
-//                                        when (index) {
-//                                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-//                                            options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-//                                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-//                                        },
-//                                ) {
-//                                    Icon(
-//                                        painterResource(if (selectedIndex == index) checkedIcons[index] else unCheckedIcons[index]),
-//                                        contentDescription = "Localized description",
-//                                    )
-//                                    Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-//                                    Text(label)
-//                                }
-//                            }
-//                        }
-//
-//
-//
+                        val options = listOf("形状", "颜色", "图案")
+                        val unCheckedIcons = listOf(AppIcons.routine, AppIcons.chart, AppIcons.spend)
+                        val checkedIcons = listOf(AppIcons.routineFilled, AppIcons.chartFilled, AppIcons.spendFilled)
+                        var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
+                        Box(Modifier.fillMaxWidth(1f)) {
+                            ButtonGroup(
+                                overflowIndicator = { menuState ->
+                                    ButtonGroupDefaults.OverflowIndicator(menuState = menuState)
+                                },
+                                expandedRatio = ButtonGroupDefaults.ExpandedRatio,
+                                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                options.forEachIndexed { index, label ->
+                                    toggleableItem(
+                                        checked = selectedIndex == index,
+                                        label = label,
+                                        onCheckedChange = { selectedIndex = index },
+                                        icon = {
+                                            Icon(
+                                                painterResource(if (selectedIndex == index) checkedIcons[index] else unCheckedIcons[index]),
+                                                contentDescription = "Localized description",
+                                            )
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+
+
+
+                        FlowRow(
+                            Modifier.padding(horizontal = 8.dp).fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            options.forEachIndexed { index, label ->
+                                ToggleButton(
+                                    checked = selectedIndex == index,
+                                    onCheckedChange = { selectedIndex = index },
+                                    shapes =
+                                        when (index) {
+                                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                            options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                        },
+                                ) {
+                                    Icon(
+                                        painterResource(if (selectedIndex == index) checkedIcons[index] else unCheckedIcons[index]),
+                                        contentDescription = "Localized description",
+                                    )
+                                    Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                                    Text(label)
+                                }
+                            }
+                        }
+
+
+
 //                        FlowRow(
 //                            Modifier.padding(horizontal = 8.dp).fillMaxWidth(),
 //                            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
@@ -659,7 +642,7 @@ fun RoutineScreen(
                         LoadingIndicator()
 
 
-                        ImageAreaCard(Modifier.fillMaxWidth(0.7f))
+//                        ImageAreaCard(Modifier.fillMaxWidth(0.7f))
 
 
 //                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
