@@ -11,8 +11,10 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +22,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,7 +32,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ButtonGroupDefaults
@@ -45,6 +52,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.ToggleButtonSize
@@ -53,6 +61,7 @@ import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -60,9 +69,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.toColorLong
 import androidx.compose.ui.layout.VerticalRuler
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColor
@@ -70,7 +81,11 @@ import com.example.learncompose.core.designsystem.PresetFiveRandomColor
 import com.example.learncompose.core.designsystem.PresetFiveRandomShape
 import com.example.learncompose.core.designsystem.adjustSaturationAndLightness
 import com.example.learncompose.core.designsystem.icons.AppIcons
+import com.example.learncompose.core.designsystem.toArgbLong
 import com.example.learncompose.core.designsystem.toComposeColor
+import com.example.learncompose.feature.routine.LocalHandler
+import com.example.learncompose.feature.routine.R
+import com.example.learncompose.feature.routine.RoutineContract
 import kotlin.text.get
 
 @Composable
@@ -114,7 +129,7 @@ fun FullscreenCustomOverlay(
         Box(Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
         ) {
-            CardPickerDialog()
+            CardPickerDialog(onDismiss = onDismiss)
         }
     }
 }
@@ -122,7 +137,7 @@ fun FullscreenCustomOverlay(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun CardPickerDialog(modifier: Modifier = Modifier) {
+fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) {
     var selectedShapeIndex by remember { mutableIntStateOf(0) }
     var selectedColorIndex by remember { mutableIntStateOf(0) }
     var selectedCategoryIndex by remember { mutableIntStateOf(0) }
@@ -138,7 +153,6 @@ fun CardPickerDialog(modifier: Modifier = Modifier) {
     )
 
     val interactionSources = remember { List(shapeList.size) { MutableInteractionSource() } }
-
     val targetColor = colorList[selectedColorIndex].toComposeColor()
         .adjustSaturationAndLightness(saturationFactor = slideState.value)
     val animColor by animateColorAsState(
@@ -146,31 +160,60 @@ fun CardPickerDialog(modifier: Modifier = Modifier) {
         animationSpec = MaterialTheme.motionScheme.slowEffectsSpec()
     )
 
+    var isSelectImage by remember { mutableStateOf(false) }
+    var selectImage by remember { mutableIntStateOf(R.drawable.brush) }
+    var textState by remember { mutableStateOf("") }
+    val handler = LocalHandler.current
+
     Surface(
         modifier = Modifier
             .fillMaxWidth(0.9f)
-            .fillMaxHeight(0.65f),
+            .aspectRatio(1f / 1.414f),
         shape = MaterialTheme.shapes.extraLarge,
         shadowElevation = 12.dp
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(animColor.copy(0.3f).
-                compositeOver(MaterialTheme.colorScheme.surfaceContainerLowest))
+                .background(
+                    animColor.copy(0.3f)
+                        .compositeOver(MaterialTheme.colorScheme.surfaceContainerLowest)
+                )
                 .padding(horizontal = 10.dp, vertical = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            ImageAreaCard(
-                Modifier.fillMaxWidth(0.8f),
-                targetShape = shapeList[selectedShapeIndex],
-                imageColor = animColor
-            )
+            if (isSelectImage) {
+                Box(Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f / 0.7f), contentAlignment = Alignment.Center) {
+                    ImagePickPage(
+                        modifier = Modifier
+                            .fillMaxHeight(0.7f)
+                            .fillMaxWidth(),
+                        onImageSelect = {
+                            selectImage = it
+                            isSelectImage = false
+                        }
+                    )
+                }
+            } else {
+                ImageAreaCard(
+                    Modifier
+                        .fillMaxWidth(0.7f)
+                        .aspectRatio(1 / 1f),
+                    targetShape = shapeList[selectedShapeIndex],
+                    imageColor = animColor,
+                    onImageClick = { isSelectImage = true },
+                    selectImage = selectImage
+                )
+            }
 
             Spacer(Modifier.weight(0.2f))
 
             Card(
-                modifier = Modifier.fillMaxWidth(0.9f).weight(4f),
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .weight(4f),
                 shape = MaterialTheme.shapes.extraLarge,
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.inverseSurface
@@ -224,7 +267,9 @@ fun CardPickerDialog(modifier: Modifier = Modifier) {
                                             ),
                                             contentPadding = contentPadding,
                                         ) {
-                                            Box(Modifier.size(25.dp).clip(shapeList[index].toShape())
+                                            Box(Modifier
+                                                .size(25.dp)
+                                                .clip(shapeList[index].toShape())
                                                 .background(MaterialTheme.colorScheme.surface))
                                         }
                                     },
@@ -296,38 +341,84 @@ fun CardPickerDialog(modifier: Modifier = Modifier) {
             Spacer(Modifier.weight(0.2f))
 
             Box(Modifier
-                .fillMaxWidth(0.75f).weight(1f)
+                .fillMaxWidth(0.75f)
+                .weight(1f)
                 .clip(MaterialTheme.shapes.extraLarge)
                 .background(MaterialTheme.colorScheme.inverseSurface)
                 .padding(horizontal = 10.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Row(Modifier.fillMaxWidth()) {
-                    categories.forEachIndexed { index, label ->
-                        ToggleButton(
-                            modifier = Modifier.weight(1f),
-                            checked = selectedCategoryIndex == index,
-                            onCheckedChange = { selectedCategoryIndex = index },
-                            buttonSize = ToggleButtonSize.ExtraSmall,
-                            shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(),
-                            colors = ToggleButtonDefaults.colors(
-                                containerColor = MaterialTheme.colorScheme.inverseSurface,
-                                contentColor = MaterialTheme.colorScheme.primaryContainer
-                            ),
-                            contentPadding = PaddingValues(0.dp),
-                        ) {
-                            if (selectedCategoryIndex == index) {
-                                Icon(
-                                    painterResource(categoriesIcons[index]),
-                                    null,
-                                    Modifier.size(ButtonDefaults.iconSizeFor(ToggleButtonSize.ExtraSmall.height)),
-                                )
-                                Spacer(Modifier.width(ToggleButtonDefaults.IconSpacing))
+                    BasicTextField(
+                        value = textState,
+                        onValueChange = { textState = it },
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .weight(1f)
+                            .clip(MaterialTheme.shapes.medium)
+                            .padding(horizontal = 12.dp),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        decorationBox = { innerTextField ->
+                            // 使用 Box 配合 Alignment.CenterStart 实现绝对垂直居中
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.CenterStart
+                            ) {
+                                if (textState.isEmpty()) {
+                                    // 如果需要占位符（Placeholder），可以在这里写
+                                    Text(
+                                        text = "请输入习惯名",
+                                        color = Color.Gray,
+                                    )
+                                }
+                                innerTextField() // 渲染实际的输入文本和光标
                             }
-                            Text(label)
-                            Spacer(Modifier.width(ToggleButtonDefaults.IconSpacing))
-                        }
+                        },
+                    )
+
+                    TextButton(
+                        onClick = {
+                            handler(
+                                RoutineContract.Intent.InsertCard(
+                                    cardText = textState,
+                                    cardColor = targetColor.toArgbLong(),
+                                    cardImage = selectImage
+                                )
+                            )
+                            onDismiss()
+                        },
+                        Modifier.fillMaxHeight()
+                    ) {
+                        Text("确定")
                     }
+
+
+//                    categories.forEachIndexed { index, label ->
+//                        ToggleButton(
+//                            modifier = Modifier.weight(1f),
+//                            checked = selectedCategoryIndex == index,
+//                            onCheckedChange = { selectedCategoryIndex = index },
+//                            buttonSize = ToggleButtonSize.ExtraSmall,
+//                            shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(),
+//                            colors = ToggleButtonDefaults.colors(
+//                                containerColor = MaterialTheme.colorScheme.inverseSurface,
+//                                contentColor = MaterialTheme.colorScheme.primaryContainer
+//                            ),
+//                            contentPadding = PaddingValues(0.dp),
+//                        ) {
+//                            if (selectedCategoryIndex == index) {
+//                                Icon(
+//                                    painterResource(categoriesIcons[index]),
+//                                    null,
+//                                    Modifier.size(ButtonDefaults.iconSizeFor(ToggleButtonSize.ExtraSmall.height)),
+//                                )
+//                                Spacer(Modifier.width(ToggleButtonDefaults.IconSpacing))
+//                            }
+//                            Text(label)
+//                            Spacer(Modifier.width(ToggleButtonDefaults.IconSpacing))
+//                        }
+//                    }
                 }
             }
 

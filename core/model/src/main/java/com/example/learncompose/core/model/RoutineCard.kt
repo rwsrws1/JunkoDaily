@@ -8,4 +8,5 @@ data class RoutineCard(
     val id: Long = 0,
     val cardText: String = "",
     val cardColor: Long = 0XFFFFFFFF,
+    val cardImage: Int = 0,
 )

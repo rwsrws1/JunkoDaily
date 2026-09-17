@@ -17,7 +17,8 @@ class RoutineContract {
         data class SelectDate(val date: LocalDate) : Intent
         data class InsertCard(
             val cardText: String = "",
-            val cardColor: Long = 0XFFFFFFFF
+            val cardColor: Long = 0XFFFFFFFF,
+            val cardImage: Int = 0
         ) : Intent
         data class DeleteCardById(val cardId: Long) : Intent
         data class UpsertDailyLog(

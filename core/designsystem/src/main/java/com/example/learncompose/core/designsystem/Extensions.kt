@@ -130,7 +130,7 @@ fun generateDistinctColors(
 /**
  * 将 Compose Color 转为标准 0xAARRGGBB 格式的 Long
  */
-private fun Color.toArgbLong(): Long {
+fun Color.toArgbLong(): Long {
     val a = (alpha * 255f + 0.5f).toInt() and 0xFF
     val r = (red * 255f + 0.5f).toInt() and 0xFF
     val g = (green * 255f + 0.5f).toInt() and 0xFF

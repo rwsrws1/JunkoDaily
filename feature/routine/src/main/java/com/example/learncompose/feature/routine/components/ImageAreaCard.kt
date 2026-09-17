@@ -5,10 +5,19 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationEndReason
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +25,7 @@ import androidx.compose.material3.toPath
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -43,6 +53,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
+import androidx.compose.ui.window.Dialog
 import androidx.graphics.shapes.Morph
 import androidx.graphics.shapes.RoundedPolygon
 import com.example.learncompose.feature.routine.R
@@ -54,6 +65,8 @@ fun ImageAreaCard(
     modifier: Modifier = Modifier,
     targetShape: RoundedPolygon,
     imageColor: Color,
+    selectImage: Int = R.drawable.brush,
+    onImageClick: () -> Unit = {}
 ) {
     val morphProgress = remember { Animatable(0f) }
     val rotationProgress = remember { Animatable(0f) }
@@ -88,9 +101,10 @@ fun ImageAreaCard(
 
     var targetSize by remember { mutableStateOf(Size.Zero) }
     val contentFill = 0.9f
+
 // 主卡片容器
     Box(
-        modifier = modifier.aspectRatio(1/1f)
+        modifier = modifier
     ) {
         // 1. 底层：绘制动态 Shape 背景
         Box(
@@ -122,12 +136,18 @@ fun ImageAreaCard(
                             )
                         }
                     }
-                }
+                }.clickable(
+                    onClick = {
+                        onImageClick()
+                    },
+                    interactionSource = null,
+                    indication = null
+                )
         )
 
         // 2. 限制层：底部与两侧被动态 Shape 严格裁剪的图片部分
         Image(
-            painter = painterResource(R.drawable.brush),
+            painter = painterResource(selectImage),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -162,12 +182,12 @@ fun ImageAreaCard(
                     // 利用 Canvas 裁切：只绘制顶部 0~100% 以外（即中下区域）的内容，避免与顶层重叠
                     drawContent()
                 }
-                .scale(1.25f)
+                .scale(1f)
         )
 
         // 3. 溢出层：顶部不受 Shape 约束、允许透出的图片部分
         Image(
-            painter = painterResource(R.drawable.brush),
+            painter = painterResource(selectImage),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -185,7 +205,7 @@ fun ImageAreaCard(
                         this@drawWithContent.drawContent()
                     }
                 }
-                .scale(1.25f)
+                .scale(1f)
         )
     }
 }

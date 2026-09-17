@@ -14,6 +14,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -77,6 +78,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.TopAppBarState
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.*
@@ -112,7 +114,6 @@ import androidx.window.core.layout.WindowSizeClass
 import com.example.learncompose.core.designsystem.icons.AppIcons
 import com.example.learncompose.feature.routine.components.CardPickerDialog
 import com.example.learncompose.feature.routine.components.FullscreenCustomOverlay
-import com.example.learncompose.feature.routine.components.ImageAreaCard
 import com.example.learncompose.feature.routine.components.ScratchMaskCard
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -154,10 +155,11 @@ fun RoutineScreen(
     val adaptiveInfo = currentWindowAdaptiveInfo()
     val handler = LocalHandler.current
     val scope = rememberCoroutineScope()
-    var isShowBottomSheet by remember { mutableStateOf(true) }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true) {
-        it != SheetValue.PartiallyExpanded
-    }
+    var isShowBottomSheet by remember { mutableStateOf(false) }
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
+    )
     val rowListState = rememberLazyListState()
     var selectColor: Long by rememberSaveable { mutableLongStateOf(COlOR_LIST[0]) }
     var isShowDialog by remember { mutableStateOf(false) }
@@ -319,78 +321,6 @@ fun RoutineScreen(
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
 
-//                LargeTopAppBar(
-//                    title = {
-//                        Box(modifier = Modifier.fillMaxWidth()) {
-//                            // 1. 折叠状态下显示的内容 (接近完全折叠时显示)
-//                            if (collapsedFraction > 0.5f) {
-//                                Text(
-//                                    text = "折叠状态：精简标题",
-//                                    style = MaterialTheme.typography.titleMedium,
-//                                    modifier = Modifier.graphicsLayer {
-//                                        // 根据折叠进度控制透明度，实现淡入
-//                                        alpha = (collapsedFraction - 0.5f) * 2
-//                                    }
-//                                )
-//                            }
-//
-//                            // 2. 展开状态下显示的内容 (接近完全展开时显示)
-//                            if (collapsedFraction <= 0.5f) {
-//
-//                                PrimaryScrollableTabRow(
-//                                    modifier = Modifier
-//                                        .fillMaxWidth()
-//                                        .clipToBounds()
-//                                    ,
-//                                    selectedTabIndex = pagerState.currentPage,
-//                                    scrollState = scrollState,
-//                                    indicator = {},
-//                                    divider = {},
-//                                    minTabWidth = 0.dp
-//                                ) {
-//                                    tabList.forEachIndexed { index, i ->
-//                                        val isSelected = pagerState.currentPage == index
-//                                        val tabDate = today.minusDays((tabList.lastIndex - index).toLong())
-//
-//                                        Tab(
-//                                            selected = isSelected,
-//                                            onClick = {
-//                                                selectPage = index
-//                                                scope.launch {
-//                                                    pagerState.animateScrollToPage(selectPage)
-//                                                }
-//                                            },
-//                                            modifier = Modifier
-//                                                .padding(horizontal = 2.dp)
-//                                                .height(50.dp)
-//                                                .aspectRatio(1f / 1f)
-//                                                .clip(MaterialTheme.shapes.medium)
-//                                                .background(if (isSelected) MaterialTheme.colorScheme.onSurface
-//                                                else MaterialTheme.colorScheme.surfaceContainer),
-//                                            selectedContentColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-//                                            unselectedContentColor = MaterialTheme.colorScheme.onSurface
-//                                        ) {
-//                                            Box(
-//                                                contentAlignment = Alignment.Center,
-//                                            ) {
-//                                                Text(
-//                                                    text = "${tabDate.dayOfMonth}",
-//                                                    style = MaterialTheme.typography.bodyMedium.copy(
-//                                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-//                                                    )
-//                                                )
-//                                            }
-//                                        }
-//                                    }
-//                                }
-//
-//
-//                            }
-//                        }
-//                    },
-//                    scrollBehavior = scrollBehavior
-//                )
-
                 TopAppBar(
                     title = {
                         Column() {
@@ -521,142 +451,17 @@ fun RoutineScreen(
                         modifier = Modifier
                             .fillMaxSize()
                     ) {
-
-                        val checked = rememberSaveable { mutableStateListOf(false, false, false) }
-
-                        val options = listOf("形状", "颜色", "图案")
-                        val unCheckedIcons = listOf(AppIcons.routine, AppIcons.chart, AppIcons.spend)
-                        val checkedIcons = listOf(AppIcons.routineFilled, AppIcons.chartFilled, AppIcons.spendFilled)
-                        var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
-                        Box(Modifier.fillMaxWidth(1f)) {
-                            ButtonGroup(
-                                overflowIndicator = { menuState ->
-                                    ButtonGroupDefaults.OverflowIndicator(menuState = menuState)
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            CardGrid(
+                                cardWithLogs = cardWithLogsForThisPage,
+                                currentDate = pageDate,
+                                onLongClick = { id ->
+                                    deleteCardId = id
+                                    isShowDialog = true
                                 },
-                                expandedRatio = ButtonGroupDefaults.ExpandedRatio,
-                                horizontalArrangement = Arrangement.spacedBy(2.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                options.forEachIndexed { index, label ->
-                                    toggleableItem(
-                                        checked = selectedIndex == index,
-                                        label = label,
-                                        onCheckedChange = { selectedIndex = index },
-                                        icon = {
-                                            Icon(
-                                                painterResource(if (selectedIndex == index) checkedIcons[index] else unCheckedIcons[index]),
-                                                contentDescription = "Localized description",
-                                            )
-                                        }
-                                    )
-                                }
-                            }
+                                adaptiveInfo = adaptiveInfo
+                            )
                         }
-
-
-
-
-                        FlowRow(
-                            Modifier.padding(horizontal = 8.dp).fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-                            verticalArrangement = Arrangement.spacedBy(2.dp),
-                        ) {
-                            options.forEachIndexed { index, label ->
-                                ToggleButton(
-                                    checked = selectedIndex == index,
-                                    onCheckedChange = { selectedIndex = index },
-                                    shapes =
-                                        when (index) {
-                                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                                            options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                                        },
-                                ) {
-                                    Icon(
-                                        painterResource(if (selectedIndex == index) checkedIcons[index] else unCheckedIcons[index]),
-                                        contentDescription = "Localized description",
-                                    )
-                                    Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                                    Text(label)
-                                }
-                            }
-                        }
-
-
-
-//                        FlowRow(
-//                            Modifier.padding(horizontal = 8.dp).fillMaxWidth(),
-//                            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-//                            verticalArrangement = Arrangement.spacedBy(2.dp),
-//                        ) {
-//                            options.forEachIndexed { index, label ->
-//                                ToggleButton(
-//                                    checked = checked[index],
-//                                    onCheckedChange = { checked[index] = it },
-//                                    shapes =
-//                                        when (index) {
-//                                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-//                                            options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-//                                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-//                                        },
-//                                ) {
-//                                    Icon(
-//                                        painterResource(if (selectedIndex == index) checkedIcons[index] else unCheckedIcons[index]),
-//                                        contentDescription = "Localized description",
-//                                    )
-//                                    Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-//                                    Text(label)
-//                                }
-//                            }
-//                        }
-//
-//
-//                        Column(verticalArrangement = Arrangement.spacedBy((-6).dp)) {
-//                            options.forEachIndexed { index, label ->
-//                                val shape =
-//                                    when (index) {
-//                                        0 ->
-//                                            (ButtonGroupDefaults.connectedMiddleButtonShapes().shape
-//                                                    as RoundedCornerShape)
-//                                                .copy(topStart = CornerSize(100), topEnd = CornerSize(100))
-//                                        options.lastIndex ->
-//                                            (ButtonGroupDefaults.connectedMiddleButtonShapes().shape
-//                                                    as RoundedCornerShape)
-//                                                .copy(bottomStart = CornerSize(100), bottomEnd = CornerSize(100))
-//                                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes().shape
-//                                    }
-//                                ToggleButton(
-//                                    checked = selectedIndex == index,
-//                                    onCheckedChange = { selectedIndex = index },
-//                                    shapes =
-//                                        ToggleButtonShapes(
-//                                            shape = shape,
-//                                            pressedShape = ToggleButtonDefaults.pressedShape,
-//                                            checkedShape = ButtonGroupDefaults.connectedButtonCheckedShape,
-//                                        ),
-//                                ) {
-//                                    Text(label)
-//                                }
-//                            }
-//                        }
-
-                        ContainedLoadingIndicator()
-
-
-//                        ImageAreaCard(Modifier.fillMaxWidth(0.7f))
-
-
-//                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-//                            CardGrid(
-//                                cardWithLogs = cardWithLogsForThisPage,
-//                                currentDate = pageDate,
-//                                onLongClick = { id ->
-//                                    deleteCardId = id
-//                                    isShowDialog = true
-//                                },
-//                                adaptiveInfo = adaptiveInfo
-//                            )
-//                        }
                     }
                 }
             }
@@ -710,44 +515,6 @@ fun RoutineScreen(
 
         if (isShowBottomSheet) {
             var textState by remember { mutableStateOf("") }
-
-//            Dialog(
-//                onDismissRequest = { isShowBottomSheet = false },
-//                properties = DialogProperties(
-//                    usePlatformDefaultWidth = false,
-//                )
-//            ) {
-//                val window = (LocalView.current.parent as? DialogWindowProvider)?.window
-//
-//                SideEffect {
-//                    window?.let { w ->
-//                        // 高版本模糊处理
-//                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-//                            w.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
-//                            w.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND)
-//                            w.attributes = w.attributes.apply {
-//                                blurBehindRadius = 60
-//                            }
-//                        }
-//                    }
-//                }
-//
-//                Surface(
-//                    modifier = Modifier
-//                        .fillMaxWidth(0.9f)
-//                        .fillMaxHeight(0.65f),
-//                    shape = MaterialTheme.shapes.extraLarge,
-//                    color = MaterialTheme.colorScheme.primary
-//                ) {
-//                    Column(
-//                        Modifier.fillMaxSize(),
-//                        horizontalAlignment = Alignment.CenterHorizontally
-//                    ) {
-//                        CardPickerDialog()
-//
-//                    }
-//                }
-//            }
 
 //            ModalBottomSheet(
 //                onDismissRequest = {
@@ -920,7 +687,7 @@ fun CardGrid(
                 onLongClick = onLongClick
             ) {
                 Column(Modifier.fillMaxSize(0.95f)) {
-                    Spacer(Modifier.weight(1f))
+                    Spacer(Modifier.weight(0.1f))
                     Text(
                         item.cardText,
                         Modifier
@@ -929,7 +696,16 @@ fun CardGrid(
                         overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Center
                     )
-                    Spacer(Modifier.weight(1f))
+                    Spacer(Modifier.weight(0.1f))
+                    if(item.cardImage != 0) {
+                        Box(Modifier.weight(1f).aspectRatio(1f/1f), contentAlignment = Alignment.Center) {
+                            Image(
+                                painterResource(item.cardImage), null,
+                                Modifier.fillMaxSize()
+                            )
+                        }
+                    }
+                    Spacer(Modifier.weight(0.1f))
                 }
             }
         }
