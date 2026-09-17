@@ -2,6 +2,7 @@ package com.example.learncompose.feature.routine.components
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
@@ -67,6 +68,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColor
 import com.example.learncompose.core.designsystem.PresetFiveRandomColor
 import com.example.learncompose.core.designsystem.PresetFiveRandomShape
+import com.example.learncompose.core.designsystem.adjustSaturationAndLightness
 import com.example.learncompose.core.designsystem.icons.AppIcons
 import com.example.learncompose.core.designsystem.toComposeColor
 import kotlin.text.get
@@ -77,9 +79,6 @@ fun FullscreenCustomOverlay(
     onDismiss: () -> Unit
 ) {
     if (visible) {
-        BackHandler {
-            onDismiss()
-        }
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -90,25 +89,28 @@ fun FullscreenCustomOverlay(
 
     AnimatedVisibility(
         visible = visible,
-        enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMedium), initialAlpha = 0.5f) +
+        enter = fadeIn(animationSpec = MaterialTheme.motionScheme.slowSpatialSpec(), initialAlpha = 0.5f) +
                 slideInVertically(
                     initialOffsetY = { it / 2 },
-                    animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow)
+                    animationSpec = MaterialTheme.motionScheme.slowSpatialSpec()
                 ) +
                 scaleIn(
-                    initialScale = 0.5f,
-                    animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow)
+                    initialScale = 0.6f,
+                    animationSpec = MaterialTheme.motionScheme.slowSpatialSpec()
                 ),
-        exit = fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMedium), targetAlpha = 0.5f) +
+        exit = fadeOut(animationSpec = MaterialTheme.motionScheme.slowSpatialSpec(), targetAlpha = 0.5f) +
                 slideOutVertically(
-                    targetOffsetY = { it / 2 },
-                    animationSpec = spring(stiffness = Spring.StiffnessLow)
+                    targetOffsetY = { it },
+                    animationSpec = MaterialTheme.motionScheme.slowSpatialSpec()
                 ) +
                 scaleOut(
-                    targetScale = 0f,
-                    animationSpec = spring(stiffness = Spring.StiffnessLow)
+                    targetScale = 0.6f,
+                    animationSpec = MaterialTheme.motionScheme.slowSpatialSpec()
                 )
     ) {
+        BackHandler {
+            onDismiss()
+        }
         Box(Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
         ) {
@@ -131,11 +133,18 @@ fun CardPickerDialog(modifier: Modifier = Modifier) {
     val shapeList = remember { PresetFiveRandomShape }
 
     val slideState = rememberSliderState(
-        value = 0.5f,
-        steps = 0, trackRange = 0f..1f
+        value = 1f,
+        steps = 0, trackRange = 0f..2f
     )
 
     val interactionSources = remember { List(shapeList.size) { MutableInteractionSource() } }
+
+    val targetColor = colorList[selectedColorIndex].toComposeColor()
+        .adjustSaturationAndLightness(saturationFactor = slideState.value)
+    val animColor by animateColorAsState(
+        targetValue = targetColor,
+        animationSpec = MaterialTheme.motionScheme.slowEffectsSpec()
+    )
 
     Surface(
         modifier = Modifier
@@ -144,16 +153,10 @@ fun CardPickerDialog(modifier: Modifier = Modifier) {
         shape = MaterialTheme.shapes.extraLarge,
         shadowElevation = 12.dp
     ) {
-//        Column(
-//            modifier = Modifier.fillMaxSize(),
-//            horizontalAlignment = Alignment.CenterHorizontally
-//        ) {
-//
-//        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(colorList[selectedColorIndex].toComposeColor().copy(0.2f).
+                .background(animColor.copy(0.3f).
                 compositeOver(MaterialTheme.colorScheme.surfaceContainerLowest))
                 .padding(horizontal = 10.dp, vertical = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -161,11 +164,13 @@ fun CardPickerDialog(modifier: Modifier = Modifier) {
             ImageAreaCard(
                 Modifier.fillMaxWidth(0.8f),
                 targetShape = shapeList[selectedShapeIndex],
-                imageColor = colorList[selectedColorIndex].toComposeColor()
+                imageColor = animColor
             )
 
+            Spacer(Modifier.weight(0.2f))
+
             Card(
-                modifier = Modifier.fillMaxWidth(0.9f),
+                modifier = Modifier.fillMaxWidth(0.9f).weight(4f),
                 shape = MaterialTheme.shapes.extraLarge,
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.inverseSurface
@@ -177,8 +182,7 @@ fun CardPickerDialog(modifier: Modifier = Modifier) {
                         .padding(horizontal = 10.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // 第一行：Shape 形状选择器
-                    Spacer(Modifier.height(10.dp))
+                    Spacer(Modifier.weight(0.1f))
 
                     Box(Modifier.fillMaxWidth(1f)) {
                         ButtonGroup(
@@ -237,8 +241,7 @@ fun CardPickerDialog(modifier: Modifier = Modifier) {
                         }
                     }
 
-                    Spacer(Modifier.height(10.dp))
-
+                    Spacer(Modifier.weight(0.1f))
 
                     Row(modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween) {
@@ -275,7 +278,9 @@ fun CardPickerDialog(modifier: Modifier = Modifier) {
                             }
                         }
                     }
-                    Spacer(Modifier.height(10.dp))
+
+                    Spacer(Modifier.weight(0.1f))
+
                     Slider(state = slideState,
                         modifier = Modifier.fillMaxWidth(),
                         enabled = true,
@@ -283,13 +288,15 @@ fun CardPickerDialog(modifier: Modifier = Modifier) {
                         onValueChangeFinished = null,
                         colors = SliderDefaults.colors(),
                         interactionSource = remember { MutableInteractionSource() })
-                    Spacer(Modifier.height(10.dp))
+
+                    Spacer(Modifier.weight(0.1f))
                 }
             }
-            Spacer(Modifier.height(5.dp))
+
+            Spacer(Modifier.weight(0.2f))
 
             Box(Modifier
-                .fillMaxWidth(0.75f)
+                .fillMaxWidth(0.75f).weight(1f)
                 .clip(MaterialTheme.shapes.extraLarge)
                 .background(MaterialTheme.colorScheme.inverseSurface)
                 .padding(horizontal = 10.dp),
@@ -298,7 +305,7 @@ fun CardPickerDialog(modifier: Modifier = Modifier) {
                 Row(Modifier.fillMaxWidth()) {
                     categories.forEachIndexed { index, label ->
                         ToggleButton(
-                            modifier = Modifier.weight(1f).wrapContentHeight(),
+                            modifier = Modifier.weight(1f),
                             checked = selectedCategoryIndex == index,
                             onCheckedChange = { selectedCategoryIndex = index },
                             buttonSize = ToggleButtonSize.ExtraSmall,
@@ -324,39 +331,7 @@ fun CardPickerDialog(modifier: Modifier = Modifier) {
                 }
             }
 
-//        SingleChoiceSegmentedButtonRow(
-//            modifier = Modifier.fillMaxWidth(0.8f)
-//        ) {
-//            categories.forEachIndexed { index, label ->
-//                SegmentedButton(
-//                    shape = SegmentedButtonDefaults.itemShape(
-//                        index = index,
-//                        count = categories.size
-//                    ),
-//                    onClick = { selectedCategoryIndex = index },
-//                    selected = selectedCategoryIndex == index,
-//                    icon = {
-//                        if (selectedCategoryIndex == index) {
-//                            Icon(
-//                                painterResource(R.drawable.mop_24px),
-//                                contentDescription = null,
-//                                modifier = Modifier.size(SegmentedButtonDefaults.IconSize)
-//                            )
-//                        }
-//                    },
-//                    colors = SegmentedButtonDefaults.colors(
-//                        activeContainerColor = Color.White,
-//                        activeContentColor = Color.Black,
-//                        inactiveContainerColor = Color(0xFF2C282D),
-//                        inactiveContentColor = Color.White
-//                    )
-//                ) {
-//                    Text(text = label)
-//                }
-//            }
-//        }
-
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.weight(0.1f))
         }
     }
 

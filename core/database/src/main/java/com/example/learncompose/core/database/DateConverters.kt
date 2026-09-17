@@ -1,5 +1,7 @@
 package com.example.learncompose.core.database
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.room.TypeConverter
 import java.time.Instant
 import java.time.LocalDate
@@ -25,5 +27,15 @@ class DateConverters {
     @TypeConverter
     fun toInstant(timeMillis: Long?): Instant? {
         return timeMillis?.let { Instant.ofEpochMilli(it) }
+    }
+
+    @TypeConverter
+    fun fromColor(color: Color): Int {
+        return color.toArgb()
+    }
+
+    @TypeConverter
+    fun toColor(colorInt: Int): Color {
+        return Color(colorInt)
     }
 }

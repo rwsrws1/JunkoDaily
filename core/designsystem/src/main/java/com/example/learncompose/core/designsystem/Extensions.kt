@@ -3,6 +3,9 @@ package com.example.learncompose.core.designsystem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.toColorLong
+import androidx.core.graphics.ColorUtils
 import androidx.graphics.shapes.RoundedPolygon
 import kotlin.Float
 import kotlin.random.Random
@@ -102,7 +105,7 @@ fun generateDistinctColorLongs(
 fun generateDistinctColors(
     count: Int,
     saturation: Float = 0.75f,
-    lightness: Float = 0.55f
+    lightness: Float = 0.5f
 ): List<Color> {
     if (count <= 0) return listOf()
 
@@ -136,3 +139,35 @@ private fun Color.toArgbLong(): Long {
 }
 
 fun Long.toComposeColor(): Color = Color(this)
+
+fun Color.adjustSaturationAndLightness(
+    deltaHue: Float? = null,
+    saturationFactor: Float? = null,
+    lightnessFactor: Float? = null
+): Color {
+    val hsl = FloatArray(3)
+    // 1. 将 Compose Color 转为 ARGB 整数，再解析为 HSL
+    ColorUtils.colorToHSL(this.toArgb(), hsl)
+
+    // hsl[0] -> Hue (0 ~ 360)
+    // hsl[1] -> Saturation (0.0 ~ 1.0)
+    // hsl[2] -> Lightness (0.0 ~ 1.0)
+
+    deltaHue?.let {
+        var updatedHue = (hsl[0] + deltaHue) % 360f
+        if (updatedHue < 0) {
+            updatedHue += 360f // 处理负数偏移
+        }
+        hsl[0] = updatedHue
+    }
+    // 2. 调整饱和度与明度，并使用 coerceIn 限制在 [0.0, 1.0] 范围
+    saturationFactor?.let {
+        hsl[1] = (hsl[1] * saturationFactor).coerceIn(0f, 1f)
+    }
+    lightnessFactor?.let {
+        hsl[2] = (hsl[2] * lightnessFactor).coerceIn(0f, 1f)
+    }
+
+    // 3. 将 HSL 转回 Compose Color，同时保留原有的 Alpha 通道
+    return Color(ColorUtils.HSLToColor(hsl)).copy(alpha = this.alpha)
+}
