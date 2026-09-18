@@ -4,11 +4,10 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.graphics.toColorLong
 import androidx.core.graphics.ColorUtils
 import androidx.graphics.shapes.RoundedPolygon
+import com.example.learncompose.core.designsystem.model.IndexPolygon
 import kotlin.Float
-import kotlin.random.Random
 
 val PresetColorList: List<Long> by lazy {
     generateDistinctColorLongs(
@@ -56,18 +55,22 @@ val PresetShapeList: List<RoundedPolygon> by lazy {
             Flower,
             Puffy,
             PuffyDiamond,
-            PixelCircle,
-            PixelTriangle,
+//            PixelCircle,
+//            PixelTriangle,
             Bun,
             Heart
         )
     }
 }
 
-val PresetFiveRandomShape: List<RoundedPolygon>
-    get() = PresetShapeList.shuffled().take(5)
+val PresetRoundedPolygonList: List<IndexPolygon> by lazy {
+    List(PresetShapeList.size) {
+        IndexPolygon(it, PresetShapeList[it])
+    }
+}
 
-
+val PresetFiveRandomShape: List<IndexPolygon>
+    get() = PresetRoundedPolygonList.shuffled().take(5)
 
 /**
  * 根据指定数量生成区分度最高的颜色 Long 值列表

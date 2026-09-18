@@ -79,6 +79,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.graphics.toColor
 import com.example.learncompose.core.designsystem.PresetFiveRandomColor
 import com.example.learncompose.core.designsystem.PresetFiveRandomShape
+import com.example.learncompose.core.designsystem.PresetShapeList
 import com.example.learncompose.core.designsystem.adjustSaturationAndLightness
 import com.example.learncompose.core.designsystem.icons.AppIcons
 import com.example.learncompose.core.designsystem.toArgbLong
@@ -165,6 +166,8 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
     var textState by remember { mutableStateOf("") }
     val handler = LocalHandler.current
 
+    val pagerState = rememberPagerState(pageCount = { PresetImageList.size })
+
     Surface(
         modifier = Modifier
             .fillMaxWidth(0.9f)
@@ -193,7 +196,8 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
                         onImageSelect = {
                             selectImage = it
                             isSelectImage = false
-                        }
+                        },
+                        pagerState
                     )
                 }
             } else {
@@ -201,7 +205,7 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
                     Modifier
                         .fillMaxWidth(0.7f)
                         .aspectRatio(1 / 1f),
-                    targetShape = shapeList[selectedShapeIndex],
+                    targetShape = shapeList[selectedShapeIndex].polygon,
                     imageColor = animColor,
                     onImageClick = { isSelectImage = true },
                     selectImage = selectImage
@@ -269,7 +273,7 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
                                         ) {
                                             Box(Modifier
                                                 .size(25.dp)
-                                                .clip(shapeList[index].toShape())
+                                                .clip(shapeList[index].polygon.toShape())
                                                 .background(MaterialTheme.colorScheme.surface))
                                         }
                                     },
@@ -358,6 +362,9 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
                             .clip(MaterialTheme.shapes.medium)
                             .padding(horizontal = 12.dp),
                         singleLine = true,
+                        textStyle = MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.surface
+                        ),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         decorationBox = { innerTextField ->
                             // 使用 Box 配合 Alignment.CenterStart 实现绝对垂直居中
@@ -368,7 +375,7 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
                                 if (textState.isEmpty()) {
                                     // 如果需要占位符（Placeholder），可以在这里写
                                     Text(
-                                        text = "请输入习惯名",
+                                        text = "起个名字吧！",
                                         color = Color.Gray,
                                     )
                                 }
@@ -383,7 +390,8 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
                                 RoutineContract.Intent.InsertCard(
                                     cardText = textState,
                                     cardColor = targetColor.toArgbLong(),
-                                    cardImage = selectImage
+                                    cardImage = selectImage,
+                                    cardShapeIndex = shapeList[selectedShapeIndex].index
                                 )
                             )
                             onDismiss()

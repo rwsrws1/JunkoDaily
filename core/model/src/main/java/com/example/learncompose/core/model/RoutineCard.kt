@@ -9,4 +9,5 @@ data class RoutineCard(
     val cardText: String = "",
     val cardColor: Long = 0XFFFFFFFF,
     val cardImage: Int = 0,
+    val cardShapeIndex: Int = 0
 )

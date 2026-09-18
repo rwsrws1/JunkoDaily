@@ -81,17 +81,20 @@ import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -111,7 +114,9 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.window.core.layout.WindowSizeClass
+import com.example.learncompose.core.designsystem.PresetShapeList
 import com.example.learncompose.core.designsystem.icons.AppIcons
+import com.example.learncompose.core.designsystem.toComposeColor
 import com.example.learncompose.feature.routine.components.CardPickerDialog
 import com.example.learncompose.feature.routine.components.FullscreenCustomOverlay
 import com.example.learncompose.feature.routine.components.ScratchMaskCard
@@ -618,6 +623,7 @@ fun RoutineScreen(
 
 
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CardGrid(
     cardWithLogs: List<RoutineCardWithLog>,
@@ -630,9 +636,9 @@ fun CardGrid(
             || (adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
                     && adaptiveInfo.windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND))
         ) {
-            100.dp
+            120.dp
         } else {
-            60.dp
+            90.dp
         }
     val handler = LocalHandler.current
     val soundManager = rememberSoundManager()
@@ -688,20 +694,27 @@ fun CardGrid(
             ) {
                 Column(Modifier.fillMaxSize(0.95f)) {
                     Spacer(Modifier.weight(0.1f))
-                    Text(
-                        item.cardText,
-                        Modifier
-                            .fillMaxWidth(0.95f)
-                            .align(Alignment.CenterHorizontally),
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center
-                    )
+                    Box(Modifier.fillMaxWidth().weight(0.5f)) {
+                        Box(Modifier.fillMaxHeight().aspectRatio(1f).align(Alignment.Center)
+                            .background(color = item.cardColor.toComposeColor().copy(0.3f)
+                                .compositeOver(MaterialTheme.colorScheme.surfaceContainerLowest),
+                                shape = PresetShapeList[item.cardShapeIndex].toShape())) {}
+                        Text(
+                            item.cardText,
+                            Modifier
+                                .fillMaxWidth(0.95f)
+                                .align(Alignment.Center),
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                     Spacer(Modifier.weight(0.1f))
                     if(item.cardImage != 0) {
-                        Box(Modifier.weight(1f).aspectRatio(1f/1f), contentAlignment = Alignment.Center) {
+                        Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+
                             Image(
                                 painterResource(item.cardImage), null,
-                                Modifier.fillMaxSize()
+                                contentScale = ContentScale.Fit
                             )
                         }
                     }

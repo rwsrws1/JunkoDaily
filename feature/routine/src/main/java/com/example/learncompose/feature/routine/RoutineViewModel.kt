@@ -68,7 +68,11 @@ class RoutineViewModel @Inject constructor(
             is RoutineContract.Intent.InsertCard -> {
                 viewModelScope.launch {
                     repo.insertCard(
-                        RoutineCard(cardText = intent.cardText, cardColor = intent.cardColor, cardImage = intent.cardImage)
+                        RoutineCard(cardText = intent.cardText,
+                            cardColor = intent.cardColor,
+                            cardImage = intent.cardImage,
+                            cardShapeIndex = intent.cardShapeIndex
+                        )
                     )
                 }
             }

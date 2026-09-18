@@ -11,18 +11,21 @@ data class RoutineCardEntity(
     val id: Long = 0,
     val cardText: String,
     val cardColor: Long,
-    val cardImage: Int
+    val cardImage: Int,
+    val cardShapeIndex: Int
 )
 
 fun RoutineCardEntity.asRoutineCard() = RoutineCard(
     id = id,
     cardText = cardText,
     cardColor = cardColor,
-    cardImage = cardImage
+    cardImage = cardImage,
+    cardShapeIndex = cardShapeIndex,
 )
 
 fun RoutineCard.asRoutineCardEntity() = RoutineCardEntity(
     cardText = cardText,
     cardColor = cardColor,
-    cardImage = cardImage
+    cardImage = cardImage,
+    cardShapeIndex = cardShapeIndex,
 )

@@ -11,6 +11,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.PagerSnapDistance
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -30,16 +31,45 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import androidx.compose.ui.zIndex
+import androidx.graphics.shapes.RoundedPolygon
 import com.example.learncompose.feature.routine.R
 import kotlin.math.absoluteValue
+
+val PresetImageList: List<Int> by lazy {
+    listOf(
+        R.drawable.brush,
+        R.drawable.run,
+        R.drawable.work,
+        R.drawable.bedmaking,
+        R.drawable.cat,
+        R.drawable.charge,
+        R.drawable.clean,
+        R.drawable.cook,
+        R.drawable.dance,
+        R.drawable.drink,
+        R.drawable.early,
+        R.drawable.fitness,
+        R.drawable.fruit,
+        R.drawable.makeup,
+        R.drawable.mediataion,
+        R.drawable.neaten,
+        R.drawable.photograph,
+        R.drawable.skipping,
+        R.drawable.sleep,
+        R.drawable.study,
+        R.drawable.vegetables,
+        R.drawable.walk,
+        R.drawable.yoga
+    )
+}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ImagePickPage(
     modifier: Modifier = Modifier,
-    onImageSelect: (Int) -> Unit = {}
+    onImageSelect: (Int) -> Unit = {},
+    pagerState: PagerState
 ) {
-    val pagerState = rememberPagerState(pageCount = { 23 })
 
     val splineDecay = rememberSplineBasedDecay<Float>()
 
@@ -51,33 +81,6 @@ fun ImagePickPage(
     )
 
     var selectImage by remember { mutableIntStateOf(R.drawable.brush) }
-    val imageList = remember {
-        listOf(
-            R.drawable.brush,
-            R.drawable.run,
-            R.drawable.work,
-            R.drawable.bedmaking,
-            R.drawable.cat,
-            R.drawable.charge,
-            R.drawable.clean,
-            R.drawable.cook,
-            R.drawable.dance,
-            R.drawable.drink,
-            R.drawable.early,
-            R.drawable.fitness,
-            R.drawable.fruit,
-            R.drawable.makeup,
-            R.drawable.mediataion,
-            R.drawable.neaten,
-            R.drawable.photograph,
-            R.drawable.skipping,
-            R.drawable.sleep,
-            R.drawable.study,
-            R.drawable.vegetables,
-            R.drawable.walk,
-            R.drawable.yoga
-        )
-    }
 
     HorizontalPager(
         state = pagerState,
@@ -134,14 +137,14 @@ fun ImagePickPage(
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painterResource(imageList[page]),
+                    painterResource(PresetImageList[page]),
                     null,
                     Modifier
                         .fillMaxHeight()
                         .aspectRatio(1f / 1f)
                         .clickable(
                             onClick = {
-                                selectImage = imageList[page]
+                                selectImage = PresetImageList[page]
                                 onImageSelect(selectImage)
                             }
                         ),
@@ -155,5 +158,6 @@ fun ImagePickPage(
 @Preview
 @Composable
 private fun Preview() {
-    ImagePickPage()
+    val pagerState = rememberPagerState(pageCount = { 23 })
+    ImagePickPage(pagerState = pagerState)
 }

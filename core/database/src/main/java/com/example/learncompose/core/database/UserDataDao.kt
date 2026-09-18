@@ -55,6 +55,7 @@ interface UserDataDao {
             c.cardText AS cardText,
             c.cardColor AS cardColor,
             c.cardImage As cardImage,
+            c.cardShapeIndex As cardShapeIndex,
             l.recordDate AS recordDate,
             COALESCE(l.isCompleted, 0) AS isCompleted,
             l.completedAt AS completedAt
