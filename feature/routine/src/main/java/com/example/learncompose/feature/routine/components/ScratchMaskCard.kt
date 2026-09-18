@@ -3,7 +3,6 @@ package com.example.learncompose.feature.routine.components
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -13,7 +12,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,12 +32,10 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.withSaveLayer
 import androidx.compose.ui.unit.dp
-import com.example.learncompose.feature.routine.LocalHandler
 import kotlinx.coroutines.launch
 
 @Composable
 fun ScratchMaskCard(
-    cardId: Long = 0,
     aspectRatio: Float = 2f / 3f,
     frontFaceColor: Color = Color.Unspecified,
     backFaceColor: Color = Color.Unspecified,
@@ -91,9 +87,17 @@ fun ScratchMaskCard(
                 indication = null,
                 onClick = { if (!isAnimating) handleScratch() },
                 onLongClick = onLongClick
-            )
-            .border(2.dp, color = MaterialTheme.colorScheme.onSurface, shape = MaterialTheme.shapes.medium),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+            ),
+        shape = MaterialTheme.shapes.large,
+        elevation = CardDefaults.elevatedCardElevation(
+            defaultElevation = 10.dp,
+            pressedElevation = 10.dp,
+            focusedElevation = 10.dp,
+            hoveredElevation = 10.dp,
+            draggedElevation = 10.dp,
+            disabledElevation = 10.dp
+        ),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLowest)
     ) {
         Box(
             modifier = Modifier
@@ -109,7 +113,10 @@ fun ScratchMaskCard(
                         // 1. 绘制底层（新颜色）
                         drawRect(nextColor)
 
-                        drawContext.canvas.withSaveLayer(bounds = size.toRect(), paint = layerPaint) {
+                        drawContext.canvas.withSaveLayer(
+                            bounds = size.toRect(),
+                            paint = layerPaint
+                        ) {
 
                             drawRect(currentColor)
 

@@ -71,7 +71,7 @@ class RoutineViewModel @Inject constructor(
                         RoutineCard(cardText = intent.cardText,
                             cardColor = intent.cardColor,
                             cardImage = intent.cardImage,
-                            cardShapeIndex = intent.cardShapeIndex
+                            cardShape = intent.cardShape
                         )
                     )
                 }

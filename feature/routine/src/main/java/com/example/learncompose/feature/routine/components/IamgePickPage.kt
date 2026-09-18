@@ -146,7 +146,9 @@ fun ImagePickPage(
                             onClick = {
                                 selectImage = PresetImageList[page]
                                 onImageSelect(selectImage)
-                            }
+                            },
+                            indication = null,
+                            interactionSource = null
                         ),
                     contentScale = ContentScale.Crop
                 )

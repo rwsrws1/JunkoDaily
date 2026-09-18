@@ -12,7 +12,7 @@ data class RoutineCardEntity(
     val cardText: String,
     val cardColor: Long,
     val cardImage: Int,
-    val cardShapeIndex: Int
+    val cardShape: String
 )
 
 fun RoutineCardEntity.asRoutineCard() = RoutineCard(
@@ -20,12 +20,12 @@ fun RoutineCardEntity.asRoutineCard() = RoutineCard(
     cardText = cardText,
     cardColor = cardColor,
     cardImage = cardImage,
-    cardShapeIndex = cardShapeIndex,
+    cardShape = cardShape,
 )
 
 fun RoutineCard.asRoutineCardEntity() = RoutineCardEntity(
     cardText = cardText,
     cardColor = cardColor,
     cardImage = cardImage,
-    cardShapeIndex = cardShapeIndex,
+    cardShape = cardShape,
 )

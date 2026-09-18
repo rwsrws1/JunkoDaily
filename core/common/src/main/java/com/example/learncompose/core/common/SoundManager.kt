@@ -13,6 +13,8 @@ interface SoundManager {
     fun playClickSound()
     fun playWriteSound()
     fun playEraserSound()
+    fun playCheerSound()
+    fun playFartSound()
     fun release()
 }
 
@@ -21,6 +23,8 @@ class RealSoundManager(context: Context) : SoundManager {
     private val clickSound: Int
     private val writeSound: Int
     private val eraserSound: Int
+    private val cheerSound: Int
+    private val fartSound: Int
 
     init {
         val audioAttributes = AudioAttributes.Builder()
@@ -37,6 +41,8 @@ class RealSoundManager(context: Context) : SoundManager {
         clickSound = soundPool.load(context, R.raw.click_sound, 1)
         writeSound = soundPool.load(context, R.raw.write_sound, 1)
         eraserSound = soundPool.load(context, R.raw.eraser_sound, 1)
+        cheerSound = soundPool.load(context, R.raw.cheer_sound, 1)
+        fartSound = soundPool.load(context, R.raw.cheer_sound, 1)
     }
 
     override fun playClickSound() {
@@ -54,6 +60,16 @@ class RealSoundManager(context: Context) : SoundManager {
         soundPool.play(eraserSound, 1.0f, 1.0f, 1, 0, 1.0f)
     }
 
+    override fun playCheerSound() {
+        // 参数：soundID, leftVolume, rightVolume, priority, loop, rate
+        soundPool.play(cheerSound, 1.0f, 1.0f, 1, 0, 1.0f)
+    }
+
+    override fun playFartSound() {
+        // 参数：soundID, leftVolume, rightVolume, priority, loop, rate
+        soundPool.play(fartSound, 1.0f, 1.0f, 1, 0, 1.0f)
+    }
+
     override fun release() {
         soundPool.release()
     }
@@ -63,6 +79,8 @@ class NoOpSoundManager : SoundManager {
     override fun playClickSound() {}
     override fun playWriteSound() {}
     override fun playEraserSound() {}
+    override fun playCheerSound() {}
+    override fun playFartSound() {}
     override fun release() {}
 }
 

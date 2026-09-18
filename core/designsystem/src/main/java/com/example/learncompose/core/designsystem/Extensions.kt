@@ -2,12 +2,22 @@ package com.example.learncompose.core.designsystem
 
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.ColorUtils
 import androidx.graphics.shapes.RoundedPolygon
-import com.example.learncompose.core.designsystem.model.IndexPolygon
 import kotlin.Float
+
+val Background: Color
+    @Composable
+    get() = MaterialTheme.colorScheme.surfaceContainer
+
+val OnBackground: Color
+    @Composable
+    get() = MaterialTheme.colorScheme.surfaceContainerLowest
 
 val PresetColorList: List<Long> by lazy {
     generateDistinctColorLongs(
@@ -21,56 +31,50 @@ val PresetFiveRandomColor: List<Long>
     get() = PresetColorList.shuffled().take(5)
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
-val PresetShapeList: List<RoundedPolygon> by lazy {
+val PresetShapeList: List<Pair<String, RoundedPolygon>> by lazy {
     MaterialShapes.run {
         listOf(
-            Circle,
-            Square,
-            Slanted,
-            Arch,
-            Fan,
-            Arrow,
-            SemiCircle,
-            Oval,
-            Pill,
-            Triangle,
-            Diamond,
-            ClamShell,
-            Pentagon,
-            Gem,
-            Sunny,
-            VerySunny,
-            Cookie4Sided,
-            Cookie6Sided,
-            Cookie7Sided,
-            Cookie9Sided,
-            Cookie12Sided,
-            Ghostish,
-            Clover4Leaf,
-            Clover8Leaf,
-            Burst,
-            SoftBurst,
-            Boom,
-            SoftBoom,
-            Flower,
-            Puffy,
-            PuffyDiamond,
-//            PixelCircle,
-//            PixelTriangle,
-            Bun,
-            Heart
+            "Circle" to Circle,
+            "Square" to Square,
+            "Slanted" to Slanted,
+            "Arch" to Arch,
+            "Fan" to Fan,
+            "Arrow" to Arrow,
+            "SemiCircle" to SemiCircle,
+            "Oval" to Oval,
+            "Pill" to Pill,
+            "Triangle" to Triangle,
+            "Diamond" to Diamond,
+            "ClamShell" to ClamShell,
+            "Pentagon" to Pentagon,
+            "Gem" to Gem,
+            "Sunny" to Sunny,
+            "VerySunny" to VerySunny,
+            "Cookie4Sided" to Cookie4Sided,
+            "Cookie6Sided" to Cookie6Sided,
+            "Cookie7Sided" to Cookie7Sided,
+            "Cookie9Sided" to Cookie9Sided,
+            "Cookie12Sided" to Cookie12Sided,
+            "Ghostish" to Ghostish,
+            "Clover4Leaf" to Clover4Leaf,
+            "Clover8Leaf" to Clover8Leaf,
+            "Burst" to Burst,
+            "SoftBurst" to SoftBurst,
+            "Boom" to Boom,
+            "SoftBoom" to SoftBoom,
+            "Flower" to Flower,
+            "Puffy" to Puffy,
+            "PuffyDiamond" to PuffyDiamond,
+//            "PixelCircle" to PixelCircle,
+//            "PixelTriangle" to PixelTriangle,
+            "Bun" to Bun,
+            "Heart" to Heart
         )
     }
 }
 
-val PresetRoundedPolygonList: List<IndexPolygon> by lazy {
-    List(PresetShapeList.size) {
-        IndexPolygon(it, PresetShapeList[it])
-    }
-}
-
-val PresetFiveRandomShape: List<IndexPolygon>
-    get() = PresetRoundedPolygonList.shuffled().take(5)
+val PresetFiveRandomShape: List<Pair<String, RoundedPolygon>>
+    get() = PresetShapeList.shuffled().take(5)
 
 /**
  * 根据指定数量生成区分度最高的颜色 Long 值列表
@@ -142,6 +146,13 @@ fun Color.toArgbLong(): Long {
 }
 
 fun Long.toComposeColor(): Color = Color(this)
+
+@Composable
+fun Long.toCompositeOverSurface(): Color = Color(this).toCompositeOverSurface()
+
+@Composable
+fun Color.toCompositeOverSurface(): Color = this.copy(0.3f)
+    .compositeOver(MaterialTheme.colorScheme.surface)
 
 fun Color.adjustSaturationAndLightness(
     deltaHue: Float? = null,

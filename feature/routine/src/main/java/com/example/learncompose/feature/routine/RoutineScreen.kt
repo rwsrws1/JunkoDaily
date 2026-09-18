@@ -1,8 +1,7 @@
 package com.example.learncompose.feature.routine
 
-import android.os.Build
-import android.view.WindowManager
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.DecayAnimationSpec
 import androidx.compose.animation.core.spring
@@ -10,13 +9,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.rememberSplineBasedDecay
-import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -30,48 +25,32 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.learncompose.core.designsystem.theme.AppTheme
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ButtonGroup
-import androidx.compose.material3.ButtonGroupDefaults
-import androidx.compose.material3.ContainedLoadingIndicator
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
-import androidx.compose.material3.ToggleButtonShapes
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -79,46 +58,38 @@ import androidx.compose.material3.TopAppBarState
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.rememberBottomSheetState
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
-import androidx.compose.material3.toShape
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.learncompose.core.common.rememberSoundManager
-import com.example.learncompose.core.designsystem.generateDistinctColorLongs
 import com.example.learncompose.core.model.RoutineCardWithLog
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import androidx.compose.ui.platform.LocalLocale
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.window.DialogWindowProvider
 import androidx.window.core.layout.WindowSizeClass
+import com.example.learncompose.core.designsystem.Background
+import com.example.learncompose.core.designsystem.OnBackground
+import com.example.learncompose.core.designsystem.PresetColorList
 import com.example.learncompose.core.designsystem.PresetShapeList
 import com.example.learncompose.core.designsystem.icons.AppIcons
-import com.example.learncompose.core.designsystem.toComposeColor
-import com.example.learncompose.feature.routine.components.CardPickerDialog
+import com.example.learncompose.core.designsystem.toCompositeOverSurface
+import com.example.learncompose.feature.routine.components.ExplosionConfetti
 import com.example.learncompose.feature.routine.components.FullscreenCustomOverlay
+import com.example.learncompose.feature.routine.components.ImageAreaCard
 import com.example.learncompose.feature.routine.components.ScratchMaskCard
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -132,9 +103,6 @@ val LocalHandler = compositionLocalOf<(RoutineContract.Intent) -> Unit> {
 }
 
 private val MONTH_DAY_FORMATTER = DateTimeFormatter.ofPattern("MM-dd")
-private val COlOR_LIST: List<Long> by lazy {
-    generateDistinctColorLongs(36)
-}
 
 @Composable
 fun RoutineViewModelScreen(
@@ -160,13 +128,11 @@ fun RoutineScreen(
     val adaptiveInfo = currentWindowAdaptiveInfo()
     val handler = LocalHandler.current
     val scope = rememberCoroutineScope()
-    var isShowBottomSheet by remember { mutableStateOf(false) }
+    var isShowCardPicker by remember { mutableStateOf(false) }
     val sheetState = rememberBottomSheetState(
         initialValue = SheetValue.Hidden,
         enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded)
     )
-    val rowListState = rememberLazyListState()
-    var selectColor: Long by rememberSaveable { mutableLongStateOf(COlOR_LIST[0]) }
     var isShowDialog by remember { mutableStateOf(false) }
     var deleteCardId by remember { mutableLongStateOf(0) }
     val pageSize = remember { 30 }
@@ -279,7 +245,6 @@ fun RoutineScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
     ) {
 
         if (isShowDialog) {
@@ -336,19 +301,32 @@ fun RoutineScreen(
                     actions = {
                         TextButton(
                             onClick = {
-                                repeat(36) { time ->
+                                repeat(PresetColorList.size) { time ->
                                     handler(
                                         RoutineContract.Intent.InsertCard(
-                                            cardText = "测试卡片颜色",
-                                            cardColor = COlOR_LIST[time]
+                                            cardText = "测试卡片",
+                                            cardColor = PresetColorList[time],
+                                            cardShape = "Circle",
+                                            cardImage = R.drawable.brush
                                         )
                                     )
                                 }
-                            }
+                            },
+                            Modifier.padding(end = 20.dp)
                         ) {
                             Text("test", color = Color.Transparent)
                         }
+                        IconButton(
+                            onClick = {
+                                naviToChartScreen()
+                            }
+                        ) {
+                            Icon(painterResource(AppIcons.chart), null)
+                        }
                     },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Background
+                    )
 //                    scrollBehavior = scrollBehavior
                 )
 
@@ -392,13 +370,13 @@ fun RoutineScreen(
                                 placeable.placeRelative(0, offset.toInt())
                             }
                         }
-
                     ,
                     selectedTabIndex = pagerState.currentPage,
                     scrollState = scrollState,
                     indicator = {},
                     divider = {},
-                    minTabWidth = 0.dp
+                    minTabWidth = 0.dp,
+                    containerColor = Background,
                 ) {
                     tabList.forEachIndexed { index, i ->
                         val isSelected = pagerState.currentPage == index
@@ -413,16 +391,13 @@ fun RoutineScreen(
                                 }
                             },
                             modifier = Modifier
-                                .padding(horizontal = 2.dp)
+                                .padding(horizontal = 4.dp, vertical = 5.dp)
                                 .height(50.dp)
                                 .aspectRatio(1f / 1f)
                                 .clip(MaterialTheme.shapes.medium)
-                                .background(
-                                    if (isSelected) MaterialTheme.colorScheme.onSurface
-                                    else MaterialTheme.colorScheme.surfaceContainer
-                                ),
-                            selectedContentColor = MaterialTheme.colorScheme.surfaceContainerLowest,
-                            unselectedContentColor = MaterialTheme.colorScheme.onSurface
+                                .background(if (isSelected) MaterialTheme.colorScheme.onSurface else OnBackground),
+                            selectedContentColor = MaterialTheme.colorScheme.surface,
+                            unselectedContentColor = Background
                         ) {
                             Box(
                                 contentAlignment = Alignment.Center,
@@ -441,7 +416,9 @@ fun RoutineScreen(
                 HorizontalPager(
                     key = { it },
                     state = pagerState,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Background),
                     pageSize = PageSize.Fill,
                     pageSpacing = 0.dp,
                     contentPadding = PaddingValues(horizontal = 0.dp),
@@ -473,7 +450,8 @@ fun RoutineScreen(
         }
 
         Box(modifier = Modifier
-            .align(Alignment.BottomCenter)) {
+            .align(Alignment.BottomCenter)
+            .padding(bottom = 10.dp)) {
             AnimatedVisibility(
                 visible = fabVisible,
                 enter = slideInVertically(
@@ -487,136 +465,24 @@ fun RoutineScreen(
                 ) + fadeOut()
             ) {
                 HorizontalFloatingToolbar(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 10.dp),
-                    expanded = true,
+                    expanded = false,
+                    colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
+                        toolbarContainerColor = OnBackground
+                    ),
                     floatingActionButton = {
                         FloatingActionButton(
                             onClick = {
-                                isShowBottomSheet = true
+                                isShowCardPicker = true
                             }
                         ) {
                             Icon(painterResource(R.drawable.add_24px), contentDescription = "")
                         }
                     }
-                ) {
-                    IconButton(
-                        onClick = {
-                            naviToChartScreen()
-                        }
-                    ) {
-                        Icon(painterResource(AppIcons.chart), null)
-                    }
-
-                }
-
+                ) {}
             }
-
         }
 
-        FullscreenCustomOverlay(visible = isShowBottomSheet, onDismiss = { isShowBottomSheet = false })
-
-
-        if (isShowBottomSheet) {
-            var textState by remember { mutableStateOf("") }
-
-//            ModalBottomSheet(
-//                onDismissRequest = {
-//                    showBottomSheet = false
-//                },
-//                sheetState = sheetState,
-//                contentWindowInsets = { WindowInsets() }
-//            ) {
-//                Column(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .imePadding()
-//                        .padding(horizontal = 16.dp)
-//                ) {
-//                    Text(text = "习惯名")
-//                    Spacer(Modifier.height(10.dp))
-//                    BasicTextField(
-//                        value = textState,
-//                        onValueChange = { textState = it },
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .height(50.dp)
-//                            .clip(RoundedCornerShape(8.dp))
-//                            .background(MaterialTheme.colorScheme.secondaryContainer)
-//                            .padding(horizontal = 12.dp),
-//                        singleLine = true,
-//                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-//                        decorationBox = { innerTextField ->
-//                            // 使用 Box 配合 Alignment.CenterStart 实现绝对垂直居中
-//                            Box(
-//                                modifier = Modifier.fillMaxSize(),
-//                                contentAlignment = Alignment.CenterStart
-//                            ) {
-//                                if (textState.isEmpty()) {
-//                                    // 如果需要占位符（Placeholder），可以在这里写
-//                                    Text(
-//                                        text = "请输入习惯名",
-//                                        color = Color.Gray,
-//                                        fontSize = 14.sp
-//                                    )
-//                                }
-//                                innerTextField() // 渲染实际的输入文本和光标
-//                            }
-//                        },
-//                    )
-//                    Spacer(Modifier.height(10.dp))
-//                    Text(text = "颜色")
-//                    Spacer(Modifier.height(10.dp))
-//                    LazyRow(
-//                        state = rowListState,
-//                        modifier = Modifier.fillMaxWidth(),
-//                        contentPadding = PaddingValues(horizontal = 10.dp),
-//                    ) {
-//                        items(count = COlOR_LIST.size, key = { it }) { index ->
-//                            Box(
-//                                Modifier
-//                                    .padding(horizontal = 5.dp)
-//                                    .size(50.dp)
-//                                    .clip(CircleShape)
-//                                    .background(Color(COlOR_LIST[index]))
-//                                    .border(
-//                                        width = if (selectColor == COlOR_LIST[index]) 2.dp else 0.dp,
-//                                        color = MaterialTheme.colorScheme.onSurface,
-//                                        shape = CircleShape
-//                                    )
-//                                    .clickable(
-//                                        onClick = {
-//                                            selectColor = COlOR_LIST[index]
-//                                        }
-//                                    )
-//                            ) {
-//                            }
-//                        }
-//                    }
-//                    Spacer(Modifier.height(20.dp))
-//                    Button(
-//                        modifier = Modifier.fillMaxWidth(),
-//                        onClick = {
-//                            handler(
-//                                RoutineContract.Intent.InsertCard(
-//                                    cardText = textState,
-//                                    cardColor = selectColor
-//                                )
-//                            )
-//                            scope.launch { sheetState.hide() }.invokeOnCompletion {
-//                                if (!sheetState.isVisible) {
-//                                    showBottomSheet = false
-//                                }
-//                            }
-//                        }
-//                    ) {
-//                        Text("确定")
-//                    }
-//                    Spacer(Modifier.height(20.dp))
-//                }
-//            }
-        }
+        FullscreenCustomOverlay(isShowCardPicker = isShowCardPicker, onDismiss = { isShowCardPicker = false })
 
     }
 }
@@ -631,29 +497,30 @@ fun CardGrid(
     onLongClick: (Long) -> Unit,
     adaptiveInfo: WindowAdaptiveInfo
 ) {
-    val minSize =
+    val count =
         if (adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)
             || (adaptiveInfo.windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
                     && adaptiveInfo.windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND))
         ) {
-            120.dp
+            4
         } else {
-            90.dp
+            3
         }
     val handler = LocalHandler.current
     val soundManager = rememberSoundManager()
-    val background = MaterialTheme.colorScheme.background
     val state = rememberLazyGridState()
     val currentInstant by rememberUpdatedState(Instant.now())
     val currentDate by rememberUpdatedState(currentDate)
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize),
+        modifier = Modifier.fillMaxSize(),
+        columns = GridCells.Fixed(count),
         state = state,
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         items(items = cardWithLogs, key = { item -> item.cardId }) { item ->
+            var isShowConfetti by remember(item.cardId) { mutableStateOf(false) }
             val onFrontFaceClick = remember(item.cardId) {
                 {
                     soundManager.playWriteSound()
@@ -683,43 +550,63 @@ fun CardGrid(
             val onLongClick = remember(item.cardId) {
                 { onLongClick(item.cardId) }
             }
+            val shape = remember(item.cardId) {
+                PresetShapeList.find { it.first == item.cardShape }?.second
+                    ?: PresetShapeList[0].second
+            }
+            val animColor by animateColorAsState(
+                targetValue = if (item.isCompleted) item.composeColor else item.composeColor.toCompositeOverSurface(),
+                animationSpec = tween(2000),
+                finishedListener = {
+                    if (item.isCompleted) {
+                        isShowConfetti = true
+                        soundManager.playCheerSound()
+                    }
+                }
+            )
             ScratchMaskCard(
-                cardId = item.cardId,
-                frontFaceColor = item.composeColor.copy(alpha = 0.05f).compositeOver(background),
-                backFaceColor = item.composeColor,
+                frontFaceColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+                backFaceColor = item.composeColor.toCompositeOverSurface(),
                 onFrontFaceClick = onFrontFaceClick,
                 onBackFaceClick = onBackFaceClick,
                 isFrontFace = !item.isCompleted,
                 onLongClick = onLongClick
             ) {
-                Column(Modifier.fillMaxSize(0.95f)) {
-                    Spacer(Modifier.weight(0.1f))
-                    Box(Modifier.fillMaxWidth().weight(0.5f)) {
-                        Box(Modifier.fillMaxHeight().aspectRatio(1f).align(Alignment.Center)
-                            .background(color = item.cardColor.toComposeColor().copy(0.3f)
-                                .compositeOver(MaterialTheme.colorScheme.surfaceContainerLowest),
-                                shape = PresetShapeList[item.cardShapeIndex].toShape())) {}
-                        Text(
-                            item.cardText,
-                            Modifier
-                                .fillMaxWidth(0.95f)
-                                .align(Alignment.Center),
-                            overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                    Spacer(Modifier.weight(0.1f))
+                Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Spacer(Modifier.weight(1f))
                     if(item.cardImage != 0) {
-                        Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
-
-                            Image(
-                                painterResource(item.cardImage), null,
-                                contentScale = ContentScale.Fit
+                        Box(Modifier.fillMaxWidth(0.9f), contentAlignment = Alignment.Center) {
+                            ImageAreaCard(
+                                modifier = Modifier.fillMaxWidth(0.8f).aspectRatio(1f),
+                                targetShape = shape,
+                                imageColor =  animColor,
+                                selectImage = item.cardImage
                             )
                         }
                     }
-                    Spacer(Modifier.weight(0.1f))
+                    Spacer(Modifier.weight(1f))
+                    Text(
+                        text = item.cardText,
+                        modifier = Modifier.fillMaxWidth(0.9f),
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                    )
                 }
+            }
+            if (isShowConfetti) {
+                ExplosionConfetti(
+                    modifier = Modifier.fillMaxWidth(0.9f).aspectRatio(1f),
+                    maxRadius = 500f, // Controls explosion size limit
+                    primaryColors = listOf(
+                        Color(0xFFFFD700), // Gold
+                        Color(0xFFFF4081), // Pink
+                        Color(0xFF00E676)  // Bright Green
+                    ),
+                    particleCount = 100,
+                    durationMillis = 1500,
+                    onAnimationEnd = { isShowConfetti = false }
+                )
             }
         }
     }

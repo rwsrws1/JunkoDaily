@@ -19,7 +19,7 @@ class RoutineContract {
             val cardText: String = "",
             val cardColor: Long = 0XFFFFFFFF,
             val cardImage: Int = 0,
-            val cardShapeIndex: Int = 0
+            val cardShape: String = ""
         ) : Intent
         data class DeleteCardById(val cardId: Long) : Intent
         data class UpsertDailyLog(

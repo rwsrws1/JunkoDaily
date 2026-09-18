@@ -29,6 +29,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.scene.SinglePaneSceneStrategy
 import androidx.navigation3.ui.NavDisplay
 import androidx.window.core.layout.WindowSizeClass
+import com.example.learncompose.core.designsystem.Background
 import com.example.learncompose.core.navigation.Navigator
 import com.example.learncompose.core.navigation.rememberNavigationState
 import com.example.learncompose.core.navigation.toEntries
@@ -102,7 +103,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
         val entries = navigationState.toEntries(entryProvider)
         println("Current entries$entries, size: ${entries.size}")
         NavDisplay(
-            modifier = Modifier.background(MaterialTheme.colorScheme.background),
+            modifier = Modifier.background(Background),
             entries = entries,
             sceneStrategies = listOf(
                 listDetailStrategy,
