@@ -18,7 +18,7 @@ class RoutineContract {
         data class InsertCard(
             val cardText: String = "",
             val cardColor: Long = 0XFFFFFFFF,
-            val cardImage: Int = 0,
+            val cardImage: String = "",
             val cardShape: String = ""
         ) : Intent
         data class DeleteCardById(val cardId: Long) : Intent

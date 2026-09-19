@@ -7,7 +7,7 @@ data class RoutineCardWithLog(
     val cardId: Long,
     val cardText: String,
     val cardColor: Long,
-    val cardImage: Int,
+    val cardImage: String,
     val cardShape: String,
     val recordDate: LocalDate?,
     val isCompleted: Boolean,

@@ -11,13 +11,25 @@ import androidx.core.graphics.ColorUtils
 import androidx.graphics.shapes.RoundedPolygon
 import kotlin.Float
 
-val Background: Color
+val Container: Color
     @Composable
     get() = MaterialTheme.colorScheme.surfaceContainer
 
-val OnBackground: Color
+val ContainerLowest: Color
     @Composable
     get() = MaterialTheme.colorScheme.surfaceContainerLowest
+
+val OnSurface: Color
+    @Composable
+    get() = MaterialTheme.colorScheme.onSurface
+
+val Black: Color
+    @Composable
+    get() = Color.Black
+
+val White: Color
+    @Composable
+    get() = Color.White
 
 val PresetColorList: List<Long> by lazy {
     generateDistinctColorLongs(
@@ -29,52 +41,6 @@ val PresetColorList: List<Long> by lazy {
 
 val PresetFiveRandomColor: List<Long>
     get() = PresetColorList.shuffled().take(5)
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-val PresetShapeList: List<Pair<String, RoundedPolygon>> by lazy {
-    MaterialShapes.run {
-        listOf(
-            "Circle" to Circle,
-            "Square" to Square,
-            "Slanted" to Slanted,
-            "Arch" to Arch,
-            "Fan" to Fan,
-            "Arrow" to Arrow,
-            "SemiCircle" to SemiCircle,
-            "Oval" to Oval,
-            "Pill" to Pill,
-            "Triangle" to Triangle,
-            "Diamond" to Diamond,
-            "ClamShell" to ClamShell,
-            "Pentagon" to Pentagon,
-            "Gem" to Gem,
-            "Sunny" to Sunny,
-            "VerySunny" to VerySunny,
-            "Cookie4Sided" to Cookie4Sided,
-            "Cookie6Sided" to Cookie6Sided,
-            "Cookie7Sided" to Cookie7Sided,
-            "Cookie9Sided" to Cookie9Sided,
-            "Cookie12Sided" to Cookie12Sided,
-            "Ghostish" to Ghostish,
-            "Clover4Leaf" to Clover4Leaf,
-            "Clover8Leaf" to Clover8Leaf,
-            "Burst" to Burst,
-            "SoftBurst" to SoftBurst,
-            "Boom" to Boom,
-            "SoftBoom" to SoftBoom,
-            "Flower" to Flower,
-            "Puffy" to Puffy,
-            "PuffyDiamond" to PuffyDiamond,
-//            "PixelCircle" to PixelCircle,
-//            "PixelTriangle" to PixelTriangle,
-            "Bun" to Bun,
-            "Heart" to Heart
-        )
-    }
-}
-
-val PresetFiveRandomShape: List<Pair<String, RoundedPolygon>>
-    get() = PresetShapeList.shuffled().take(5)
 
 /**
  * 根据指定数量生成区分度最高的颜色 Long 值列表

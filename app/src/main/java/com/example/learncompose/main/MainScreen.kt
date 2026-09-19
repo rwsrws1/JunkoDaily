@@ -1,35 +1,25 @@
 package com.example.learncompose.main
 
 import androidx.compose.foundation.background
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.NavigationRailItemDefaults
-import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteItemColors
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.scene.SinglePaneSceneStrategy
 import androidx.navigation3.ui.NavDisplay
 import androidx.window.core.layout.WindowSizeClass
-import com.example.learncompose.core.designsystem.Background
+import com.example.learncompose.core.designsystem.Container
 import com.example.learncompose.core.navigation.Navigator
 import com.example.learncompose.core.navigation.rememberNavigationState
 import com.example.learncompose.core.navigation.toEntries
@@ -103,7 +93,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
         val entries = navigationState.toEntries(entryProvider)
         println("Current entries$entries, size: ${entries.size}")
         NavDisplay(
-            modifier = Modifier.background(Background),
+            modifier = Modifier.background(Container),
             entries = entries,
             sceneStrategies = listOf(
                 listDetailStrategy,

@@ -19,6 +19,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -32,42 +33,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import androidx.compose.ui.zIndex
 import androidx.graphics.shapes.RoundedPolygon
+import com.example.learncompose.core.designsystem.property.PresetImage
 import com.example.learncompose.feature.routine.R
 import kotlin.math.absoluteValue
-
-val PresetImageList: List<Int> by lazy {
-    listOf(
-        R.drawable.brush,
-        R.drawable.run,
-        R.drawable.work,
-        R.drawable.bedmaking,
-        R.drawable.cat,
-        R.drawable.charge,
-        R.drawable.clean,
-        R.drawable.cook,
-        R.drawable.dance,
-        R.drawable.drink,
-        R.drawable.early,
-        R.drawable.fitness,
-        R.drawable.fruit,
-        R.drawable.makeup,
-        R.drawable.mediataion,
-        R.drawable.neaten,
-        R.drawable.photograph,
-        R.drawable.skipping,
-        R.drawable.sleep,
-        R.drawable.study,
-        R.drawable.vegetables,
-        R.drawable.walk,
-        R.drawable.yoga
-    )
-}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ImagePickPage(
     modifier: Modifier = Modifier,
-    onImageSelect: (Int) -> Unit = {},
+    onImageSelect: (String) -> Unit = {},
     pagerState: PagerState
 ) {
 
@@ -80,7 +54,7 @@ fun ImagePickPage(
         snapAnimationSpec = tween(durationMillis = 200) // 使用线性/缓动时间控制对齐时长
     )
 
-    var selectImage by remember { mutableIntStateOf(R.drawable.brush) }
+    var selectImage by remember { mutableStateOf("brush") }
 
     HorizontalPager(
         state = pagerState,
@@ -137,14 +111,14 @@ fun ImagePickPage(
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painterResource(PresetImageList[page]),
+                    painterResource(PresetImage.allImages[page].resId),
                     null,
                     Modifier
                         .fillMaxHeight()
                         .aspectRatio(1f / 1f)
                         .clickable(
                             onClick = {
-                                selectImage = PresetImageList[page]
+                                selectImage = PresetImage.allImages[page].resName
                                 onImageSelect(selectImage)
                             },
                             indication = null,

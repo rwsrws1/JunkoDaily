@@ -37,20 +37,17 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.FloatingToolbarDefaults
-import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
@@ -74,7 +71,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -83,14 +79,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
-import com.example.learncompose.core.designsystem.OnBackground
-import com.example.learncompose.core.designsystem.icons.AppIcons
+import com.example.learncompose.core.designsystem.Container
+import com.example.learncompose.core.designsystem.ContainerLowest
+import com.example.learncompose.core.designsystem.OnSurface
 import com.example.learncompose.core.model.RoutineCard
 import com.example.learncompose.core.model.RoutineCardsAndLogs
-import com.example.learncompose.core.model.RoutineDailyLog
 import com.example.learncompose.feature.routine.chart.ChartContract
 import java.time.LocalDate
 import java.time.YearMonth
@@ -176,22 +171,54 @@ fun ChartScreen(
         fabVisible = true
     }
 
-    Box(
-        modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    )
-    {
+    Box(modifier.fillMaxSize()) {
         Scaffold(
+            floatingActionButtonPosition = FabPosition.Center,
             modifier = Modifier.fillMaxSize(),
             topBar = {
                 TopAppBar(
                     title = {
                         Text(yearMonthStr, style = MaterialTheme.typography.titleMedium)
-                    }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Container
+                    )
                 )
             },
             floatingActionButton = {
+                AnimatedVisibility(
+                    visible = fabVisible,
+                    enter = slideInVertically(
+                        // fullHeight 表示从屏幕最底部外侧开始向上滑动
+                        initialOffsetY = { fullHeight -> fullHeight },
+                        animationSpec = tween(1000)
+                    ) + fadeIn(),
+                    exit = slideOutVertically(
+                        targetOffsetY = { fullHeight -> fullHeight },
+                        animationSpec = tween(1000)
+                    ) + fadeOut()
+                ) {
+                    FloatingActionButton(
+                        modifier = Modifier.padding(bottom = 10.dp),
+                        onClick = {
+                            isShowWithYear = !isShowWithYear
+                        },
+                    ) {
+                        val selectStyle = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold
+                        )
+                        val normalStyle = MaterialTheme.typography.bodySmall.copy(
+                            fontWeight = FontWeight.Normal
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("月", style = if (isShowWithYear) normalStyle else selectStyle)
+                            Text("/")
+                            Text("年", style = if (isShowWithYear) selectStyle else normalStyle)
+                        }
+                    }
+                }
             }
         ) { paddingValues ->
             Column(
@@ -205,7 +232,7 @@ fun ChartScreen(
                     pageSize = PageSize.Fill,
                     beyondViewportPageCount = 0,
                     pageSpacing = 10.dp,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize().background(Container)
                 ) { page ->
                     val currentDay = if (isShowWithYear) {
                         remember(page, today) {
@@ -230,57 +257,6 @@ fun ChartScreen(
                         )
                     }
 
-                }
-            }
-
-        }
-
-        Box(modifier = Modifier
-            .align(Alignment.BottomCenter).padding(bottom = 10.dp)) {
-            AnimatedVisibility(
-                visible = fabVisible,
-                enter = slideInVertically(
-                    // fullHeight 表示从屏幕最底部外侧开始向上滑动
-                    initialOffsetY = { fullHeight -> fullHeight },
-                    animationSpec = tween(1000)
-                ) + fadeIn(),
-                exit = slideOutVertically(
-                    targetOffsetY = { fullHeight -> fullHeight },
-                    animationSpec = tween(1000)
-                ) + fadeOut()
-            ) {
-                HorizontalFloatingToolbar(
-                    expanded = false,
-                    colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
-                        toolbarContainerColor = OnBackground
-                    ),
-                    floatingActionButton = {
-                        FloatingActionButton(
-                            onClick = {
-                                isShowWithYear = !isShowWithYear
-                            },
-                        ) {
-                            val selectStyle = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Bold
-                            )
-                            val normalStyle = MaterialTheme.typography.bodySmall.copy(
-                                fontWeight = FontWeight.Normal
-                            )
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text("月", style = if (isShowWithYear) normalStyle else selectStyle)
-                                Text("/")
-                                Text("年", style = if (isShowWithYear) selectStyle else normalStyle)
-                            }
-                        }
-                    },
-                ) {
-//                    IconButton(onClick = {
-//                        naviToRoutineScreen()
-//                    }) {
-//                        Icon(painterResource(AppIcons.routine), null)
-//                    }
                 }
             }
 
@@ -370,7 +346,7 @@ private fun MonthChartCard(
 //            )
         ,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+            containerColor = ContainerLowest
         )
     ) {
         Spacer(Modifier.height(10.dp))
@@ -524,7 +500,7 @@ private fun YearChartCard(
     Card(
         Modifier.aspectRatio(1f / 0.55f),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+            containerColor = ContainerLowest
         )
     ) {
         Column(
@@ -576,7 +552,7 @@ fun AnimatedBarChart(
     val progress = rememberSaveable(saver = FloatAnimatableSaver) { Animatable(0f) }
     // 记住 TextMeasurer 用于在 Canvas 中测量和绘制文本
     val textMeasurer = rememberTextMeasurer()
-    val textStyle = MaterialTheme.typography.labelSmall
+    val textStyle = MaterialTheme.typography.labelSmall.copy(color = OnSurface)
 
     LaunchedEffect(Unit) {
         progress.animateTo(

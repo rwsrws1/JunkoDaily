@@ -56,6 +56,7 @@ import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
 import androidx.graphics.shapes.Morph
 import androidx.graphics.shapes.RoundedPolygon
+import com.example.learncompose.core.designsystem.property.PresetImage
 import com.example.learncompose.feature.routine.R
 import kotlinx.coroutines.launch
 
@@ -65,8 +66,8 @@ fun ImageAreaCard(
     modifier: Modifier = Modifier,
     targetShape: RoundedPolygon,
     imageColor: Color,
-    selectImage: Int = R.drawable.brush,
-    onImageClick: () -> Unit = {}
+    selectImage: String = PresetImage.defaultImage.resName,
+    onImageClick: (() -> Unit)?
 ) {
     val morphProgress = remember { Animatable(0f) }
     val rotationProgress = remember { Animatable(0f) }
@@ -136,18 +137,23 @@ fun ImageAreaCard(
                             )
                         }
                     }
-                }.clickable(
-                    onClick = {
-                        onImageClick()
-                    },
-                    interactionSource = null,
-                    indication = null
+                }
+                .then(
+                    if (onImageClick != null) {
+                        Modifier.clickable(
+                            onClick = onImageClick,
+                            interactionSource = null,
+                            indication = null
+                        )
+                    } else {
+                        Modifier
+                    }
                 )
         )
 
         // 2. 限制层：底部与两侧被动态 Shape 严格裁剪的图片部分
         Image(
-            painter = painterResource(selectImage),
+            painter = painterResource(PresetImage.fromResName(selectImage).resId),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -187,7 +193,7 @@ fun ImageAreaCard(
 
         // 3. 溢出层：顶部不受 Shape 约束、允许透出的图片部分
         Image(
-            painter = painterResource(selectImage),
+            painter = painterResource(PresetImage.fromResName(selectImage).resId),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -227,5 +233,6 @@ private fun processPath(
 @Preview
 @Composable
 private fun Preview() {
-    ImageAreaCard(modifier = Modifier.size(300.dp), targetShape = MaterialShapes.Heart, imageColor = MaterialTheme.colorScheme.tertiary)
+    ImageAreaCard(modifier = Modifier.size(300.dp), targetShape = MaterialShapes.Heart,
+        imageColor = MaterialTheme.colorScheme.tertiary, onImageClick = null)
 }

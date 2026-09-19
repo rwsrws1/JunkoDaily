@@ -11,7 +11,7 @@ data class RoutineCardEntity(
     val id: Long = 0,
     val cardText: String,
     val cardColor: Long,
-    val cardImage: Int,
+    val cardImage: String,
     val cardShape: String
 )
 

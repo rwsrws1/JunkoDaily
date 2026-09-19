@@ -69,9 +69,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.learncompose.core.designsystem.PresetFiveRandomColor
-import com.example.learncompose.core.designsystem.PresetFiveRandomShape
 import com.example.learncompose.core.designsystem.adjustSaturationAndLightness
 import com.example.learncompose.core.designsystem.icons.AppIcons
+import com.example.learncompose.core.designsystem.property.PresetImage
+import com.example.learncompose.core.designsystem.property.PresetShape
 import com.example.learncompose.core.designsystem.toArgbLong
 import com.example.learncompose.core.designsystem.toComposeColor
 import com.example.learncompose.core.designsystem.toCompositeOverSurface
@@ -145,7 +146,7 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
     val categories = listOf("颜色", "形状", "图案")
     val categoriesIcons = listOf(AppIcons.routineFilled, AppIcons.chartFilled, AppIcons.spendFilled)
     var colorList by remember { mutableStateOf(PresetFiveRandomColor) }
-    var shapeList by remember { mutableStateOf(PresetFiveRandomShape) }
+    var shapeList by remember { mutableStateOf(PresetShape.presetFiveRandomShape) }
 
     val slideState = rememberSliderState(
         value = 1f,
@@ -161,11 +162,11 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
     )
 
     var isSelectImage by remember { mutableStateOf(false) }
-    var selectImage by remember { mutableIntStateOf(R.drawable.brush) }
+    var selectImage by remember { mutableStateOf(PresetImage.defaultImage.resName) }
     var textState by remember { mutableStateOf("") }
     val handler = LocalHandler.current
 
-    val pagerState = rememberPagerState(pageCount = { PresetImageList.size })
+    val pagerState = rememberPagerState(pageCount = { PresetImage.allImages.size })
 
     Surface(
         modifier = Modifier
@@ -203,7 +204,7 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
                     Modifier
                         .fillMaxWidth(0.7f)
                         .aspectRatio(1 / 1f),
-                    targetShape = shapeList[selectedShapeIndex].second,
+                    targetShape = shapeList[selectedShapeIndex].polygon,
                     imageColor = animColor,
                     onImageClick = { isSelectImage = true },
                     selectImage = selectImage
@@ -271,7 +272,7 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
                                         ) {
                                             Box(Modifier
                                                 .size(25.dp)
-                                                .clip(shapeList[index].second.toShape())
+                                                .clip(shapeList[index].polygon.toShape())
                                                 .background(MaterialTheme.colorScheme.surface))
                                         }
                                     },
@@ -355,7 +356,7 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
                     IconButton(
                         onClick = {
                             colorList = PresetFiveRandomColor
-                            shapeList = PresetFiveRandomShape
+                            shapeList = PresetShape.presetFiveRandomShape
                         },
                         Modifier.align(Alignment.CenterVertically),
                         colors = IconButtonDefaults.iconButtonColors(
@@ -406,7 +407,7 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
                                     cardText = textState,
                                     cardColor = targetColor.toArgbLong(),
                                     cardImage = selectImage,
-                                    cardShape = shapeList[selectedShapeIndex].first
+                                    cardShape = shapeList[selectedShapeIndex].name
                                 )
                             )
                             onDismiss()

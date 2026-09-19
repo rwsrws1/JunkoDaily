@@ -2,16 +2,14 @@ package com.example.learncompose.feature.routine
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.AnimationSpec
-import androidx.compose.animation.core.DecayAnimationSpec
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -29,6 +27,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -39,22 +38,23 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingToolbarDefaults
-import androidx.compose.material3.HorizontalFloatingToolbar
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.TopAppBarState
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.rememberBottomSheetState
@@ -81,11 +81,15 @@ import java.time.LocalDate
 import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.window.core.layout.WindowSizeClass
-import com.example.learncompose.core.designsystem.Background
-import com.example.learncompose.core.designsystem.OnBackground
+import com.example.learncompose.core.designsystem.Container
+import com.example.learncompose.core.designsystem.Black
+import com.example.learncompose.core.designsystem.ContainerLowest
+import com.example.learncompose.core.designsystem.OnSurface
 import com.example.learncompose.core.designsystem.PresetColorList
-import com.example.learncompose.core.designsystem.PresetShapeList
+import com.example.learncompose.core.designsystem.White
 import com.example.learncompose.core.designsystem.icons.AppIcons
+import com.example.learncompose.core.designsystem.property.PresetImage
+import com.example.learncompose.core.designsystem.property.PresetShape
 import com.example.learncompose.core.designsystem.toCompositeOverSurface
 import com.example.learncompose.feature.routine.components.ExplosionConfetti
 import com.example.learncompose.feature.routine.components.FullscreenCustomOverlay
@@ -103,6 +107,7 @@ val LocalHandler = compositionLocalOf<(RoutineContract.Intent) -> Unit> {
 }
 
 private val MONTH_DAY_FORMATTER = DateTimeFormatter.ofPattern("MM-dd")
+private val DAY_FORMATTER = DateTimeFormatter.ofPattern("dd")
 
 @Composable
 fun RoutineViewModelScreen(
@@ -147,15 +152,12 @@ fun RoutineScreen(
         }
     }
     val currentLocale = LocalLocale.current.platformLocale
-    val monthDayStr = currentDate.format(MONTH_DAY_FORMATTER)
-    val dayOfWeekStr = currentDate.dayOfWeek.getDisplayName(TextStyle.FULL, currentLocale)
+    val monthDayStr = currentDate.format(DAY_FORMATTER)
+//    val dayOfWeekStr = currentDate.dayOfWeek.getDisplayName(TextStyle.FULL, currentLocale)
+    val dayOfWeekStr = currentDate.dayOfWeek.getDisplayName(TextStyle.SHORT, currentLocale)
     LaunchedEffect(currentDate) {
         handler(RoutineContract.Intent.SelectDate(currentDate))
     }
-
-//    val scrollBehavior = rememberCollapsedTopAppBarScrollBehavior()
-//    // 获取当前的折叠比例 (0.0F完全展开 ~ 1.0F完全折叠)
-//    val collapsedFraction = scrollBehavior.state.collapsedFraction
 
 // 1. 获取屏幕密度与 TabRow 高度
     val density = LocalDensity.current
@@ -168,74 +170,6 @@ fun RoutineScreen(
         initialHeightOffset = -headerHeightPx
     )
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
-
-//    val density = LocalDensity.current
-//    val headerHeightPx = with(density) { 60.dp.toPx() }
-//    var headerOffsetPx by remember { mutableFloatStateOf(-headerHeightPx) }
-//    val animatable = remember { Animatable(0f) }
-//    val nestedScrollConnection = remember(headerHeightPx) {
-//        object : NestedScrollConnection {
-//            // 【向上滑动】：优先由 TabRow 拦截并向上收起
-//            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-//                val delta = available.y
-//                if (delta < 0) { // 手指向上滑
-//                    val newOffset = (headerOffsetPx + delta).coerceIn(-headerHeightPx, 0f)
-//                    val consumed = newOffset - headerOffsetPx
-//                    headerOffsetPx = newOffset
-//                    return Offset(0f, consumed)
-//                }
-//                return Offset.Zero
-//            }
-//
-//            // 【向下滑动】：当列表滑到顶部且继续下拉时，展开 TabRow
-//            override fun onPostScroll(
-//                consumed: Offset,
-//                available: Offset,
-//                source: NestedScrollSource
-//            ): Offset {
-//                val delta = available.y
-//                if (delta > 0) { // 手指向下滑
-//                    val newOffset = (headerOffsetPx + delta * 0.7f).coerceIn(-headerHeightPx, 0f)
-//                    val consumed = newOffset - headerOffsetPx
-//                    headerOffsetPx = newOffset
-//                    return Offset(0f, consumed)
-//                }
-//                return Offset.Zero
-//            }
-//
-//            // 【松手吸附/惯性】：手指抬起触发 Fling 时处理 Header 归位
-//            override suspend fun onPreFling(available: Velocity): Velocity {
-//                // 只要 Header 处于半开半合状态，就优先处理吸附归位
-//                if (headerOffsetPx > -headerHeightPx && headerOffsetPx < 0f) {
-//                    val target = when {
-//                        available.y < -300f -> -headerHeightPx // 快速向上甩：强制完全收起
-//                        available.y > 300f -> 0f               // 快速向下甩：强制完全展开
-//                        headerOffsetPx > -headerHeightPx / 2f -> 0f // 慢速松手：根据位置过半展开，否则收起
-//                        else -> -headerHeightPx
-//                    }
-//                    animatable.snapTo(headerOffsetPx)
-//                    animatable.animateTo(target) {
-//                        headerOffsetPx = value
-//                    }
-//                    // 消费掉 Velocity，防止网格列表与 Header 吸附动画同时运作产生冲突
-//                    return available
-//                }
-//                return Velocity.Zero
-//            }
-//
-//            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
-//                // 保底逻辑：若惯性结束后 Header 依然停留在中间，强制吸附归位
-//                if (headerOffsetPx > -headerHeightPx && headerOffsetPx < 0f) {
-//                    val target = if (headerOffsetPx > -headerHeightPx / 2f) 0f else -headerHeightPx
-//                    animatable.snapTo(headerOffsetPx)
-//                    animatable.animateTo(target) {
-//                        headerOffsetPx = value
-//                    }
-//                }
-//                return Velocity.Zero
-//            }
-//        }
-//    }
 
     var fabVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
@@ -286,17 +220,50 @@ fun RoutineScreen(
 
 
         Scaffold(
+            floatingActionButtonPosition = FabPosition.Center,
             modifier = Modifier
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
-
-                TopAppBar(
-                    title = {
-                        Column() {
-                            Text(monthDayStr, style = MaterialTheme.typography.titleMedium)
-                            Text(dayOfWeekStr, style = MaterialTheme.typography.titleMedium)
+                CenterAlignedTopAppBar(
+                    navigationIcon = {
+//                        Column() {
+//                            Text(monthDayStr, style = MaterialTheme.typography.titleMedium)
+//                            Text(dayOfWeekStr, style = MaterialTheme.typography.titleMedium)
+//                        }
+                        Card(
+                            modifier = Modifier.padding(start = 10.dp).size(50.dp).clickable(
+                                onClick = {
+                                    val isOpen = scrollBehavior.state.heightOffset == 0f
+                                    val targetOffset = if (isOpen) -headerHeightPx else 0f
+                                    val initialValue = if (isOpen) 0f else -headerHeightPx
+                                    val animatable = Animatable(initialValue)
+                                    scope.launch {
+                                        animatable.animateTo(targetOffset) {
+                                            scrollBehavior.state.heightOffset = value
+                                        }
+                                    }
+                                },
+                                indication = null,
+                                interactionSource = null
+                            ),
+                            colors = CardDefaults.cardColors(
+                                containerColor = ContainerLowest
+                            )
+                        ) {
+                            Box(Modifier.fillMaxWidth().weight(1f).background(Black)
+                                , contentAlignment = Alignment.Center) {
+                                Text(dayOfWeekStr, style = MaterialTheme.typography.labelSmall.copy(color = White))
+                            }
+                            HorizontalDivider()
+                            Box(Modifier.fillMaxWidth().weight(3f).background(White),
+                                contentAlignment = Alignment.Center) {
+                                Text(monthDayStr, style = MaterialTheme.typography.titleLarge.copy(color = Black))
+                            }
                         }
+                    },
+                    title = {
+                        Text("Junko's Daily")
                     },
                     actions = {
                         TextButton(
@@ -307,12 +274,11 @@ fun RoutineScreen(
                                             cardText = "测试卡片",
                                             cardColor = PresetColorList[time],
                                             cardShape = "Circle",
-                                            cardImage = R.drawable.brush
+                                            cardImage = PresetImage.defaultImage.resName
                                         )
                                     )
                                 }
                             },
-                            Modifier.padding(end = 20.dp)
                         ) {
                             Text("test", color = Color.Transparent)
                         }
@@ -321,19 +287,42 @@ fun RoutineScreen(
                                 naviToChartScreen()
                             }
                         ) {
-                            Icon(painterResource(AppIcons.chart), null)
+                            Icon(painterResource(R.drawable.bar_chart_24px), null)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Background
+                        containerColor = Container
                     )
 //                    scrollBehavior = scrollBehavior
                 )
 
             },
 
-
             floatingActionButton = {
+                AnimatedVisibility(
+                    visible = fabVisible,
+                    enter = slideInVertically(
+                        // fullHeight 表示从屏幕最底部外侧开始向上滑动
+                        initialOffsetY = { fullHeight -> fullHeight },
+                        animationSpec = tween(1000)
+                    ) + fadeIn(),
+                    exit = slideOutVertically(
+                        targetOffsetY = { fullHeight -> fullHeight },
+                        animationSpec = tween(1000)
+                    ) + fadeOut()
+                ) {
+                    FloatingActionButton(
+                        modifier = Modifier.padding(bottom = 10.dp),
+                        onClick = {
+                            isShowCardPicker = true
+                        },
+                        containerColor = ContainerLowest,
+                        contentColor = OnSurface
+                    ) {
+                        Icon(painterResource(R.drawable.add_24px), contentDescription = ""
+                        , tint = OnSurface)
+                    }
+                }
             }
         ) { paddingValues ->
             Column(
@@ -346,18 +335,7 @@ fun RoutineScreen(
                 PrimaryScrollableTabRow(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clipToBounds() // 1. 裁剪超出布局边界的内容
-//                        .layout { measurable, constraints ->
-//                            val placeable = measurable.measure(constraints)
-//                            // 2. 动态计算 TabRow 在父 Column 中实际占用的测量高度（0 到 placeable.height 之间）
-//                            val currentHeight = (placeable.height + headerOffsetPx).coerceAtLeast(0f).toInt()
-//
-//                            // 3. 报告给 Column 实际占用高度，下方 HorizontalPager 会自动顺滑顶上，无留白
-//                            layout(placeable.width, currentHeight) {
-//                                placeable.placeRelative(0, headerOffsetPx.toInt())
-//                            }
-//                        }
-
+                        .clipToBounds()
                         .layout { measurable, constraints ->
                             val placeable = measurable.measure(constraints)
 
@@ -376,7 +354,7 @@ fun RoutineScreen(
                     indicator = {},
                     divider = {},
                     minTabWidth = 0.dp,
-                    containerColor = Background,
+                    containerColor = Container,
                 ) {
                     tabList.forEachIndexed { index, i ->
                         val isSelected = pagerState.currentPage == index
@@ -395,9 +373,9 @@ fun RoutineScreen(
                                 .height(50.dp)
                                 .aspectRatio(1f / 1f)
                                 .clip(MaterialTheme.shapes.medium)
-                                .background(if (isSelected) MaterialTheme.colorScheme.onSurface else OnBackground),
-                            selectedContentColor = MaterialTheme.colorScheme.surface,
-                            unselectedContentColor = Background
+                                .background(if (isSelected) Black else ContainerLowest),
+                            selectedContentColor = Color.White,
+                            unselectedContentColor = Container
                         ) {
                             Box(
                                 contentAlignment = Alignment.Center,
@@ -418,7 +396,7 @@ fun RoutineScreen(
                     state = pagerState,
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Background),
+                        .background(Container),
                     pageSize = PageSize.Fill,
                     pageSpacing = 0.dp,
                     contentPadding = PaddingValues(horizontal = 0.dp),
@@ -449,38 +427,6 @@ fun RoutineScreen(
             }
         }
 
-        Box(modifier = Modifier
-            .align(Alignment.BottomCenter)
-            .padding(bottom = 10.dp)) {
-            AnimatedVisibility(
-                visible = fabVisible,
-                enter = slideInVertically(
-                    // fullHeight 表示从屏幕最底部外侧开始向上滑动
-                    initialOffsetY = { fullHeight -> fullHeight },
-                    animationSpec = tween(1000)
-                ) + fadeIn(),
-                exit = slideOutVertically(
-                    targetOffsetY = { fullHeight -> fullHeight },
-                    animationSpec = tween(1000)
-                ) + fadeOut()
-            ) {
-                HorizontalFloatingToolbar(
-                    expanded = false,
-                    colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
-                        toolbarContainerColor = OnBackground
-                    ),
-                    floatingActionButton = {
-                        FloatingActionButton(
-                            onClick = {
-                                isShowCardPicker = true
-                            }
-                        ) {
-                            Icon(painterResource(R.drawable.add_24px), contentDescription = "")
-                        }
-                    }
-                ) {}
-            }
-        }
 
         FullscreenCustomOverlay(isShowCardPicker = isShowCardPicker, onDismiss = { isShowCardPicker = false })
 
@@ -551,8 +497,7 @@ fun CardGrid(
                 { onLongClick(item.cardId) }
             }
             val shape = remember(item.cardId) {
-                PresetShapeList.find { it.first == item.cardShape }?.second
-                    ?: PresetShapeList[0].second
+                PresetShape.fromName(item.cardShape).polygon
             }
             val animColor by animateColorAsState(
                 targetValue = if (item.isCompleted) item.composeColor else item.composeColor.toCompositeOverSurface(),
@@ -573,16 +518,15 @@ fun CardGrid(
                 onLongClick = onLongClick
             ) {
                 Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Spacer(Modifier.weight(1f))
-                    if(item.cardImage != 0) {
-                        Box(Modifier.fillMaxWidth(0.9f), contentAlignment = Alignment.Center) {
-                            ImageAreaCard(
-                                modifier = Modifier.fillMaxWidth(0.8f).aspectRatio(1f),
-                                targetShape = shape,
-                                imageColor =  animColor,
-                                selectImage = item.cardImage
-                            )
-                        }
+                    Spacer(Modifier.weight(2f))
+                    Box(Modifier.fillMaxWidth(0.9f), contentAlignment = Alignment.Center) {
+                        ImageAreaCard(
+                            modifier = Modifier.fillMaxWidth(0.9f).aspectRatio(1f),
+                            targetShape = shape,
+                            imageColor =  animColor,
+                            selectImage = item.cardImage,
+                            onImageClick = null,
+                        )
                     }
                     Spacer(Modifier.weight(1f))
                     Text(
@@ -592,6 +536,7 @@ fun CardGrid(
                         textAlign = TextAlign.Center,
                         maxLines = 2,
                     )
+                    Spacer(Modifier.weight(1f))
                 }
             }
             if (isShowConfetti) {
@@ -610,29 +555,6 @@ fun CardGrid(
             }
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun rememberCollapsedTopAppBarScrollBehavior(
-    initialState: TopAppBarState = rememberTopAppBarState(),
-    canScroll: () -> Boolean = { true },
-    snapAnimationSpec: AnimationSpec<Float>? = spring(),
-    flungAnimationSpec: DecayAnimationSpec<Float>? = rememberSplineBasedDecay()
-): TopAppBarScrollBehavior {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        state = initialState,
-        canScroll = canScroll,
-        snapAnimationSpec = snapAnimationSpec,
-        flingAnimationSpec = flungAnimationSpec
-    )
-
-    LaunchedEffect(scrollBehavior) {
-        // 自动在测量完成后重置为折叠状态
-        scrollBehavior.state.heightOffset = scrollBehavior.state.heightOffsetLimit
-    }
-
-    return scrollBehavior
 }
 
 @Preview
