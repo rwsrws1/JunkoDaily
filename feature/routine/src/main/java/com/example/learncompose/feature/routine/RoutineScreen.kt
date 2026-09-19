@@ -80,12 +80,12 @@ import com.example.learncompose.core.designsystem.ContainerLowest
 import com.example.learncompose.core.designsystem.OnSurface
 import com.example.learncompose.core.designsystem.PresetColorList
 import com.example.learncompose.core.designsystem.White
+import com.example.learncompose.core.designsystem.components.ImageAreaCard
 import com.example.learncompose.core.designsystem.property.PresetImage
 import com.example.learncompose.core.designsystem.property.PresetShape
 import com.example.learncompose.core.designsystem.toCompositeOverSurface
 import com.example.learncompose.feature.routine.components.ExplosionConfetti
 import com.example.learncompose.feature.routine.components.FullscreenCustomOverlay
-import com.example.learncompose.feature.routine.components.ImageAreaCard
 import com.example.learncompose.feature.routine.components.ScratchMaskCard
 import java.time.Instant
 import java.time.format.DateTimeFormatter

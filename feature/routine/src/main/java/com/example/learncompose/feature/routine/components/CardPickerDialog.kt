@@ -40,13 +40,11 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.ToggleButtonSize
@@ -70,6 +68,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.learncompose.core.designsystem.PresetFiveRandomColor
 import com.example.learncompose.core.designsystem.adjustSaturationAndLightness
+import com.example.learncompose.core.designsystem.components.ImageAreaCard
 import com.example.learncompose.core.designsystem.icons.AppIcons
 import com.example.learncompose.core.designsystem.property.PresetImage
 import com.example.learncompose.core.designsystem.property.PresetShape

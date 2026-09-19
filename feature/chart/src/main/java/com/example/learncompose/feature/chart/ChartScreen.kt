@@ -1,6 +1,12 @@
 package com.example.learncompose.feature.chart
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.BoundsTransform
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -9,6 +15,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -29,21 +36,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.TextAutoSize
-import androidx.compose.foundation.text.TextAutoSizeDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -58,7 +61,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.toShape
@@ -68,6 +70,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -81,9 +84,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.drawText
@@ -102,9 +107,12 @@ import com.example.learncompose.core.designsystem.Container
 import com.example.learncompose.core.designsystem.ContainerLowest
 import com.example.learncompose.core.designsystem.OnSurface
 import com.example.learncompose.core.designsystem.White
+import com.example.learncompose.core.designsystem.components.ImageAreaCard
 import com.example.learncompose.core.designsystem.icons.AppIcons
 import com.example.learncompose.core.designsystem.property.PresetImage
 import com.example.learncompose.core.designsystem.property.PresetShape
+import com.example.learncompose.core.designsystem.toComposeColor
+import com.example.learncompose.core.designsystem.toCompositeOverSurface
 import com.example.learncompose.core.model.RoutineCard
 import com.example.learncompose.core.model.RoutineCardsAndLogs
 import kotlinx.coroutines.launch
@@ -152,17 +160,10 @@ fun ChartScreen(
     val tabScrollState = rememberScrollState()
     var isShowHeader by rememberSaveable { mutableStateOf(false) }
 
-//    val initialPage = 11
-//    val pagerState = rememberPagerState(
-//        initialPage = initialPage,
-//        pageCount = { initialPage + 1 }
-//    )
-
     val today = remember { LocalDate.now() }
     val currentDay by remember {
         derivedStateOf {
             today.minusMonths((tabList.lastIndex - pagerState.currentPage).toLong())
-
         }
     }
     val yearStr by remember {
@@ -203,6 +204,15 @@ fun ChartScreen(
         }
     }
 
+    var isShowWithYear by remember { mutableStateOf(false) }
+    var clickCardId by remember { mutableLongStateOf(0) }
+    var isShowNavigationIcon by remember { mutableStateOf(true) }
+    val spatialSpecRect = MaterialTheme.motionScheme.slowSpatialSpec<Rect>()
+    val effectSpecFloat = MaterialTheme.motionScheme.slowEffectsSpec<Float>()
+    val customBoundsTransform = BoundsTransform { initialBounds, targetBounds ->
+        spatialSpecRect
+    }
+
     Box(modifier.fillMaxSize()) {
         Scaffold(
             floatingActionButtonPosition = FabPosition.Center,
@@ -210,25 +220,31 @@ fun ChartScreen(
             topBar = {
                 CenterAlignedTopAppBar(
                     navigationIcon = {
-                        Card(
-                            modifier = Modifier.padding(start = 10.dp).size(50.dp).clickable(
-                                onClick = {
-                                    isShowHeader = !isShowHeader
-                                },
-                                indication = null,
-                                interactionSource = null
-                            ),
-                            colors = CardDefaults.cardColors(
-                                containerColor = ContainerLowest
-                            )
+                        AnimatedVisibility(
+                            visible = isShowNavigationIcon,
+                            enter = fadeIn(animationSpec = effectSpecFloat, 0f),
+                            exit = fadeOut(animationSpec = effectSpecFloat, 0f)
                         ) {
-                            Box(Modifier.fillMaxWidth().weight(1f).background(Black)
-                                , contentAlignment = Alignment.Center) {
-                                Text(yearStr, style = MaterialTheme.typography.labelSmall.copy(color = White))
-                            }
-                            Box(Modifier.fillMaxWidth().weight(2.7f).background(ContainerLowest),
-                                contentAlignment = Alignment.Center) {
-                                Text(monthStr, style = MaterialTheme.typography.titleLarge.copy(color = OnSurface))
+                            Card(
+                                modifier = Modifier.padding(start = 10.dp).size(50.dp).clickable(
+                                    onClick = {
+                                        isShowHeader = !isShowHeader
+                                    },
+                                    indication = null,
+                                    interactionSource = null
+                                ),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = ContainerLowest
+                                )
+                            ) {
+                                Box(Modifier.fillMaxWidth().weight(1f).background(Black)
+                                    , contentAlignment = Alignment.Center) {
+                                    Text(yearStr, style = MaterialTheme.typography.labelSmall.copy(color = White))
+                                }
+                                Box(Modifier.fillMaxWidth().weight(2.7f).background(ContainerLowest),
+                                    contentAlignment = Alignment.Center) {
+                                    Text(monthStr, style = MaterialTheme.typography.titleLarge.copy(color = OnSurface))
+                                }
                             }
                         }
                     },
@@ -278,21 +294,7 @@ fun ChartScreen(
                     visible = isShowHeader
                 ) {
                     PrimaryScrollableTabRow(
-                        modifier = Modifier
-                            .fillMaxWidth()
-//                        .layout { measurable, constraints ->
-//                            val placeable = measurable.measure(constraints)
-//
-//                            // 【直接读取官方引擎计算好的 offset 即可！】
-//                            val offset = scrollBehavior.state.heightOffset
-//                            val currentHeight =
-//                                (placeable.height + offset).coerceAtLeast(0f).toInt()
-//
-//                            layout(placeable.width, currentHeight) {
-//                                placeable.placeRelative(0, offset.toInt())
-//                            }
-//                        }
-                        ,
+                        modifier = Modifier.fillMaxWidth(),
                         selectedTabIndex = pagerState.currentPage,
                         scrollState = tabScrollState,
                         indicator = {},
@@ -337,36 +339,63 @@ fun ChartScreen(
                     }
                 }
 
-                HorizontalPager(
-                    state = pagerState,
-                    pageSize = PageSize.Fill,
-                    beyondViewportPageCount = 0,
-                    pageSpacing = 10.dp,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Container)
-                ) { page ->
-                    val currentDay = remember(page, today) {
-                        today.minusMonths((tabList.lastIndex - page).toLong())
+                SharedTransitionLayout {
+                    AnimatedContent(
+                        targetState = isShowWithYear,
+                        transitionSpec = {
+                            fadeIn(animationSpec = effectSpecFloat, 0f) togetherWith
+                            fadeOut(animationSpec = effectSpecFloat, 0f)
+                        }
+                    ) { isShow ->
+                        if (isShow) {
+                            YearChartPage(currentYear = today.year,
+                                item = cardsAndLogs.first { it.card.id == clickCardId },
+                                modifier = Modifier.sharedBounds(
+                                    sharedContentState = rememberSharedContentState("detail_element${clickCardId}"),
+                                    animatedVisibilityScope = this@AnimatedContent,
+                                    boundsTransform = customBoundsTransform,
+//                                    resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds(ContentScale.Crop),
+                                    clipInOverlayDuringTransition = OverlayClip(MaterialTheme.shapes.large)))
+                            BackHandler {
+                                isShowWithYear = false
+                                isFabShow = true
+                                isShowNavigationIcon = true
+                            }
+                        } else {
+                            HorizontalPager(
+                                state = pagerState,
+                                pageSize = PageSize.Fill,
+                                beyondViewportPageCount = 0,
+                                pageSpacing = 10.dp,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Container)
+                            ) { page ->
+                                val currentDay = remember(page, today) {
+                                    today.minusMonths((tabList.lastIndex - page).toLong())
+                                }
+                                MonthChartPage(
+                                    cardsAndLogs = cardsAndLogs,
+                                    currentYear = currentDay.year,
+                                    currentMonth = currentDay.monthValue,
+                                    adaptiveInfo = adaptiveInfo,
+                                    state = lazyGridState,
+                                    onChartClick = { cardId ->
+                                        clickCardId = cardId
+                                        isShowNavigationIcon = false
+                                        isFabShow = false
+                                        isShowHeader = false
+                                        isShowWithYear = true
+                                    },
+                                    sharedTransitionScope = this@SharedTransitionLayout,
+                                    animatedVisibilityScope = this@AnimatedContent,
+                                    boundsTransform = customBoundsTransform,
+                                )
+                            }
+                        }
                     }
-//                    if (isShowWithYear) {
-//                        YearChartPage(
-//                            cardsAndLogs = cardsAndLogs,
-//                            currentYear = currentDay.year,
-//                            currentMonth = currentDay.monthValue,
-//                            adaptiveInfo = adaptiveInfo
-//                        )
-//                    } else {
-//                    }
-                    MonthChartPage(
-                        cardsAndLogs = cardsAndLogs,
-                        currentYear = currentDay.year,
-                        currentMonth = currentDay.monthValue,
-                        adaptiveInfo = adaptiveInfo,
-                        state = lazyGridState
-                    )
-
                 }
+
             }
 
         }
@@ -380,7 +409,11 @@ private fun MonthChartPage(
     currentYear: Int,
     currentMonth: Int,
     adaptiveInfo: WindowAdaptiveInfo,
-    state: LazyGridState
+    state: LazyGridState,
+    onChartClick: (Long) -> Unit = {},
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    boundsTransform: BoundsTransform,
 ) {
 
     val scaleFactor =
@@ -415,7 +448,7 @@ private fun MonthChartPage(
 
     CompositionLocalProvider(LocalDensity provides scaledDensity) {
         LazyVerticalGrid(
-            modifier = modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             columns = GridCells.Adaptive(minSize),
             state = state,
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
@@ -429,11 +462,19 @@ private fun MonthChartPage(
                         .filter { it.recordDate!!.year == currentYear && it.recordDate!!.monthValue == currentMonth }
                         .mapTo(HashSet()) { it.recordDate!!.dayOfMonth }
                 }
-                MonthChartCard(
-                    cardAndLog = item,
-                    daysInMonths = daysInMonths,
-                    completedDays = completedDays,
-                )
+                with(sharedTransitionScope) {
+                    MonthChartCard(
+                        modifier = modifier.sharedBounds(
+                            sharedContentState = rememberSharedContentState("detail_element${item.card.id}"),
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            boundsTransform = boundsTransform,
+                            clipInOverlayDuringTransition = OverlayClip(MaterialTheme.shapes.medium)),
+                        cardAndLog = item,
+                        daysInMonths = daysInMonths,
+                        completedDays = completedDays,
+                        onChartClick = { onChartClick(item.card.id) }
+                    )
+                }
             }
         }
     }
@@ -445,25 +486,25 @@ private fun MonthChartCard(
     modifier: Modifier = Modifier,
     cardAndLog: RoutineCardsAndLogs,
     daysInMonths: Int,
-    completedDays: Set<Int>
+    completedDays: Set<Int>,
+    onChartClick: () -> Unit
 ) {
     val boxShape = PresetShape.fromName(cardAndLog.card.cardShape).polygon.toShape()
+    val imageId = PresetImage.fromResName(cardAndLog.card.cardImage).resId
+    val cardColor = cardAndLog.card.cardColor.toComposeColor()
+    val cardText = cardAndLog.card.cardText
     Card(
-        Modifier
-            .aspectRatio(1f / 1.1f)
-//            .border(
-//                width = 1.dp,
-//                color = MaterialTheme.colorScheme.onSurface,
-//                shape = MaterialTheme.shapes.medium
-//            )
-        ,
+        onClick = {
+            onChartClick()
+        },
+        modifier = modifier.aspectRatio(1f / 1.1f),
         colors = CardDefaults.cardColors(
             containerColor = ContainerLowest
-        )
+        ),
     ) {
         Spacer(Modifier.height(10.dp))
         Text(
-            cardAndLog.card.cardText,
+            cardText,
             Modifier.align(Alignment.CenterHorizontally),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -476,12 +517,12 @@ private fun MonthChartCard(
             MonthCalendarGrid(
                 daysInMonths = daysInMonths,
                 completedDays = completedDays,
-                activeColor = cardAndLog.card.composeColor,
+                activeColor = cardColor,
                 modifier = Modifier.fillMaxSize(),
                 boxShape = boxShape
             )
             Image(
-                painterResource(PresetImage.fromResName(cardAndLog.card.cardImage).resId), null,
+                painterResource(imageId), null,
                 Modifier.align(Alignment.Center),
                 alpha = 0.2f
             )
@@ -495,17 +536,27 @@ private fun MonthChartCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Spacer(Modifier.weight(1f))
-            Icon(painterResource(R.drawable.clock_loader_40_24px), null, Modifier.size(15.dp))
-            Spacer(Modifier.width(3.dp))
-            Text("${completedDays.size * 100 / daysInMonths}%")
-            Spacer(Modifier.weight(0.5f))
-            VerticalDivider(Modifier.fillMaxHeight(0.6f))
-            Spacer(Modifier.weight(0.5f))
-//            Icon(painterResource(R.drawable.check_circle_24px), null, Modifier.size(15.dp))
-            Box(Modifier.size(15.dp).clip(boxShape).background(OnSurface))
-            Spacer(Modifier.width(3.dp))
-            Text("${completedDays.size}")
-            Spacer(Modifier.weight(1f))
+
+            Box(Modifier.size(15.dp).clip(boxShape).background(cardColor))
+            Spacer(Modifier.weight(0.05f))
+            Box {
+                Text("00", Modifier.alpha(0f))
+                Text("${completedDays.size}")
+            }
+            Spacer(Modifier.weight(0.1f))
+
+            Box(Modifier.size(15.dp).clip(boxShape).background(MaterialTheme.colorScheme.surfaceContainerHighest))
+            Spacer(Modifier.weight(0.05f))
+            Box {
+                Text("00", Modifier.alpha(0f))
+                Text("${daysInMonths - completedDays.size}")
+            }
+            Spacer(Modifier.weight(0.1f))
+
+//            VerticalDivider(Modifier.fillMaxHeight(0.6f))
+//            Spacer(Modifier.weight(0.1f))
+//            Text("${completedDays.size * 100 / daysInMonths}%")
+//            Spacer(Modifier.weight(0.1f))
         }
         Spacer(Modifier.height(5.dp))
     }
@@ -549,7 +600,8 @@ private fun MonthCalendarGrid(
                                 .aspectRatio(1f / 1f)
 //                                .clip(MaterialTheme.shapes.extraSmall)
                                 .clip(boxShape)
-                                .background(if (isCompleted) activeColor else Container),
+                                .background(if (isCompleted) activeColor
+                                else MaterialTheme.colorScheme.surfaceContainerHighest),
                             number = dayNumber,
                         )
                     } else {
@@ -580,91 +632,135 @@ fun DayBox(modifier: Modifier = Modifier, number: Int) {
 @Composable
 private fun YearChartPage(
     modifier: Modifier = Modifier,
-    cardsAndLogs: List<RoutineCardsAndLogs>,
+//    cardsAndLogs: List<RoutineCardsAndLogs>,
     currentYear: Int,
-    currentMonth: Int,
-    adaptiveInfo: WindowAdaptiveInfo
+    item: RoutineCardsAndLogs,
 ) {
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        state = rememberLazyListState()
-    ) {
+//    LazyColumn(
+//        modifier = modifier.fillMaxSize(),
+//        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
+//        verticalArrangement = Arrangement.spacedBy(10.dp),
+//        state = rememberLazyListState()
+//    ) {
+//        items(items = cardsAndLogs, key = { it.card.id }) { item ->
 
-        items(items = cardsAndLogs, key = { it.card.id }) { item ->
-
-            val validLogs = remember(item.logs, currentYear, currentMonth) {
-                item.logs.asSequence()
-                    .filter { it.isCompleted && it.recordDate != null }
-                    .filter { it.recordDate!!.year == currentYear }
-                    .toList()
-            }
-
-            val completedMonthDays = List(12) { index ->
-                validLogs.count { it.recordDate!!.monthValue == index + 1 }.toFloat()
-            }
-
-            YearChartCard(
-                cardAndLog = item,
-                completedMonthDays = completedMonthDays,
-            )
-        }
+    val validLogs = remember(item.logs, currentYear) {
+        item.logs.asSequence()
+            .filter { it.isCompleted && it.recordDate != null }
+            .filter { it.recordDate!!.year == currentYear }
+            .toList()
     }
+
+    val completedMonthDays = List(12) { index ->
+        validLogs.count { it.recordDate!!.monthValue == index + 1 }.toFloat()
+    }
+
+    YearChartCard(
+        modifier = modifier,
+        cardAndLog = item,
+        completedMonthDays = completedMonthDays,
+        currentYear = currentYear,
+    )
+
+
+
+//        }
+//    }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun YearChartCard(
     modifier: Modifier = Modifier,
     cardAndLog: RoutineCardsAndLogs,
-    completedMonthDays: List<Float>
+    completedMonthDays: List<Float>,
+    currentYear: Int,
 ) {
-    val dummyText = "M".repeat(3)
-    Card(
-        Modifier.aspectRatio(1f / 0.55f),
-        colors = CardDefaults.cardColors(
-            containerColor = ContainerLowest
-        )
-    ) {
-        Column(
-            Modifier.fillMaxSize()
+    val cardColor = cardAndLog.card.cardColor.toComposeColor()
+    val cardShape = PresetShape.fromName(cardAndLog.card.cardShape).polygon
+    val cardText = cardAndLog.card.cardText
+    val cardImage = cardAndLog.card.cardImage
+    Column(Modifier.fillMaxSize()) {
+        Spacer(Modifier.weight(0.1f))
+        Card(Modifier.fillMaxWidth(0.4f).aspectRatio(1f / 1.5f).align(Alignment.CenterHorizontally),
+            colors = CardDefaults.cardColors(
+                containerColor = cardColor.toCompositeOverSurface()),
+            shape = MaterialTheme.shapes.large
         ) {
-            Spacer(Modifier.height(10.dp))
-            Row(
-                Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Spacer(Modifier.width(10.dp))
-                Text(
-                    text = cardAndLog.card.cardText,
-                    Modifier.padding(start = 5.dp),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
+            Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                 Spacer(Modifier.weight(1f))
-                Icon(painterResource(R.drawable.check_circle_24px), null, Modifier.size(15.dp))
-                Spacer(Modifier.width(5.dp))
-                Box(modifier = Modifier.width(IntrinsicSize.Min)) {
-                    Text(text = dummyText, maxLines = 1, modifier = Modifier.alpha(0f))
-                    Text(
-                        text = "${completedMonthDays.sum().toInt()}",
-                        maxLines = 1,
-                        textAlign = TextAlign.End
+                Box(Modifier.fillMaxWidth(0.9f), contentAlignment = Alignment.Center) {
+                    ImageAreaCard(
+                        modifier = Modifier.fillMaxWidth(0.9f).aspectRatio(1f),
+                        targetShape = cardShape,
+                        imageColor =  cardColor,
+                        selectImage = cardImage,
+                        onImageClick = null,
                     )
                 }
-                Spacer(Modifier.width(10.dp))
+                Spacer(Modifier.weight(1f))
+                Text(
+                    text = cardText,
+                    modifier = Modifier.fillMaxWidth(0.9f),
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.titleLarge,
+                    maxLines = 2,
+                )
+                Spacer(Modifier.weight(1f))
             }
-            Spacer(Modifier.height(10.dp))
-            Box(
-                Modifier
-                    .weight(1f)
-                    .padding(horizontal = 10.dp),
-            ) {
-                AnimatedBarChart(data = completedMonthDays, color = cardAndLog.card.composeColor)
-            }
-            Spacer(Modifier.height(10.dp))
         }
+        Spacer(Modifier.weight(0.1f))
+        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Card(
+                modifier = modifier.fillMaxWidth(0.9f).aspectRatio(1f / 0.6f),
+                colors = CardDefaults.cardColors(
+                    containerColor = ContainerLowest
+                ),
+                shape = MaterialTheme.shapes.large
+            ) {
+                Column(
+                    Modifier.fillMaxSize()
+                ) {
+                    Spacer(Modifier.weight(0.3f))
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Spacer(Modifier.weight(0.3f))
+                        Text(
+                            text = "$currentYear",
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Spacer(Modifier.weight(4f))
+                        Box(Modifier.size(15.dp).clip(cardShape.toShape())
+                            .background(cardColor)
+                        )
+                        Spacer(Modifier.weight(0.1f))
+                        Box {
+                            Text(text = "mmm", modifier = Modifier.alpha(0f))
+                            Text(
+                                text = "${completedMonthDays.sum().toInt()}",
+                                maxLines = 1,
+                                textAlign = TextAlign.End
+                            )
+                        }
+                        Spacer(Modifier.weight(0.1f))
+                    }
+                    Spacer(Modifier.weight(0.1f))
+                    Box(
+                        Modifier.weight(4f).padding(horizontal = 10.dp),
+                    ) {
+                        AnimatedBarChart(data = completedMonthDays, color = cardAndLog.card.composeColor)
+                    }
+                    Spacer(Modifier.weight(0.1f))
+                }
+            }
+        }
+        Spacer(Modifier.weight(1f))
     }
+
 }
 
 @Composable
@@ -672,11 +768,11 @@ fun AnimatedBarChart(
     data: List<Float>,
     color: Color,
 ) {
-    val progress = rememberSaveable(saver = FloatAnimatableSaver) { Animatable(0f) }
     // 记住 TextMeasurer 用于在 Canvas 中测量和绘制文本
     val textMeasurer = rememberTextMeasurer()
     val textStyle = MaterialTheme.typography.labelSmall.copy(color = OnSurface)
 
+    val progress = rememberSaveable(saver = FloatAnimatableSaver) { Animatable(0f) }
     LaunchedEffect(Unit) {
         progress.animateTo(
             targetValue = 1f,
