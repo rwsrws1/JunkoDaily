@@ -10,7 +10,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +31,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -37,30 +40,41 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.foundation.text.TextAutoSizeDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.adaptive.WindowAdaptiveInfo
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -69,6 +83,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.drawText
@@ -79,14 +94,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.window.core.layout.WindowSizeClass
+import com.example.learncompose.core.designsystem.Black
 import com.example.learncompose.core.designsystem.Container
 import com.example.learncompose.core.designsystem.ContainerLowest
 import com.example.learncompose.core.designsystem.OnSurface
+import com.example.learncompose.core.designsystem.White
+import com.example.learncompose.core.designsystem.icons.AppIcons
+import com.example.learncompose.core.designsystem.property.PresetImage
+import com.example.learncompose.core.designsystem.property.PresetShape
 import com.example.learncompose.core.model.RoutineCard
 import com.example.learncompose.core.model.RoutineCardsAndLogs
-import com.example.learncompose.feature.routine.chart.ChartContract
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -95,6 +116,7 @@ private val RoutineCard.composeColor: Color
     get() = Color(this.cardColor)
 
 private val YEAR_MONTH_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM")
+private val MONTH_FORMATTER = DateTimeFormatter.ofPattern("MM")
 private val YEAR_FORMATTER = DateTimeFormatter.ofPattern("yyyy")
 
 val FloatAnimatableSaver = Saver<Animatable<Float, AnimationVector1D>, Float>(
@@ -119,56 +141,66 @@ fun ChartScreen(
     uiState: ChartContract.UiState = ChartContract.UiState(),
     naviToRoutineScreen: () -> Unit = {}
 ) {
-    var isShowWithYear by rememberSaveable { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     val adaptiveInfo = currentWindowAdaptiveInfo()
     val cardsAndLogs = uiState.cardsAndLogs
 
-    val initialPage =
-        if (isShowWithYear) {
-            9
-        } else {
-            11
-        }
-    val pagerState = if (isShowWithYear) {
-        rememberPagerState(
-            initialPage = initialPage,
-            pageCount = { initialPage + 1 }
-        )
-    } else {
-        rememberPagerState(
-            initialPage = initialPage,
-            pageCount = { initialPage + 1 }
-        )
-    }
+    val pageSize = remember { 12 }
+    val tabList = List(pageSize) { it }
+    var selectPage by remember { mutableIntStateOf(tabList.lastIndex) }
+    val pagerState = rememberPagerState(initialPage = selectPage, pageCount = { pageSize })
+    val tabScrollState = rememberScrollState()
+    var isShowHeader by rememberSaveable { mutableStateOf(false) }
+
+//    val initialPage = 11
+//    val pagerState = rememberPagerState(
+//        initialPage = initialPage,
+//        pageCount = { initialPage + 1 }
+//    )
 
     val today = remember { LocalDate.now() }
-    val currentDay by remember(isShowWithYear) {
-        if (isShowWithYear) {
-            derivedStateOf {
-                today.minusYears((initialPage - pagerState.currentPage).toLong())
-            }
-        } else {
-            derivedStateOf {
-                today.minusMonths((initialPage - pagerState.currentPage).toLong())
+    val currentDay by remember {
+        derivedStateOf {
+            today.minusMonths((tabList.lastIndex - pagerState.currentPage).toLong())
 
-            }
         }
     }
-    val yearMonthStr by remember(isShowWithYear) {
-        if (isShowWithYear) {
-            derivedStateOf {
-                currentDay.format(YEAR_FORMATTER)
-            }
-        } else {
-            derivedStateOf {
-                currentDay.format(YEAR_MONTH_FORMATTER)
-            }
+    val yearStr by remember {
+        derivedStateOf {
+            currentDay.format(YEAR_FORMATTER)
+        }
+    }
+    val monthStr by remember {
+        derivedStateOf {
+            currentDay.format(MONTH_FORMATTER)
         }
     }
 
-    var fabVisible by remember { mutableStateOf(false) }
+    val lazyGridState = rememberLazyGridState()
+    var isFabShow by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        fabVisible = true
+        isFabShow = true
+    }
+    LaunchedEffect(lazyGridState) {
+        var previousIndex = lazyGridState.firstVisibleItemIndex
+        var previousScrollOffset = lazyGridState.firstVisibleItemScrollOffset
+        snapshotFlow {
+            Pair(lazyGridState.firstVisibleItemIndex, lazyGridState.firstVisibleItemScrollOffset)
+        }.collect { (currentIndex, currentOffset) ->
+            if (currentIndex > previousIndex) {
+                isFabShow = false
+            } else if (currentIndex < previousIndex) {
+                isFabShow = true
+            } else {
+                if (currentOffset > previousScrollOffset + 6) {
+                    isFabShow = false
+                } else if (currentOffset < previousScrollOffset - 6) {
+                    isFabShow = true
+                }
+            }
+            previousIndex = currentIndex
+            previousScrollOffset = currentOffset
+        }
     }
 
     Box(modifier.fillMaxSize()) {
@@ -176,9 +208,32 @@ fun ChartScreen(
             floatingActionButtonPosition = FabPosition.Center,
             modifier = Modifier.fillMaxSize(),
             topBar = {
-                TopAppBar(
+                CenterAlignedTopAppBar(
+                    navigationIcon = {
+                        Card(
+                            modifier = Modifier.padding(start = 10.dp).size(50.dp).clickable(
+                                onClick = {
+                                    isShowHeader = !isShowHeader
+                                },
+                                indication = null,
+                                interactionSource = null
+                            ),
+                            colors = CardDefaults.cardColors(
+                                containerColor = ContainerLowest
+                            )
+                        ) {
+                            Box(Modifier.fillMaxWidth().weight(1f).background(Black)
+                                , contentAlignment = Alignment.Center) {
+                                Text(yearStr, style = MaterialTheme.typography.labelSmall.copy(color = White))
+                            }
+                            Box(Modifier.fillMaxWidth().weight(2.7f).background(ContainerLowest),
+                                contentAlignment = Alignment.Center) {
+                                Text(monthStr, style = MaterialTheme.typography.titleLarge.copy(color = OnSurface))
+                            }
+                        }
+                    },
                     title = {
-                        Text(yearMonthStr, style = MaterialTheme.typography.titleMedium)
+                        Text("Junko's Daily")
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Container
@@ -187,36 +242,26 @@ fun ChartScreen(
             },
             floatingActionButton = {
                 AnimatedVisibility(
-                    visible = fabVisible,
+                    visible = isFabShow,
                     enter = slideInVertically(
-                        // fullHeight 表示从屏幕最底部外侧开始向上滑动
-                        initialOffsetY = { fullHeight -> fullHeight },
-                        animationSpec = tween(1000)
-                    ) + fadeIn(),
+                        initialOffsetY = { it },
+                        animationSpec = MaterialTheme.motionScheme.slowSpatialSpec()
+                    ) + fadeIn(animationSpec = MaterialTheme.motionScheme.slowEffectsSpec(), 0.5f),
                     exit = slideOutVertically(
-                        targetOffsetY = { fullHeight -> fullHeight },
-                        animationSpec = tween(1000)
-                    ) + fadeOut()
+                        targetOffsetY = { it },
+                        animationSpec = MaterialTheme.motionScheme.slowSpatialSpec()
+                    ) + fadeOut(animationSpec = MaterialTheme.motionScheme.slowEffectsSpec(), 0f)
                 ) {
                     FloatingActionButton(
                         modifier = Modifier.padding(bottom = 10.dp),
                         onClick = {
-                            isShowWithYear = !isShowWithYear
+                            naviToRoutineScreen()
                         },
+                        containerColor = ContainerLowest,
+                        contentColor = OnSurface,
+                        shape = CircleShape
                     ) {
-                        val selectStyle = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Bold
-                        )
-                        val normalStyle = MaterialTheme.typography.bodySmall.copy(
-                            fontWeight = FontWeight.Normal
-                        )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("月", style = if (isShowWithYear) normalStyle else selectStyle)
-                            Text("/")
-                            Text("年", style = if (isShowWithYear) selectStyle else normalStyle)
-                        }
+                        Icon(painterResource(AppIcons.back), null)
                     }
                 }
             }
@@ -224,38 +269,102 @@ fun ChartScreen(
             Column(
                 Modifier
                     .fillMaxSize()
+                    .background(Container)
                     .padding(paddingValues)
                     .consumeWindowInsets(paddingValues)
             ) {
+
+                AnimatedVisibility(
+                    visible = isShowHeader
+                ) {
+                    PrimaryScrollableTabRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+//                        .layout { measurable, constraints ->
+//                            val placeable = measurable.measure(constraints)
+//
+//                            // 【直接读取官方引擎计算好的 offset 即可！】
+//                            val offset = scrollBehavior.state.heightOffset
+//                            val currentHeight =
+//                                (placeable.height + offset).coerceAtLeast(0f).toInt()
+//
+//                            layout(placeable.width, currentHeight) {
+//                                placeable.placeRelative(0, offset.toInt())
+//                            }
+//                        }
+                        ,
+                        selectedTabIndex = pagerState.currentPage,
+                        scrollState = tabScrollState,
+                        indicator = {},
+                        divider = {},
+                        minTabWidth = 0.dp,
+                        containerColor = Container,
+                    ) {
+                        tabList.forEachIndexed { index, i ->
+                            val isSelected = pagerState.currentPage == index
+                            val tabDate = today.minusMonths((tabList.lastIndex - index).toLong())
+
+                            Tab(
+                                selected = isSelected,
+                                onClick = {
+                                    selectPage = index
+                                    scope.launch {
+                                        pagerState.animateScrollToPage(selectPage)
+                                    }
+                                },
+                                modifier = Modifier
+                                    .height(60.dp)
+                                    .padding(horizontal = 4.dp, vertical = 5.dp)
+                                    .aspectRatio(1f / 1f)
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .background(if (isSelected) Black else ContainerLowest),
+                                selectedContentColor = Color.White,
+                                unselectedContentColor = Container
+                            ) {
+                                Box(
+                                    Modifier.fillMaxHeight(),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Text(
+                                        text = "${tabDate.monthValue}",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 HorizontalPager(
                     state = pagerState,
                     pageSize = PageSize.Fill,
                     beyondViewportPageCount = 0,
                     pageSpacing = 10.dp,
-                    modifier = Modifier.fillMaxSize().background(Container)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Container)
                 ) { page ->
-                    val currentDay = if (isShowWithYear) {
-                        remember(page, today) {
-                            today.minusYears((initialPage - page).toLong())
-                        }
-                    } else remember(page, today) {
-                        today.minusMonths((initialPage - page).toLong())
+                    val currentDay = remember(page, today) {
+                        today.minusMonths((tabList.lastIndex - page).toLong())
                     }
-                    if (isShowWithYear) {
-                        YearChartPage(
-                            cardsAndLogs = cardsAndLogs,
-                            currentYear = currentDay.year,
-                            currentMonth = currentDay.monthValue,
-                            adaptiveInfo = adaptiveInfo
-                        )
-                    } else {
-                        MonthChartPage(
-                            cardsAndLogs = cardsAndLogs,
-                            currentYear = currentDay.year,
-                            currentMonth = currentDay.monthValue,
-                            adaptiveInfo = adaptiveInfo
-                        )
-                    }
+//                    if (isShowWithYear) {
+//                        YearChartPage(
+//                            cardsAndLogs = cardsAndLogs,
+//                            currentYear = currentDay.year,
+//                            currentMonth = currentDay.monthValue,
+//                            adaptiveInfo = adaptiveInfo
+//                        )
+//                    } else {
+//                    }
+                    MonthChartPage(
+                        cardsAndLogs = cardsAndLogs,
+                        currentYear = currentDay.year,
+                        currentMonth = currentDay.monthValue,
+                        adaptiveInfo = adaptiveInfo,
+                        state = lazyGridState
+                    )
 
                 }
             }
@@ -270,7 +379,8 @@ private fun MonthChartPage(
     cardsAndLogs: List<RoutineCardsAndLogs>,
     currentYear: Int,
     currentMonth: Int,
-    adaptiveInfo: WindowAdaptiveInfo
+    adaptiveInfo: WindowAdaptiveInfo,
+    state: LazyGridState
 ) {
 
     val scaleFactor =
@@ -307,7 +417,7 @@ private fun MonthChartPage(
         LazyVerticalGrid(
             modifier = modifier.fillMaxSize(),
             columns = GridCells.Adaptive(minSize),
-            state = rememberLazyGridState(),
+            state = state,
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -329,6 +439,7 @@ private fun MonthChartPage(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun MonthChartCard(
     modifier: Modifier = Modifier,
@@ -336,6 +447,7 @@ private fun MonthChartCard(
     daysInMonths: Int,
     completedDays: Set<Int>
 ) {
+    val boxShape = PresetShape.fromName(cardAndLog.card.cardShape).polygon.toShape()
     Card(
         Modifier
             .aspectRatio(1f / 1.1f)
@@ -357,15 +469,24 @@ private fun MonthChartCard(
             overflow = TextOverflow.Ellipsis
         )
         Spacer(Modifier.height(10.dp))
-        MonthCalendarGrid(
-            daysInMonths = daysInMonths,
-            completedDays = completedDays,
-            activeColor = cardAndLog.card.composeColor,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(horizontal = 10.dp)
-        )
+        Box(Modifier
+            .fillMaxWidth()
+            .weight(1f)
+            .padding(horizontal = 10.dp)) {
+            MonthCalendarGrid(
+                daysInMonths = daysInMonths,
+                completedDays = completedDays,
+                activeColor = cardAndLog.card.composeColor,
+                modifier = Modifier.fillMaxSize(),
+                boxShape = boxShape
+            )
+            Image(
+                painterResource(PresetImage.fromResName(cardAndLog.card.cardImage).resId), null,
+                Modifier.align(Alignment.Center),
+                alpha = 0.2f
+            )
+        }
+
         Spacer(Modifier.height(5.dp))
         Row(
             Modifier
@@ -380,7 +501,8 @@ private fun MonthChartCard(
             Spacer(Modifier.weight(0.5f))
             VerticalDivider(Modifier.fillMaxHeight(0.6f))
             Spacer(Modifier.weight(0.5f))
-            Icon(painterResource(R.drawable.check_circle_24px), null, Modifier.size(15.dp))
+//            Icon(painterResource(R.drawable.check_circle_24px), null, Modifier.size(15.dp))
+            Box(Modifier.size(15.dp).clip(boxShape).background(OnSurface))
             Spacer(Modifier.width(3.dp))
             Text("${completedDays.size}")
             Spacer(Modifier.weight(1f))
@@ -397,7 +519,8 @@ private fun MonthCalendarGrid(
     daysInMonths: Int,
     completedDays: Set<Int>,
     activeColor: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    boxShape: Shape
 ) {
     // 假设前导有 2 个空位置
     val firstDayOffset = 2
@@ -411,7 +534,7 @@ private fun MonthCalendarGrid(
         for (rowIndex in 0 until rows) {
             Row(
                 modifier = Modifier.weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(3.dp)
+                horizontalArrangement = Arrangement.spacedBy(1.dp)
             ) {
                 for (columnIndex in 0 until 7) {
                     val slotIndex = rowIndex * 7 + columnIndex
@@ -421,10 +544,13 @@ private fun MonthCalendarGrid(
                         val isCompleted = completedDays.contains(dayNumber)
                         DayBox(
                             modifier = Modifier
+                                .fillMaxHeight()
                                 .weight(1f)
-                                .fillMaxHeight(),
-                            color = if (isCompleted) activeColor else MaterialTheme.colorScheme.surfaceContainerLow,
-                            number = dayNumber
+                                .aspectRatio(1f / 1f)
+//                                .clip(MaterialTheme.shapes.extraSmall)
+                                .clip(boxShape)
+                                .background(if (isCompleted) activeColor else Container),
+                            number = dayNumber,
                         )
                     } else {
                         // 空白的填充格
@@ -437,19 +563,16 @@ private fun MonthCalendarGrid(
 }
 
 @Composable
-fun DayBox(modifier: Modifier = Modifier, color: Color, number: Int) {
-    Box(
-        modifier
-            .aspectRatio(1f / 1f)
-            .clip(MaterialTheme.shapes.extraSmall)
-            .background(color),
+fun DayBox(modifier: Modifier = Modifier, number: Int) {
+    Box(modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
         Text(
-            "$number",
-            style = MaterialTheme.typography.bodySmall,
+            text = "$number",
+            style = MaterialTheme.typography.labelSmall,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.surfaceContainerLowest
+            color = ContainerLowest,
+            letterSpacing = 0.sp,
         )
     }
 }
@@ -632,5 +755,5 @@ fun AnimatedBarChart(
 @Preview
 @Composable
 private fun Preview() {
-    ChartScreen()
+    ChartScreen(uiState = ChartContract.UiState(cardsAndLogs = listOf(RoutineCardsAndLogs())))
 }

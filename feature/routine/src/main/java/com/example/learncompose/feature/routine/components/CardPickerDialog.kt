@@ -105,7 +105,7 @@ fun FullscreenCustomOverlay(
 
     AnimatedVisibility(
         visible = isShowCardPicker,
-        enter = fadeIn(animationSpec = MaterialTheme.motionScheme.slowSpatialSpec(), initialAlpha = 0.5f) +
+        enter = fadeIn(animationSpec = MaterialTheme.motionScheme.slowEffectsSpec(), initialAlpha = 0.5f) +
                 slideInVertically(
                     initialOffsetY = { it / 2 },
                     animationSpec = MaterialTheme.motionScheme.slowSpatialSpec()
@@ -114,7 +114,7 @@ fun FullscreenCustomOverlay(
                     initialScale = 0.6f,
                     animationSpec = MaterialTheme.motionScheme.slowSpatialSpec()
                 ),
-        exit = fadeOut(animationSpec = MaterialTheme.motionScheme.slowSpatialSpec(), targetAlpha = 0.5f) +
+        exit = fadeOut(animationSpec = MaterialTheme.motionScheme.slowEffectsSpec(), targetAlpha = 0f) +
                 slideOutVertically(
                     targetOffsetY = { it },
                     animationSpec = MaterialTheme.motionScheme.slowSpatialSpec()
@@ -407,7 +407,7 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
                                     cardText = textState,
                                     cardColor = targetColor.toArgbLong(),
                                     cardImage = selectImage,
-                                    cardShape = shapeList[selectedShapeIndex].name
+                                    cardShape = shapeList[selectedShapeIndex].shapeName
                                 )
                             )
                             onDismiss()
