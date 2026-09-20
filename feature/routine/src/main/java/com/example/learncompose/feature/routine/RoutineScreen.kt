@@ -168,31 +168,9 @@ fun RoutineScreen(
 //    )
 //    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
 
-    val lazyGridState = rememberLazyGridState()
     var isFabShow by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         isFabShow = true
-    }
-    LaunchedEffect(lazyGridState) {
-        var previousIndex = lazyGridState.firstVisibleItemIndex
-        var previousScrollOffset = lazyGridState.firstVisibleItemScrollOffset
-        snapshotFlow {
-            Pair(lazyGridState.firstVisibleItemIndex, lazyGridState.firstVisibleItemScrollOffset)
-        }.collect { (currentIndex, currentOffset) ->
-            if (currentIndex > previousIndex) {
-                isFabShow = false
-            } else if (currentIndex < previousIndex) {
-                isFabShow = true
-            } else {
-                if (currentOffset > previousScrollOffset + 6) {
-                    isFabShow = false
-                } else if (currentOffset < previousScrollOffset - 6) {
-                    isFabShow = true
-                }
-            }
-            previousIndex = currentIndex
-            previousScrollOffset = currentOffset
-        }
     }
 
     Box(
@@ -296,22 +274,22 @@ fun RoutineScreen(
                         Text("Junko's Daily")
                     },
                     actions = {
-                        TextButton(
-                            onClick = {
-                                repeat(PresetColorList.size) { time ->
-                                    handler(
-                                        RoutineContract.Intent.InsertCard(
-                                            cardText = "测试卡片",
-                                            cardColor = PresetColorList[time],
-                                            cardShape = "Circle",
-                                            cardImage = PresetImage.defaultImage.resName
-                                        )
-                                    )
-                                }
-                            },
-                        ) {
-                            Text("test", color = Color.Transparent)
-                        }
+//                        TextButton(
+//                            onClick = {
+//                                repeat(PresetColorList.size) { time ->
+//                                    handler(
+//                                        RoutineContract.Intent.InsertCard(
+//                                            cardText = "测试卡片",
+//                                            cardColor = PresetColorList[time],
+//                                            cardShape = "Circle",
+//                                            cardImage = PresetImage.defaultImage.resName
+//                                        )
+//                                    )
+//                                }
+//                            },
+//                        ) {
+//                            Text("test", color = Color.Transparent)
+//                        }
                         IconButton(
                             onClick = {
                                 naviToChartScreen()
@@ -441,6 +419,29 @@ fun RoutineScreen(
                 ) { page ->
                     val pageDate = remember(page) {
                         today.minusDays((tabList.lastIndex - page).toLong())
+                    }
+
+                    val lazyGridState = rememberLazyGridState()
+                    LaunchedEffect(lazyGridState) {
+                        var previousIndex = lazyGridState.firstVisibleItemIndex
+                        var previousScrollOffset = lazyGridState.firstVisibleItemScrollOffset
+                        snapshotFlow {
+                            Pair(lazyGridState.firstVisibleItemIndex, lazyGridState.firstVisibleItemScrollOffset)
+                        }.collect { (currentIndex, currentOffset) ->
+                            if (currentIndex > previousIndex) {
+                                isFabShow = false
+                            } else if (currentIndex < previousIndex) {
+                                isFabShow = true
+                            } else {
+                                if (currentOffset > previousScrollOffset + 6) {
+                                    isFabShow = false
+                                } else if (currentOffset < previousScrollOffset - 6) {
+                                    isFabShow = true
+                                }
+                            }
+                            previousIndex = currentIndex
+                            previousScrollOffset = currentOffset
+                        }
                     }
 
                     val cardWithLogsForThisPage = uiState.cardWithLogsMap[pageDate] ?: emptyList()

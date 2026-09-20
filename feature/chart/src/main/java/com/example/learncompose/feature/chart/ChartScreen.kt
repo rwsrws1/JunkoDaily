@@ -152,31 +152,9 @@ fun ChartScreen(
         }
     }
 
-    val lazyGridState = rememberLazyGridState()
     var isFabShow by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         isFabShow = true
-    }
-    LaunchedEffect(lazyGridState) {
-        var previousIndex = lazyGridState.firstVisibleItemIndex
-        var previousScrollOffset = lazyGridState.firstVisibleItemScrollOffset
-        snapshotFlow {
-            Pair(lazyGridState.firstVisibleItemIndex, lazyGridState.firstVisibleItemScrollOffset)
-        }.collect { (currentIndex, currentOffset) ->
-            if (currentIndex > previousIndex) {
-                isFabShow = false
-            } else if (currentIndex < previousIndex) {
-                isFabShow = true
-            } else {
-                if (currentOffset > previousScrollOffset + 6) {
-                    isFabShow = false
-                } else if (currentOffset < previousScrollOffset - 6) {
-                    isFabShow = true
-                }
-            }
-            previousIndex = currentIndex
-            previousScrollOffset = currentOffset
-        }
     }
 
     var isShowWithYear by remember { mutableStateOf(false) }
@@ -382,6 +360,30 @@ fun ChartScreen(
                                 val currentDay = remember(page, today) {
                                     today.minusMonths((tabList.lastIndex - page).toLong())
                                 }
+
+                                val lazyGridState = rememberLazyGridState()
+                                LaunchedEffect(lazyGridState) {
+                                    var previousIndex = lazyGridState.firstVisibleItemIndex
+                                    var previousScrollOffset = lazyGridState.firstVisibleItemScrollOffset
+                                    snapshotFlow {
+                                        Pair(lazyGridState.firstVisibleItemIndex, lazyGridState.firstVisibleItemScrollOffset)
+                                    }.collect { (currentIndex, currentOffset) ->
+                                        if (currentIndex > previousIndex) {
+                                            isFabShow = false
+                                        } else if (currentIndex < previousIndex) {
+                                            isFabShow = true
+                                        } else {
+                                            if (currentOffset > previousScrollOffset + 6) {
+                                                isFabShow = false
+                                            } else if (currentOffset < previousScrollOffset - 6) {
+                                                isFabShow = true
+                                            }
+                                        }
+                                        previousIndex = currentIndex
+                                        previousScrollOffset = currentOffset
+                                    }
+                                }
+
                                 MonthChartPage(
                                     cardsAndLogs = cardsAndLogs,
                                     currentYear = currentDay.year,
