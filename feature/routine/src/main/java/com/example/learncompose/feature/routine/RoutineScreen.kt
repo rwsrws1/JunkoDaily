@@ -155,7 +155,11 @@ fun RoutineScreen(
             currentDate.month.getDisplayName(TextStyle.SHORT, currentLocale)
         }
     }
-    val dayOfWeekStr = currentDate.dayOfWeek.getDisplayName(TextStyle.SHORT, currentLocale)
+    val dayOfWeekStr by remember {
+        derivedStateOf {
+            currentDate.dayOfWeek.getDisplayName(TextStyle.SHORT, currentLocale)
+        }
+    }
     LaunchedEffect(currentDate) {
         handler(RoutineContract.Intent.SelectDate(currentDate))
     }
@@ -387,6 +391,7 @@ fun RoutineScreen(
                                 selectedContentColor = Color.White,
                                 unselectedContentColor = Container
                             ) {
+                                val dayOfWeekStrTable = tabDate.dayOfWeek.getDisplayName(TextStyle.SHORT, currentLocale)
                                 Box(
                                     Modifier.fillMaxHeight(),
                                     contentAlignment = Alignment.Center,
@@ -398,7 +403,7 @@ fun RoutineScreen(
                                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                                             )
                                         )
-                                        Text(text = dayOfWeekStr, style = MaterialTheme.typography.labelSmall)
+                                        Text(text = "$dayOfWeekStrTable", style = MaterialTheme.typography.labelSmall)
                                     }
                                 }
                             }
