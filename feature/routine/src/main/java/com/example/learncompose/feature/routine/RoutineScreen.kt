@@ -1,5 +1,6 @@
 package com.example.learncompose.feature.routine
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -32,6 +33,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
@@ -84,6 +86,7 @@ import com.example.learncompose.core.designsystem.components.ImageAreaCard
 import com.example.learncompose.core.designsystem.property.PresetImage
 import com.example.learncompose.core.designsystem.property.PresetShape
 import com.example.learncompose.core.designsystem.toCompositeOverSurface
+import com.example.learncompose.feature.routine.components.AnimatedGridItem
 import com.example.learncompose.feature.routine.components.ExplosionConfetti
 import com.example.learncompose.feature.routine.components.FullscreenCustomOverlay
 import com.example.learncompose.feature.routine.components.ScratchMaskCard
@@ -99,7 +102,6 @@ val LocalHandler = compositionLocalOf<(RoutineContract.Intent) -> Unit> {
 }
 
 private val MONTH_DAY_FORMATTER = DateTimeFormatter.ofPattern("MM-dd")
-private val DAY_FORMATTER = DateTimeFormatter.ofPattern("dd")
 
 @Composable
 fun RoutineViewModelScreen(
@@ -143,8 +145,16 @@ fun RoutineScreen(
         }
     }
     val currentLocale = LocalLocale.current.platformLocale
-    val monthDayStr = currentDate.format(DAY_FORMATTER)
-//    val dayOfWeekStr = currentDate.dayOfWeek.getDisplayName(TextStyle.FULL, currentLocale)
+    val monthDayStr by remember {
+        derivedStateOf {
+            currentDate.dayOfMonth
+        }
+    }
+    val monthStr by remember {
+        derivedStateOf {
+            currentDate.month.getDisplayName(TextStyle.SHORT, currentLocale)
+        }
+    }
     val dayOfWeekStr = currentDate.dayOfWeek.getDisplayName(TextStyle.SHORT, currentLocale)
     LaunchedEffect(currentDate) {
         handler(RoutineContract.Intent.SelectDate(currentDate))
@@ -260,11 +270,25 @@ fun RoutineScreen(
                         ) {
                             Box(Modifier.fillMaxWidth().weight(1f).background(Black)
                                 , contentAlignment = Alignment.Center) {
-                                Text(dayOfWeekStr, style = MaterialTheme.typography.labelSmall.copy(color = White))
+                                AnimatedContent(
+                                    targetState = isShowHeader
+                                ) { isShow ->
+                                    if (!isShow) {
+                                        Text(text = dayOfWeekStr, style = MaterialTheme.typography.labelSmall.copy(color = White))
+                                    } else {
+                                        Text(text = monthStr, style = MaterialTheme.typography.titleMediumEmphasized.copy(color = White))
+                                    }
+                                }
                             }
-                            Box(Modifier.fillMaxWidth().weight(2.7f).background(ContainerLowest),
-                                contentAlignment = Alignment.Center) {
-                                Text(monthDayStr, style = MaterialTheme.typography.titleLarge.copy(color = OnSurface))
+                            AnimatedContent(
+                                targetState = isShowHeader
+                            ) { isShow ->
+                                if (!isShow) {
+                                    Box(Modifier.fillMaxWidth().aspectRatio(1.5f/1f).background(ContainerLowest),
+                                        contentAlignment = Alignment.Center) {
+                                        Text("$monthDayStr", style = MaterialTheme.typography.titleLarge.copy(color = OnSurface))
+                                    }
+                                }
                             }
                         }
                     },
@@ -389,12 +413,15 @@ fun RoutineScreen(
                                     Modifier.fillMaxHeight(),
                                     contentAlignment = Alignment.Center,
                                 ) {
-                                    Text(
-                                        text = "${tabDate.dayOfMonth}",
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text(
+                                            text = "${tabDate.dayOfMonth}",
+                                            style = MaterialTheme.typography.titleMedium.copy(
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                            )
                                         )
-                                    )
+                                        Text(text = dayOfWeekStr, style = MaterialTheme.typography.labelSmall)
+                                    }
                                 }
                             }
                         }
@@ -476,7 +503,7 @@ fun CardGrid(
         verticalArrangement = Arrangement.spacedBy(20.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        items(items = cardWithLogs, key = { item -> item.cardId }) { item ->
+        itemsIndexed(items = cardWithLogs, key = { index, item -> item.cardId }) { index, item ->
             var isShowConfetti by remember(item.cardId) { mutableStateOf(false) }
             val onFrontFaceClick = remember(item.cardId) {
                 {

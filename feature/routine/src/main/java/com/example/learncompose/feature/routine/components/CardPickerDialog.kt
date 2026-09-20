@@ -1,6 +1,7 @@
 package com.example.learncompose.feature.routine.components
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
@@ -104,7 +105,10 @@ fun FullscreenCustomOverlay(
 
     AnimatedVisibility(
         visible = isShowCardPicker,
-        enter = fadeIn(animationSpec = MaterialTheme.motionScheme.slowEffectsSpec(), initialAlpha = 0.5f) +
+        enter = fadeIn(
+            animationSpec = MaterialTheme.motionScheme.slowEffectsSpec(),
+            initialAlpha = 0.5f
+        ) +
                 slideInVertically(
                     initialOffsetY = { it / 2 },
                     animationSpec = MaterialTheme.motionScheme.slowSpatialSpec()
@@ -113,7 +117,10 @@ fun FullscreenCustomOverlay(
                     initialScale = 0.6f,
                     animationSpec = MaterialTheme.motionScheme.slowSpatialSpec()
                 ),
-        exit = fadeOut(animationSpec = MaterialTheme.motionScheme.slowEffectsSpec(), targetAlpha = 0f) +
+        exit = fadeOut(
+            animationSpec = MaterialTheme.motionScheme.slowEffectsSpec(),
+            targetAlpha = 0f
+        ) +
                 slideOutVertically(
                     targetOffsetY = { it },
                     animationSpec = MaterialTheme.motionScheme.slowSpatialSpec()
@@ -126,7 +133,8 @@ fun FullscreenCustomOverlay(
         BackHandler {
             onDismiss()
         }
-        Box(Modifier.fillMaxSize(),
+        Box(
+            Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
         ) {
             CardPickerDialog(onDismiss = onDismiss)
@@ -184,9 +192,11 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             if (isSelectImage) {
-                Box(Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f / 0.7f), contentAlignment = Alignment.Center) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f / 0.7f), contentAlignment = Alignment.Center
+                ) {
                     ImagePickPage(
                         modifier = Modifier
                             .fillMaxHeight(0.7f)
@@ -242,7 +252,8 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
                             shapeList.forEachIndexed { index, label ->
                                 customItem(
                                     buttonGroupContent = {
-                                        val contentPadding = PaddingValues(horizontal = 10.dp, vertical = 12.dp)
+                                        val contentPadding =
+                                            PaddingValues(horizontal = 10.dp, vertical = 12.dp)
                                         val layoutDirection = LocalLayoutDirection.current
 
                                         ToggleButton(
@@ -250,11 +261,19 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
                                                 Modifier.animateWidth(
                                                     interactionSource = interactionSources[index],
                                                     compressionLimit =
-                                                        contentPadding.calculateEndPadding(layoutDirection),
-                                                )
-                                            ,
+                                                        contentPadding.calculateEndPadding(
+                                                            layoutDirection
+                                                        ),
+                                                ),
                                             checked = selectedShapeIndex == index,
-                                            onCheckedChange = { selectedShapeIndex = index },
+                                            onCheckedChange = {
+                                                if (isSelectImage) {
+                                                    selectImage =
+                                                        PresetImage.allImages[pagerState.currentPage].resName
+                                                    isSelectImage = false
+                                                }
+                                                selectedShapeIndex = index
+                                            },
                                             interactionSource = interactionSources[index],
                                             shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(
                                                 shape = CircleShape,
@@ -262,17 +281,25 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
                                                 checkedShape = connectedButtonCheckedShape,
                                             ),
                                             colors = ToggleButtonDefaults.colors(
-                                                containerColor = MaterialTheme.colorScheme.scrim.copy(0.2f),
-                                                contentColor = MaterialTheme.colorScheme.surface.copy(0.2f),
-                                                checkedContainerColor = MaterialTheme.colorScheme.surface.copy(0.2f),
+                                                containerColor = MaterialTheme.colorScheme.scrim.copy(
+                                                    0.2f
+                                                ),
+                                                contentColor = MaterialTheme.colorScheme.surface.copy(
+                                                    0.2f
+                                                ),
+                                                checkedContainerColor = MaterialTheme.colorScheme.surface.copy(
+                                                    0.2f
+                                                ),
                                                 checkedContentColor = MaterialTheme.colorScheme.inverseSurface
                                             ),
                                             contentPadding = contentPadding,
                                         ) {
-                                            Box(Modifier
-                                                .size(25.dp)
-                                                .clip(shapeList[index].polygon.toShape())
-                                                .background(MaterialTheme.colorScheme.surface))
+                                            Box(
+                                                Modifier
+                                                    .size(25.dp)
+                                                    .clip(shapeList[index].polygon.toShape())
+                                                    .background(MaterialTheme.colorScheme.surface)
+                                            )
                                         }
                                     },
                                     menuContent = {
@@ -290,19 +317,31 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
 
                     Spacer(Modifier.weight(0.1f))
 
-                    Row(modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
                         colorList.forEachIndexed { index, color ->
                             ToggleButton(
                                 modifier = Modifier
                                     .then(
                                         if (selectedColorIndex == index) {
-                                            Modifier.border(2.dp, Color.White, MaterialTheme.shapes.medium)
+                                            Modifier.border(
+                                                2.dp,
+                                                Color.White,
+                                                MaterialTheme.shapes.medium
+                                            )
                                         } else Modifier
-                                    )
-                                ,
+                                    ),
                                 checked = selectedColorIndex == index,
-                                onCheckedChange = { selectedColorIndex = index },
+                                onCheckedChange = {
+                                    if (isSelectImage) {
+                                        selectImage =
+                                            PresetImage.allImages[pagerState.currentPage].resName
+                                        isSelectImage = false
+                                    }
+                                    selectedColorIndex = index
+                                },
                                 buttonSize = ToggleButtonSize.ExtraSmall,
                                 shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(
                                     shape = CircleShape,
@@ -315,7 +354,10 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
                                     checkedContainerColor = color.toComposeColor(),
                                     checkedContentColor = MaterialTheme.colorScheme.inverseSurface
                                 ),
-                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 10.dp),
+                                contentPadding = PaddingValues(
+                                    horizontal = 10.dp,
+                                    vertical = 10.dp
+                                ),
                             ) {
                                 Box(
                                     modifier = Modifier
@@ -328,10 +370,18 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
 
                     Spacer(Modifier.weight(0.1f))
 
-                    Slider(state = slideState,
+                    Slider(
+                        state = slideState,
                         modifier = Modifier.fillMaxWidth(),
                         enabled = true,
-                        onValueChange = { slideState.value = it },
+                        onValueChange = {
+                            if (isSelectImage) {
+                                selectImage =
+                                    PresetImage.allImages[pagerState.currentPage].resName
+                                isSelectImage = false
+                            }
+                            slideState.value = it
+                                        },
                         onValueChangeFinished = null,
                         colors = SliderDefaults.colors(),
                         interactionSource = remember { MutableInteractionSource() })
@@ -342,18 +392,23 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
 
             Spacer(Modifier.weight(0.2f))
 
-            Box(Modifier
-                .fillMaxWidth(0.75f)
-                .weight(1f)
-                .clip(MaterialTheme.shapes.extraLarge)
-                .background(MaterialTheme.colorScheme.inverseSurface)
-                .padding(horizontal = 10.dp),
+            Box(
+                Modifier
+                    .fillMaxWidth(0.75f)
+                    .weight(1f)
+                    .clip(MaterialTheme.shapes.extraLarge)
+                    .background(MaterialTheme.colorScheme.inverseSurface)
+                    .padding(horizontal = 10.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Row(Modifier.fillMaxWidth()) {
 
                     IconButton(
                         onClick = {
+                            if (isSelectImage) {
+                                selectImage = PresetImage.allImages[pagerState.currentPage].resName
+                                isSelectImage = false
+                            }
                             colorList = PresetFiveRandomColor
                             shapeList = PresetShape.presetFiveRandomShape
                         },
@@ -401,6 +456,10 @@ fun CardPickerDialog(modifier: Modifier = Modifier, onDismiss: () -> Unit = {}) 
 
                     IconButton(
                         onClick = {
+                            if (isSelectImage) {
+                                selectImage = PresetImage.allImages[pagerState.currentPage].resName
+                                isSelectImage = false
+                            }
                             handler(
                                 RoutineContract.Intent.InsertCard(
                                     cardText = textState,

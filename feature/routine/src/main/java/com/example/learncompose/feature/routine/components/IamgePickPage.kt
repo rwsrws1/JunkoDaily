@@ -78,7 +78,7 @@ fun ImagePickPage(
                     // 2. 缩放变换：非聚焦卡片按比例缩小
                     val scale = lerp(
                         start = 1f,
-                        stop = 0.75f,
+                        stop = 0.7f,
                         fraction = absOffset.coerceIn(0f, 1f)
                     )
                     scaleX = scale

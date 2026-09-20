@@ -20,8 +20,8 @@ import com.example.learncompose.feature.spend.SpendScreen
 fun EntryProviderScope<NavKey>.chartEntry(navigator: Navigator) {
     entry<ChartKey>(
     ) {
-        ChartViewModelScreen(viewModel = hiltViewModel(), naviToRoutineScreen = {
-            navigator.navigate(RoutineKey)
+        ChartViewModelScreen(viewModel = hiltViewModel(), goBack = {
+            navigator.goBack()
         })
     }
 }
