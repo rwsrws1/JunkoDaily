@@ -16,7 +16,7 @@ import coil3.memory.MemoryCache
 //import com.junko.junkodaily.data.room.AppContainer
 
 @HiltAndroidApp
-class LearnApplication : Application(), SingletonImageLoader.Factory {
+class MainApplication : Application(), SingletonImageLoader.Factory {
     override fun onCreate() {
         super.onCreate()
 //        AppContainer.init(this)
