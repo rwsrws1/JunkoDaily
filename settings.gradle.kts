@@ -23,7 +23,7 @@ dependencyResolutionManagement {
 }
 includeBuild("build-logic")
 
-rootProject.name = "LearnCompose"
+rootProject.name = "JunkoDaily"
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 include(":app")

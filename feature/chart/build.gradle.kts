@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.learncompose.feature.chart"
+    namespace = "com.junko.junkodaily.feature.chart"
 }
 
 dependencies {

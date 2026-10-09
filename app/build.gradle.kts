@@ -6,22 +6,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.learncompose"
-//    compileSdk {
-//        version = release(36) {
-//            minorApiLevel = 1
-//        }
-//    }
+    namespace = "com.junko.junkodaily"
 
     defaultConfig {
-        applicationId = "com.example.learncompose"
-//        minSdk = 29
+        applicationId = "com.junko.junkodaily"
         targetSdk = 37
         versionCode = 1
-        versionName = "1.0"
-
-//        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
+        versionName = "1.2"
     }
 
     buildTypes {
@@ -33,18 +24,7 @@ android {
             )
         }
     }
-//    compileOptions {
-//        sourceCompatibility = JavaVersion.VERSION_11
-//        targetCompatibility = JavaVersion.VERSION_11
-//    }
-//    buildFeatures {
-//        compose = true
-//    }
 }
-
-//room {
-//    schemaDirectory("$projectDir/schemas")
-//}
 
 dependencies {
     implementation(projects.core.navigation)
@@ -60,7 +40,6 @@ dependencies {
     implementation(projects.feature.chart)
     implementation(projects.feature.routine)
     implementation(projects.feature.spend)
-
 
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.splashscreen)

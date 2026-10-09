@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.learncompose.core.navigation"
+    namespace = "com.junko.junkodaily.core.navigation"
 }
 
 dependencies {

@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.learncompose.feature.experiment"
+    namespace = "com.junko.junkodaily.feature.experiment"
 }
 
 dependencies {

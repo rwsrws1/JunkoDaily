@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.learncompose.feature.spend"
+    namespace = "com.junko.junkodaily.feature.spend"
 }
 
 dependencies {

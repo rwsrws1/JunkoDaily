@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.learncompose.core.data"
+    namespace = "com.junko.junkodaily.core.data"
 }
 
 dependencies {

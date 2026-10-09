@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.learncompose.core.datastore"
+    namespace = "com.junko.junkodaily.core.datastore"
 }
 
 dependencies {

@@ -57,7 +57,7 @@
 
         <provider
             android:name=".feature.experiment.data.room.UserContentProvider"
-            android:authorities="com.example.myapp.userprovider"
+            android:authorities="com.junko.myapp.userprovider"
             android:exported="true"
             tools:ignore="ExportedContentProvider" />
         <!-- 如果需要读写权限控制，可以加上 readPermission / writePermission -->

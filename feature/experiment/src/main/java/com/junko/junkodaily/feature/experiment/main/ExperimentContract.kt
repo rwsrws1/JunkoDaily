@@ -1,0 +1,11 @@
+package com.junko.junkodaily.feature.experiment.main
+
+import com.junko.junkodaily.feature.experiment.main.navigation.ExperimentNavKey
+
+class ExperimentContract {
+    data class State(val data: String = "")
+    sealed interface Intent {
+        data object Logout : Intent
+        data class ChangeCurrentKey(val key: ExperimentNavKey) : Intent
+    }
+}
